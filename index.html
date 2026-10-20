@@ -16,11 +16,23 @@
   <h1>ろくが<small>RoQga</small></h1>
   <p class="copy">撮って、得点もいっしょに残そう</p>
   <p class="lead">試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残します。<br>スマホは<b>横向き</b>で使います。</p>
+  <!-- チーム：1行に 名前・色・▼（保存したチームから選ぶ）・保存／消す（いまの名前と色が保存済みなら「消す」）。
+       保存したチームは自チーム・相手で同じ一覧（よく当たる相手も保存できる） -->
   <div class="teams">
-    <label>自チーム<input id="teamUs" maxlength="12" placeholder="自チーム"></label>
-    <input id="colorUs" type="color" aria-label="自チームの色">
-    <label>相手<input id="teamThem" maxlength="12" placeholder="相手"></label>
-    <input id="colorThem" type="color" aria-label="相手の色">
+    <label for="teamUs">自チーム</label>
+    <div class="team-row" data-side="us">
+      <input id="teamUs" maxlength="12" placeholder="自チーム">
+      <input id="colorUs" type="color" aria-label="自チームの色">
+      <label class="team-pick" hidden><span class="sr">保存したチームから選ぶ</span><select></select></label>
+      <button class="team-action" type="button">保存</button>
+    </div>
+    <label for="teamThem">相手</label>
+    <div class="team-row" data-side="them">
+      <input id="teamThem" maxlength="12" placeholder="相手">
+      <input id="colorThem" type="color" aria-label="相手の色">
+      <label class="team-pick" hidden><span class="sr">保存したチームから選ぶ</span><select></select></label>
+      <button class="team-action" type="button">保存</button>
+    </div>
   </div>
   <p id="fromSaqsen" class="hint" hidden>さくせん盤のチーム名・色を使っています。</p>
   <p class="now-score">いまのスコア <b id="setupScore">0 - 0</b> <button id="resetScore" class="link" type="button">0 - 0 にする</button></p>

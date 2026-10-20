@@ -58,6 +58,81 @@ $("resetScore").addEventListener("click", () => {
   })
 );
 
+// ---- 保存したチーム（名前と色の組）。さくせん盤など Q のサッカー系で共通に使えるよう、共通の名前で残す ----
+const TEAMS_KEY = "q-soccer:teams";
+const MAX_TEAMS = 30;
+let teams = (() => {
+  try {
+    const list = JSON.parse(localStorage.getItem(TEAMS_KEY));
+    return Array.isArray(list) ? list.filter((t) => t && t.name) : [];
+  } catch {
+    return [];
+  }
+})();
+const saveTeams = () => {
+  try {
+    localStorage.setItem(TEAMS_KEY, JSON.stringify(teams));
+  } catch {
+    // 残せなくても使える
+  }
+};
+const SIDES = { us: { name: "teamUs", color: "colorUs" }, them: { name: "teamThem", color: "colorThem" } };
+const sameTeam = (t, name, color) => t.name === name && t.color.toLowerCase() === String(color).toLowerCase();
+
+// それぞれの行：▼ は保存したチームがあるときだけ。右のボタンは、いまの名前と色が保存済みなら「消す」、まだなら「保存」
+function renderTeams() {
+  document.querySelectorAll(".team-row").forEach((row) => {
+    const keys = SIDES[row.dataset.side];
+    const name = state[keys.name].trim();
+    const saved = teams.some((t) => sameTeam(t, name, state[keys.color]));
+    row.querySelector(".team-pick").hidden = !teams.length;
+    const select = row.querySelector("select");
+    select.replaceChildren(
+      Object.assign(document.createElement("option"), { value: "", textContent: "保存したチーム" }),
+      ...teams.map((t, i) => Object.assign(document.createElement("option"), { value: String(i), textContent: t.name }))
+    );
+    select.value = "";
+    const action = row.querySelector(".team-action");
+    action.textContent = saved ? "消す" : "保存";
+    action.classList.toggle("is-remove", saved);
+    action.disabled = !name;
+  });
+}
+
+document.querySelectorAll(".team-row").forEach((row) => {
+  const keys = SIDES[row.dataset.side];
+  // ▼ で選ぶ：名前と色をまとめて入れる
+  row.querySelector("select").addEventListener("change", (e) => {
+    const t = teams[Number(e.target.value)];
+    if (!t) return;
+    state[keys.name] = t.name;
+    state[keys.color] = t.color;
+    $(keys.name).value = t.name;
+    $(keys.color).value = t.color;
+    save();
+    renderTeams();
+  });
+  // 保存／消す
+  row.querySelector(".team-action").addEventListener("click", () => {
+    const name = state[keys.name].trim();
+    const color = state[keys.color];
+    if (!name) return;
+    const i = teams.findIndex((t) => sameTeam(t, name, color));
+    if (i >= 0) {
+      if (!confirm(`「${name}」を保存したチームから消しますか？`)) return;
+      teams.splice(i, 1);
+    } else {
+      if (teams.length >= MAX_TEAMS) return alert(`保存できるのは ${MAX_TEAMS} チームまでです。使わないものを消してください。`);
+      // 同じ名前は色を上書き（色だけ変えて保存し直せる）
+      teams = [{ name, color }, ...teams.filter((t) => t.name !== name)];
+    }
+    saveTeams();
+    renderTeams();
+  });
+});
+document.querySelectorAll(".team-row input").forEach((input) => input.addEventListener("input", renderTeams));
+renderTeams();
+
 // ---- カメラ ----
 const video = $("camera");
 const screen = $("screen");
