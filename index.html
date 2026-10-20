@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>スコア録画（仮）｜得点板つきで試合を撮る</title>
+<meta name="description" content="試合をスマホで撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残せます。">
+<meta name="theme-color" content="#0f1a14">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
+<main id="setup" class="setup">
+  <h1>スコア録画<small>（仮）</small></h1>
+  <p class="lead">試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残します。<br>スマホは<b>横向き</b>で使います。</p>
+  <div class="teams">
+    <label>自チーム<input id="teamUs" maxlength="12" placeholder="自チーム"></label>
+    <input id="colorUs" type="color" aria-label="自チームの色">
+    <label>相手<input id="teamThem" maxlength="12" placeholder="相手"></label>
+    <input id="colorThem" type="color" aria-label="相手の色">
+  </div>
+  <p id="fromSaqsen" class="hint" hidden>さくせん盤のチーム名・色を使っています。</p>
+  <p class="now-score">いまのスコア <b id="setupScore">0 - 0</b> <button id="resetScore" class="link" type="button">0 - 0 にする</button></p>
+  <button id="openCamera" class="btn" type="button">📹 カメラを開く</button>
+  <p id="setupError" class="error" hidden></p>
+  <p class="hint">動画はこの端末にだけ保存します（サーバーには送りません）。録画中は画面を消したり、別のアプリに切りかえたりしないでください。</p>
+</main>
+
+<!-- 撮る画面：カメラ＋得点板を描いた画面がそのまま録画される。ボタンは録画には入らない -->
+<section id="studio" class="studio" hidden>
+  <canvas id="screen" class="screen"></canvas>
+  <video id="camera" playsinline muted autoplay hidden></video>
+  <!-- 得点：左が自チーム、右が相手。大きな ＋、小さな − -->
+  <div class="side is-us">
+    <button class="plus" type="button" data-score="us" data-delta="1" aria-label="自チームに1点">＋1</button>
+    <button class="minus" type="button" data-score="us" data-delta="-1" aria-label="自チームの1点を取り消す">−1</button>
+  </div>
+  <div class="side is-them">
+    <button class="plus" type="button" data-score="them" data-delta="1" aria-label="相手に1点">＋1</button>
+    <button class="minus" type="button" data-score="them" data-delta="-1" aria-label="相手の1点を取り消す">−1</button>
+  </div>
+  <div class="bar">
+    <button id="back" class="small" type="button">← 戻る</button>
+    <button id="record" class="record" type="button" aria-label="録画をはじめる"><span></span></button>
+    <span id="elapsed" class="elapsed"></span>
+  </div>
+  <p id="rotate" class="rotate">スマホを横向きにしてください</p>
+</section>
+
+<!-- 録画を止めたあと：保存・共有 -->
+<div id="saveSheet" class="sheet" hidden>
+  <div class="sheet-card">
+    <p class="sheet-title">録画を保存</p>
+    <video id="playback" class="playback" playsinline controls></video>
+    <p id="saveInfo" class="hint"></p>
+    <button id="shareVideo" class="btn" type="button">📤 保存・共有する</button>
+    <a id="downloadVideo" class="btn ghost" download>⬇️ ダウンロード</a>
+    <button id="closeSave" class="link" type="button">閉じる（撮影にもどる）</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
