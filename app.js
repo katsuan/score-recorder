@@ -33,7 +33,6 @@ const state = {
   colorThem: saved.colorThem || saqsen.oppColor || "#ffffff",
   us: Number(saved.us) || 0,
   them: Number(saved.them) || 0,
-  split: saved.split === "none" ? "none" : "split5", // LINE の5分に合わせて区切るか
   goalFx: saved.goalFx !== false // ＋1 のとき「GOAL!」のエフェクトを動画に入れるか
 };
 const fromSaqsen = !saved.teamUs && Boolean(saqsen.team || saqsen.opponent);
@@ -60,17 +59,6 @@ $("resetScore").addEventListener("click", () => {
     save();
   })
 );
-
-// ---- LINE の5分に合わせて区切るか（5分ごとに区切る・区切らない） ----
-const showSplit = () => document.querySelectorAll("[data-split]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.split === state.split)));
-document.querySelectorAll("[data-split]").forEach((b) =>
-  b.addEventListener("click", () => {
-    state.split = b.dataset.split;
-    save();
-    showSplit();
-  })
-);
-showSplit();
 
 // ---- GOAL のエフェクトを出すか・試す ----
 const showGoalFxSetting = () => document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
@@ -427,9 +415,9 @@ document.querySelectorAll("[data-score]").forEach((b) =>
 );
 
 // ---- 録画 ----
-// LINE で送れる動画は 5分まで。state.split："split5"（5分ごとに別の動画にする。ふだんはこれ）・"none"（区切らない）。
-// 5分ごとに MediaRecorder を新しくして、1本ずつの動画（clips）にする（あとから動画を切るのはブラウザでは難しいため）。
-// 止めたあと、5分を超えていたら「全部（5分ごと）・最初の5分・最後の5分（最後の1本）」から選べる
+// LINE で送れる動画は 5分まで。いつも5分ごとに MediaRecorder を新しくして、1本ずつの動画（clips）にする
+// （あとから動画を切るのはブラウザでは難しいため）。5分以下なら1本だけ。
+// 5分を超えたときだけ、止めたあとの保存の画面で「全部（5分ごと）・最初の5分・最後の5分（最後の1本）」から選べる
 // 1本の長さ（LINE の5分に少し余裕をもたせて 4分55秒）。確かめるときは ?segment=秒 で短くできる
 const SEGMENT_MS = (Number(new URLSearchParams(location.search).get("segment")) || 295) * 1000;
 let recorder = null;
@@ -473,12 +461,10 @@ function startClip() {
   recorder = rec;
   clipStartedAt = Date.now();
   clearTimeout(segmentTimer);
-  if (state.split !== "none") {
-    segmentTimer = setTimeout(() => {
-      rec.stop(); // 5分ごとに分ける：いまの1本を閉じて、すぐ次の1本
-      startClip();
-    }, SEGMENT_MS);
-  }
+  segmentTimer = setTimeout(() => {
+    rec.stop(); // 5分ごとに分ける：いまの1本を閉じて、すぐ次の1本
+    startClip();
+  }, SEGMENT_MS);
 }
 
 function startRecording() {
@@ -518,7 +504,7 @@ const clock = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "
 // 録画中の時間。5分を超えて分けはじめたら「（2本目）」
 function showElapsed() {
   const sec = Math.floor((Date.now() - startedAt) / 1000);
-  const note = state.split === "split5" && clips.length ? `（${clips.length + 1}本目）` : "";
+  const note = clips.length ? `（${clips.length + 1}本目）` : "";
   $("elapsed").textContent = `${clock(sec)}${note}`;
 }
 

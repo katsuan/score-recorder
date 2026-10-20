@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610202328">
+<link rel="stylesheet" href="style.css?v=202610202329">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -60,14 +60,6 @@
     </div>
   </div>
   <p id="fromSaqsen" class="hint" hidden>さくせん盤のチーム名・色を使っています。</p>
-  <!-- LINE で送れる動画は5分まで：5分を超えたら区切る（止めたあと、全部・最初の5分・最後の5分から選べる） -->
-  <div class="split">
-    <span class="split-label">LINE で送れる動画は5分まで</span>
-    <div class="seg" role="radiogroup" aria-label="5分で区切るか">
-      <button class="chip" type="button" role="radio" data-split="split5">5分ごとに区切る</button>
-      <button class="chip" type="button" role="radio" data-split="none">区切らない</button>
-    </div>
-  </div>
   <!-- GOAL のエフェクト：＋1 を押したとき、動画に「GOAL!」の帯を2秒ほど入れる -->
   <div class="split">
     <span class="split-label">GOAL のエフェクト（＋1 を押したとき）</span>
@@ -133,7 +125,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610202328"></script>
+<script src="app.js?v=202610202329"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
