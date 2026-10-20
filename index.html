@@ -51,6 +51,14 @@
     </div>
   </div>
   <p id="fromSaqsen" class="hint" hidden>さくせん盤のチーム名・色を使っています。</p>
+  <!-- LINE で送れる動画は5分まで：5分を超えたら区切る（止めたあと、全部・最初の5分・最後の5分から選べる） -->
+  <div class="split">
+    <span class="split-label">LINE で送れる動画は5分まで</span>
+    <div class="seg" role="radiogroup" aria-label="5分で区切るか">
+      <button class="chip" type="button" role="radio" data-split="split5">5分ごとに区切る（LINE 用）</button>
+      <button class="chip" type="button" role="radio" data-split="none">区切らない</button>
+    </div>
+  </div>
   <p class="now-score">いまのスコア <b id="setupScore">0 - 0</b> <button id="resetScore" class="link" type="button">0 - 0 にする</button></p>
   <button id="openCamera" class="btn" type="button">📹 カメラを開く</button>
   <p id="setupError" class="error" hidden></p>
@@ -93,8 +101,15 @@
     <p class="sheet-title">録画を保存</p>
     <video id="playback" class="playback" playsinline controls></video>
     <p id="saveInfo" class="hint"></p>
-    <button id="shareVideo" class="btn" type="button">📤 保存・共有する</button>
-    <a id="downloadVideo" class="btn ghost" download>⬇️ ダウンロード</a>
+    <!-- 5分を超えたとき：どれを残すか（全部・最初の5分・最後の5分＝最後の1本） -->
+    <div id="pickClips" class="seg" role="radiogroup" aria-label="どの動画を残すか" hidden>
+      <button class="chip" type="button" role="radio" data-pick="all">全部（5分ごと）</button>
+      <button class="chip" type="button" role="radio" data-pick="first">最初の5分</button>
+      <button class="chip" type="button" role="radio" data-pick="last">最後の5分</button>
+    </div>
+    <!-- 録った動画（5分ごとに分けたときは何本か）。押すと上で見返せる -->
+    <div id="clipList" class="clip-list"></div>
+    <button id="shareAll" class="btn" type="button" hidden>📤 まとめて保存・共有</button>
     <button id="closeSave" class="link" type="button">閉じる（撮影にもどる）</button>
   </div>
 </div>

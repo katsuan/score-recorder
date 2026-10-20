@@ -32,7 +32,8 @@ const state = {
   colorUs: saved.colorUs || saqsen.ourColor || "#6c47ff",
   colorThem: saved.colorThem || saqsen.oppColor || "#ffffff",
   us: Number(saved.us) || 0,
-  them: Number(saved.them) || 0
+  them: Number(saved.them) || 0,
+  split: saved.split === "none" ? "none" : "split5" // LINE の5分に合わせて区切るか
 };
 const fromSaqsen = !saved.teamUs && Boolean(saqsen.team || saqsen.opponent);
 
@@ -57,6 +58,17 @@ $("resetScore").addEventListener("click", () => {
     save();
   })
 );
+
+// ---- LINE の5分に合わせて区切るか（5分ごとに区切る・区切らない） ----
+const showSplit = () => document.querySelectorAll("[data-split]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.split === state.split)));
+document.querySelectorAll("[data-split]").forEach((b) =>
+  b.addEventListener("click", () => {
+    state.split = b.dataset.split;
+    save();
+    showSplit();
+  })
+);
+showSplit();
 
 // ---- 保存したチーム（名前と色の組）。さくせん盤など Q のサッカー系で共通に使えるよう、共通の名前で残す ----
 const TEAMS_KEY = "q-soccer:teams";
@@ -160,7 +172,7 @@ async function openCamera() {
 }
 
 function closeCamera() {
-  if (recorder?.state === "recording" && !confirm("録画中です。止めて戻りますか？")) return;
+  if (recording && !confirm("録画中です。止めて戻りますか？")) return;
   stopRecording();
   cameraStream?.getTracks().forEach((t) => t.stop());
   cameraStream = null;
@@ -215,7 +227,7 @@ function drawFrame() {
 
 // 倒す向きを選ぶ・やめる。録画中は変えない（動画の向きが途中で変わるため）
 function setTurn(next) {
-  if (recorder?.state === "recording") return;
+  if (recording) return;
   turn = next;
   const studio = $("studio");
   studio.classList.toggle("is-turned", Boolean(turn));
@@ -299,12 +311,22 @@ document.querySelectorAll("[data-score]").forEach((b) =>
 );
 
 // ---- 録画 ----
+// LINE で送れる動画は 5分まで。state.split："split5"（5分ごとに別の動画にする。ふだんはこれ）・"none"（区切らない）。
+// 5分ごとに MediaRecorder を新しくして、1本ずつの動画（clips）にする（あとから動画を切るのはブラウザでは難しいため）。
+// 止めたあと、5分を超えていたら「全部（5分ごと）・最初の5分・最後の5分（最後の1本）」から選べる
+// 1本の長さ（LINE の5分に少し余裕をもたせて 4分55秒）。確かめるときは ?segment=秒 で短くできる
+const SEGMENT_MS = (Number(new URLSearchParams(location.search).get("segment")) || 295) * 1000;
 let recorder = null;
+let recording = false;
 let chunks = [];
+let clips = []; // 録り終えた動画 [{ file, url, from, to }]（from・to は録りはじめからの秒）
 let startedAt = 0;
+let clipStartedAt = 0;
 let tick = 0;
-let videoUrl = "";
-let videoFile = null;
+let segmentTimer = 0;
+let recordStream = null;
+const activeRecs = new Set(); // まだ止まりきっていない録画（区切った直後は、前の1本と次の1本が少し重なる）
+let mimeType = "";
 
 // この端末で録れる形式（iPhone は mp4、Android・パソコンは webm のことが多い）
 function pickMimeType() {
@@ -312,20 +334,51 @@ function pickMimeType() {
   return types.find((t) => window.MediaRecorder?.isTypeSupported?.(t)) || "";
 }
 
+// 1本ぶんの録画をはじめる。止まったら clips に足し、続けるなら次の1本、終わりなら保存のシート
+function startClip() {
+  const rec = new MediaRecorder(recordStream, { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: 6_000_000 });
+  const parts = [];
+  const from = Math.round((Date.now() - startedAt) / 1000);
+  rec.addEventListener("dataavailable", (e) => e.data.size && parts.push(e.data));
+  rec.addEventListener("stop", () => {
+    activeRecs.delete(rec);
+    const type = rec.mimeType || parts[0]?.type || "video/webm";
+    const blob = new Blob(parts, { type });
+    const to = Math.round((Date.now() - startedAt) / 1000);
+    if (blob.size) clips.push({ blob, type, from, to });
+    // 録画を止めて、すべての1本が止まりきったら保存のシート（止まる順がずれても、録った順に並べる）
+    if (!recording && !activeRecs.size) {
+      clips.sort((a, b) => a.from - b.from);
+      showSaved();
+    }
+  });
+  activeRecs.add(rec);
+  rec.start(1000); // 1秒ごとに区切って受け取る（長く録っても途中で失いにくい）
+  recorder = rec;
+  clipStartedAt = Date.now();
+  clearTimeout(segmentTimer);
+  if (state.split !== "none") {
+    segmentTimer = setTimeout(() => {
+      rec.stop(); // 5分ごとに分ける：いまの1本を閉じて、すぐ次の1本
+      startClip();
+    }, SEGMENT_MS);
+  }
+}
+
 function startRecording() {
   if (!window.MediaRecorder || !screen.captureStream) {
     alert("この端末のブラウザでは録画できません。");
     return;
   }
-  const stream = screen.captureStream(30);
-  cameraStream.getAudioTracks().forEach((t) => stream.addTrack(t));
-  const mimeType = pickMimeType();
-  recorder = new MediaRecorder(stream, { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: 6_000_000 });
-  chunks = [];
-  recorder.addEventListener("dataavailable", (e) => e.data.size && chunks.push(e.data));
-  recorder.addEventListener("stop", showSaved);
-  recorder.start(1000); // 1秒ごとに区切って受け取る（長く録っても途中で失いにくい）
+  recordStream = screen.captureStream(30);
+  cameraStream.getAudioTracks().forEach((t) => recordStream.addTrack(t));
+  mimeType = pickMimeType();
+  clips.forEach((c) => c.url && URL.revokeObjectURL(c.url));
+  clips = [];
+  pick = "all";
+  recording = true;
   startedAt = Date.now();
+  startClip();
   $("record").classList.add("is-on");
   $("record").setAttribute("aria-label", "録画を止める");
   tick = setInterval(showElapsed, 500);
@@ -333,49 +386,98 @@ function startRecording() {
 }
 
 function stopRecording() {
-  if (recorder?.state === "recording") recorder.stop();
+  clearTimeout(segmentTimer);
+  if (recording) {
+    recording = false;
+    if (recorder?.state === "recording") recorder.stop();
+  }
   clearInterval(tick);
   $("elapsed").textContent = "";
   $("record").classList.remove("is-on");
   $("record").setAttribute("aria-label", "録画をはじめる");
 }
 
+const clock = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+
+// 録画中の時間。5分を超えて分けはじめたら「（2本目）」
 function showElapsed() {
   const sec = Math.floor((Date.now() - startedAt) / 1000);
-  $("elapsed").textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+  const note = state.split === "split5" && clips.length ? `（${clips.length + 1}本目）` : "";
+  $("elapsed").textContent = `${clock(sec)}${note}`;
 }
 
-// 止めたら：見返し・保存・共有
+// 止めたら：見返し・保存・共有（何本かあるときは1本ずつ、またはまとめて）
 function showSaved() {
-  const type = recorder.mimeType || chunks[0]?.type || "video/webm";
-  const blob = new Blob(chunks, { type });
-  const ext = type.includes("mp4") ? "mp4" : "webm";
-  const d = new Date();
+  const d = new Date(startedAt);
   const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}`;
-  const name = `score-${stamp}.${ext}`;
-  if (videoUrl) URL.revokeObjectURL(videoUrl);
-  videoUrl = URL.createObjectURL(blob);
-  videoFile = new File([blob], name, { type });
-  $("playback").src = videoUrl;
-  $("downloadVideo").href = videoUrl;
-  $("downloadVideo").download = name;
-  $("saveInfo").textContent = `${name}（${(blob.size / 1024 / 1024).toFixed(1)}MB）`;
-  $("shareVideo").hidden = !navigator.canShare?.({ files: [videoFile] });
+  clips.forEach((c, i) => {
+    const ext = c.type.includes("mp4") ? "mp4" : "webm";
+    const name = clips.length > 1 ? `score-${stamp}-${i + 1}.${ext}` : `score-${stamp}.${ext}`;
+    c.file = new File([c.blob], name, { type: c.type });
+    c.url = URL.createObjectURL(c.blob);
+  });
+  // 5分を超えていたら（2本以上）、どれを残すか選ぶ：全部・最初の5分・最後の5分
+  $("pickClips").hidden = clips.length < 2;
+  renderClips();
+  if (clips.length) showClip(clips.length - 1);
   $("saveSheet").hidden = false;
 }
 
-$("shareVideo").addEventListener("click", async () => {
+// state の「どれを残すか」に合う動画（clips の番号）
+let pick = "all";
+const pickedIndexes = () => (pick === "first" ? [0] : pick === "last" ? [clips.length - 1] : clips.map((_, i) => i));
+
+function renderClips() {
+  document.querySelectorAll("[data-pick]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.pick === pick)));
+  const shown = pickedIndexes();
+  const list = $("clipList");
+  list.replaceChildren(
+    ...shown.map((i) => {
+      const c = clips[i];
+      const row = document.createElement("div");
+      row.className = "clip";
+      const play = Object.assign(document.createElement("button"), { type: "button", className: "clip-play", textContent: `${clips.length > 1 ? `${i + 1}本目　` : ""}${clock(c.from)}〜${clock(c.to)}（${(c.blob.size / 1024 / 1024).toFixed(1)}MB）` });
+      play.addEventListener("click", () => showClip(i));
+      const share = Object.assign(document.createElement("button"), { type: "button", className: "clip-btn", textContent: "📤 保存・共有" });
+      share.hidden = !navigator.canShare?.({ files: [c.file] });
+      share.addEventListener("click", () => shareFiles([c.file]));
+      const down = Object.assign(document.createElement("a"), { className: "clip-btn", href: c.url, download: c.file.name, textContent: "⬇️" });
+      down.setAttribute("aria-label", `${c.file.name} をダウンロード`);
+      row.dataset.index = String(i);
+      row.append(play, share, down);
+      return row;
+    })
+  );
+  const files = shown.map((i) => clips[i].file);
+  $("shareAll").hidden = files.length < 2 || !navigator.canShare?.({ files });
+  $("saveInfo").textContent = clips.length > 1 ? `5分を超えたので、${clips.length}本（1本 5分まで）に分けて録りました。LINE でそのまま送れます。` : clips.length ? "" : "録れませんでした。もう一度お試しください。";
+  if (shown.length) showClip(shown[shown.length - 1]);
+}
+document.querySelectorAll("[data-pick]").forEach((b) =>
+  b.addEventListener("click", () => {
+    pick = b.dataset.pick;
+    renderClips();
+  })
+);
+
+function showClip(i) {
+  $("playback").src = clips[i].url;
+  document.querySelectorAll(".clip").forEach((row) => row.classList.toggle("is-current", row.dataset.index === String(i)));
+}
+
+async function shareFiles(files) {
   try {
-    await navigator.share({ files: [videoFile], title: "試合の動画" });
+    await navigator.share({ files, title: "試合の動画" });
   } catch {
     // やめたときは何もしない
   }
-});
+}
+$("shareAll").addEventListener("click", () => shareFiles(pickedIndexes().map((i) => clips[i].file)));
 $("closeSave").addEventListener("click", () => {
   $("saveSheet").hidden = true;
   $("playback").pause();
 });
-$("record").addEventListener("click", () => (recorder?.state === "recording" ? stopRecording() : startRecording()));
+$("record").addEventListener("click", () => (recording ? stopRecording() : startRecording()));
 $("openCamera").addEventListener("click", openCamera);
 $("back").addEventListener("click", closeCamera);
 document.addEventListener("visibilitychange", () => {
