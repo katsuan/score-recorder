@@ -33,7 +33,8 @@ const state = {
   colorThem: saved.colorThem || saqsen.oppColor || "#ffffff",
   us: Number(saved.us) || 0,
   them: Number(saved.them) || 0,
-  split: saved.split === "none" ? "none" : "split5" // LINE の5分に合わせて区切るか
+  split: saved.split === "none" ? "none" : "split5", // LINE の5分に合わせて区切るか
+  goalFx: saved.goalFx !== false // ＋1 のとき「GOAL!」のエフェクトを動画に入れるか
 };
 const fromSaqsen = !saved.teamUs && Boolean(saqsen.team || saqsen.opponent);
 
@@ -51,6 +52,7 @@ $("resetScore").addEventListener("click", () => {
   state.them = 0;
   save();
   showSetupScore();
+  drawPreview();
 });
 [["teamUs", "teamUs"], ["teamThem", "teamThem"], ["colorUs", "colorUs"], ["colorThem", "colorThem"]].forEach(([id, key]) =>
   $(id).addEventListener("input", () => {
@@ -69,6 +71,55 @@ document.querySelectorAll("[data-split]").forEach((b) =>
   })
 );
 showSplit();
+
+// ---- GOAL のエフェクトを出すか・試す ----
+const showGoalFxSetting = () => document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
+document.querySelectorAll("[data-goal-fx]").forEach((b) =>
+  b.addEventListener("click", () => {
+    state.goalFx = b.dataset.goalFx === "on";
+    save();
+    showGoalFxSetting();
+  })
+);
+showGoalFxSetting();
+$("tryGoal").addEventListener("click", () => {
+  goalFx = { side: "us", at: performance.now() };
+  drawPreview();
+});
+
+// ---- 得点板のプレビュー（はじめの画面）：芝のピッチの絵に、動画と同じ得点板・エフェクトを描く ----
+const preview = $("preview");
+const previewCtx = preview.getContext("2d");
+let previewLoop = 0;
+function drawPreview() {
+  const c = previewCtx;
+  const w = preview.width;
+  const h = preview.height;
+  const grass = c.createLinearGradient(0, 0, 0, h);
+  grass.addColorStop(0, "#3f9a5a");
+  grass.addColorStop(1, "#2e7d47");
+  c.fillStyle = grass;
+  c.fillRect(0, 0, w, h);
+  c.strokeStyle = "rgba(255, 255, 255, 0.6)";
+  c.lineWidth = 6;
+  c.strokeRect(60, 60, w - 120, h - 120);
+  c.beginPath();
+  c.moveTo(w / 2, 60);
+  c.lineTo(w / 2, h - 60);
+  c.stroke();
+  c.beginPath();
+  c.arc(w / 2, h / 2, 90, 0, Math.PI * 2);
+  c.stroke();
+  drawScoreboard(w, h, c);
+  drawGoalFx(w, h, c);
+  // エフェクトが出ている間は描き直し続ける
+  cancelAnimationFrame(previewLoop);
+  if (goalFx && $("studio").hidden) previewLoop = requestAnimationFrame(drawPreview);
+}
+document.querySelectorAll(".team-col input").forEach((input) => input.addEventListener("input", drawPreview));
+// はじめの1回は、このファイルを読み終わってから（GOAL のエフェクトの決まりがあとに書いてあるため）
+queueMicrotask(drawPreview);
+document.fonts?.ready.then(drawPreview);
 
 // ---- 保存したチーム（名前と色の組）。さくせん盤など Q のサッカー系で共通に使えるよう、共通の名前で残す ----
 const TEAMS_KEY = "q-soccer:teams";
@@ -93,7 +144,7 @@ const sameTeam = (t, name, color) => t.name === name && t.color.toLowerCase() ==
 
 // それぞれの行：▼ は保存したチームがあるときだけ。右のボタンは、いまの名前と色が保存済みなら「消す」、まだなら「保存」
 function renderTeams() {
-  document.querySelectorAll(".team-row").forEach((row) => {
+  document.querySelectorAll(".team-col").forEach((row) => {
     const keys = SIDES[row.dataset.side];
     const name = state[keys.name].trim();
     const saved = teams.some((t) => sameTeam(t, name, state[keys.color]));
@@ -111,7 +162,7 @@ function renderTeams() {
   });
 }
 
-document.querySelectorAll(".team-row").forEach((row) => {
+document.querySelectorAll(".team-col").forEach((row) => {
   const keys = SIDES[row.dataset.side];
   // ▼ で選ぶ：名前と色をまとめて入れる
   row.querySelector("select").addEventListener("change", (e) => {
@@ -123,6 +174,7 @@ document.querySelectorAll(".team-row").forEach((row) => {
     $(keys.color).value = t.color;
     save();
     renderTeams();
+    drawPreview();
   });
   // 保存／消す
   row.querySelector(".team-action").addEventListener("click", () => {
@@ -142,13 +194,14 @@ document.querySelectorAll(".team-row").forEach((row) => {
     renderTeams();
   });
 });
-document.querySelectorAll(".team-row input").forEach((input) => input.addEventListener("input", renderTeams));
+document.querySelectorAll(".team-col input").forEach((input) => input.addEventListener("input", renderTeams));
 renderTeams();
 
 // ---- カメラ ----
 const video = $("camera");
 const screen = $("screen");
 const ctx = screen.getContext("2d");
+const screenCtx = ctx;
 let cameraStream = null;
 let wakeLock = null;
 
@@ -181,6 +234,7 @@ function closeCamera() {
   $("studio").hidden = true;
   $("setup").hidden = false;
   showSetupScore();
+  drawPreview();
 }
 
 // 撮っている間は画面を消さない（別のアプリに切りかえると外れるので、戻ってきたらかけ直す）
@@ -222,6 +276,7 @@ function drawFrame() {
   ctx.drawImage(video, 0, 0, vw, vh);
   ctx.restore();
   drawScoreboard(w, h);
+  drawGoalFx(w, h);
   requestAnimationFrame(drawFrame);
 }
 
@@ -241,7 +296,7 @@ $("turnOff").addEventListener("click", () => setTurn(null));
 window.matchMedia("(orientation: landscape)").addEventListener("change", (e) => e.matches && setTurn(null));
 
 // 得点板：左上に濃い札。[自チームの色] 自チーム 2 - 1 相手 [相手の色]。大きさは映像の高さに合わせる
-function drawScoreboard(w, h) {
+function drawScoreboard(w, h, ctx = screenCtx) {
   const s = Math.min(w, h) / 720; // 720p で 1
   const pad = 20 * s;
   const boxH = 64 * s;
@@ -300,11 +355,72 @@ function drawScoreboard(w, h) {
   ctx.restore();
 }
 
-// ---- 得点の ＋・−（録画中でも押せる。0 より下にはしない） ----
+// ---- GOAL のエフェクト：＋1 のとき、画面の真ん中に得点したチームの色の帯と「GOAL!」を2秒ほど（動画にも入る） ----
+const GOAL_FX_MS = 2200;
+let goalFx = null; // { side: "us"|"them", at: 時刻 }
+
+// 明るい色の上は濃い字（白いチームの帯でも読める）
+const isLight = (hex) => {
+  const n = parseInt(String(hex).slice(1), 16);
+  return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 > 170;
+};
+
+function drawGoalFx(w, h, c = screenCtx) {
+  if (!goalFx) return;
+  const t = (performance.now() - goalFx.at) / GOAL_FX_MS;
+  if (t >= 1) {
+    goalFx = null;
+    return;
+  }
+  const s = Math.min(w, h) / 720;
+  const color = goalFx.side === "us" ? state.colorUs : state.colorThem;
+  const name = (goalFx.side === "us" ? state.teamUs : state.teamThem).trim();
+  const ink = isLight(color) ? "#14231a" : "#ffffff";
+  // 出てくる（0〜10%）・とどまる・消える（80〜100%）
+  const alpha = t < 0.1 ? t / 0.1 : t > 0.8 ? (1 - t) / 0.2 : 1;
+  // 字は最初に大きく出て、すっと元の大きさに（ぽんと出る感じ）
+  const pop = t < 0.12 ? 1.35 - (0.35 * t) / 0.12 : 1;
+  const bandH = 190 * s;
+  const y = h / 2 - bandH / 2;
+  const font = (size) => `800 ${size}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
+  c.save();
+  c.globalAlpha = alpha;
+  // 帯：横いっぱいに、チームの色（少し透ける）と、上下の白い線
+  c.fillStyle = color;
+  c.globalAlpha = alpha * 0.88;
+  c.fillRect(0, y, w, bandH);
+  c.globalAlpha = alpha;
+  c.fillStyle = "#ffffff";
+  c.fillRect(0, y - 5 * s, w, 5 * s);
+  c.fillRect(0, y + bandH, w, 5 * s);
+  // GOAL! と、下にチーム名・新しいスコア
+  c.translate(w / 2, h / 2 - 18 * s);
+  c.scale(pop, pop);
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillStyle = ink;
+  c.shadowColor = "rgba(0, 0, 0, 0.25)";
+  c.shadowBlur = 10 * s;
+  c.font = font(112 * s);
+  c.fillText("⚽ GOAL!", 0, 0);
+  c.restore();
+  c.save();
+  c.globalAlpha = alpha;
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillStyle = ink;
+  c.font = font(34 * s);
+  c.fillText(`${name ? `${name}　` : ""}${state.us} - ${state.them}`, w / 2, h / 2 + 62 * s);
+  c.restore();
+}
+
+// ---- 得点の ＋・−（録画中でも押せる。0 より下にはしない）。＋1 のときは GOAL のエフェクト ----
 document.querySelectorAll("[data-score]").forEach((b) =>
   b.addEventListener("click", () => {
     const key = b.dataset.score;
     state[key] = Math.max(0, state[key] + Number(b.dataset.delta));
+    if (Number(b.dataset.delta) > 0 && state.goalFx) goalFx = { side: key, at: performance.now() };
+    if (Number(b.dataset.delta) < 0) goalFx = null; // 取り消したら消す
     save();
     navigator.vibrate?.(10);
   })
@@ -425,7 +541,7 @@ function showSaved() {
 
 // state の「どれを残すか」に合う動画（clips の番号）
 let pick = "all";
-const pickedIndexes = () => (pick === "first" ? [0] : pick === "last" ? [clips.length - 1] : clips.map((_, i) => i));
+const pickedIndexes = () => (pick === "first" ? [0] : pick === "last" ? [clips.length - 1] : clips.map((_, i) => i)).filter((i) => clips[i]);
 
 function renderClips() {
   document.querySelectorAll("[data-pick]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.pick === pick)));

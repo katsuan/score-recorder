@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=202610202328">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -32,22 +32,31 @@
   <h1><img class="logo" src="icon.svg" alt="" width="28" height="28">ろくが<small>RoQga</small></h1>
   <p class="copy">撮って、得点もいっしょに残そう</p>
   <p class="lead">試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残します。<br>スマホは<b>横向き</b>で使います。</p>
-  <!-- チーム：1行に 名前・色・▼（保存したチームから選ぶ）・保存／消す（いまの名前と色が保存済みなら「消す」）。
+  <!-- 得点板のプレビュー：撮る前に、動画に入る得点板（チーム名・色・スコア、GOAL のエフェクト）を見ておける -->
+  <div class="preview-box">
+    <canvas id="preview" class="preview" width="1280" height="720" aria-label="得点板のプレビュー"></canvas>
+    <p class="now-score">いまのスコア <b id="setupScore">0 - 0</b> <button id="resetScore" class="link" type="button">0 - 0 にする</button></p>
+  </div>
+  <!-- チーム：得点板と同じく、左が自チーム・右が相手。名前・色・▼（保存したチームから選ぶ）・保存／消す。
        保存したチームは自チーム・相手で同じ一覧（よく当たる相手も保存できる） -->
   <div class="teams">
-    <label for="teamUs">自チーム</label>
-    <div class="team-row" data-side="us">
+    <div class="team-col" data-side="us">
+      <label for="teamUs">自チーム</label>
       <input id="teamUs" maxlength="12" placeholder="自チーム">
-      <input id="colorUs" type="color" aria-label="自チームの色">
-      <label class="team-pick" hidden><span class="sr">保存したチームから選ぶ</span><select></select></label>
-      <button class="team-action" type="button">保存</button>
+      <div class="team-row">
+        <input id="colorUs" type="color" aria-label="自チームの色">
+        <label class="team-pick" hidden><span class="sr">保存したチームから選ぶ</span><select></select></label>
+        <button class="team-action" type="button">保存</button>
+      </div>
     </div>
-    <label for="teamThem">相手</label>
-    <div class="team-row" data-side="them">
+    <div class="team-col" data-side="them">
+      <label for="teamThem">相手</label>
       <input id="teamThem" maxlength="12" placeholder="相手">
-      <input id="colorThem" type="color" aria-label="相手の色">
-      <label class="team-pick" hidden><span class="sr">保存したチームから選ぶ</span><select></select></label>
-      <button class="team-action" type="button">保存</button>
+      <div class="team-row">
+        <input id="colorThem" type="color" aria-label="相手の色">
+        <label class="team-pick" hidden><span class="sr">保存したチームから選ぶ</span><select></select></label>
+        <button class="team-action" type="button">保存</button>
+      </div>
     </div>
   </div>
   <p id="fromSaqsen" class="hint" hidden>さくせん盤のチーム名・色を使っています。</p>
@@ -59,7 +68,15 @@
       <button class="chip" type="button" role="radio" data-split="none">区切らない</button>
     </div>
   </div>
-  <p class="now-score">いまのスコア <b id="setupScore">0 - 0</b> <button id="resetScore" class="link" type="button">0 - 0 にする</button></p>
+  <!-- GOAL のエフェクト：＋1 を押したとき、動画に「GOAL!」の帯を2秒ほど入れる -->
+  <div class="split">
+    <span class="split-label">GOAL のエフェクト（＋1 を押したとき）</span>
+    <div class="seg" role="radiogroup" aria-label="GOAL のエフェクト">
+      <button class="chip" type="button" role="radio" data-goal-fx="on">出す</button>
+      <button class="chip" type="button" role="radio" data-goal-fx="off">出さない</button>
+      <button id="tryGoal" class="chip" type="button">▶ 試す</button>
+    </div>
+  </div>
   <button id="openCamera" class="btn" type="button">📹 カメラを開く</button>
   <p id="setupError" class="error" hidden></p>
   <p class="hint">動画はこの端末にだけ保存します（サーバーには送りません）。録画中は画面を消したり、別のアプリに切りかえたりしないでください。</p>
@@ -116,7 +133,7 @@
   </div>
 </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=202610202328"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
