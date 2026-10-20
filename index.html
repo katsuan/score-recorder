@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610202330">
+<link rel="stylesheet" href="style.css?v=202610202358">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -32,11 +32,6 @@
   <h1><img class="logo" src="icon.svg" alt="" width="28" height="28">ろくが<small>RoQga</small></h1>
   <p class="copy">得点もいっしょにとろう</p>
   <p class="lead">試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残します。<br>スマホは<b>横向き</b>で使います。</p>
-  <!-- 得点板のプレビュー：撮る前に、動画に入る得点板（チーム名・色・スコア、GOAL のエフェクト）を見ておける -->
-  <div class="preview-box">
-    <canvas id="preview" class="preview" width="1280" height="720" aria-label="得点板のプレビュー"></canvas>
-    <p class="now-score">いまのスコア <b id="setupScore">0 - 0</b> <button id="resetScore" class="link" type="button">0 - 0 にする</button></p>
-  </div>
   <!-- チーム：得点板と同じく、左が自チーム・右が相手。名前・色・▼（保存したチームから選ぶ）・保存／消す。
        保存したチームは自チーム・相手で同じ一覧（よく当たる相手も保存できる） -->
   <div class="teams">
@@ -60,6 +55,16 @@
     </div>
   </div>
   <p id="fromSaqsen" class="hint" hidden>さくせん盤のチーム名・色を使っています。</p>
+  <!-- 得点板のプレビュー：撮る前に、動画に入る得点板（チーム名・色・スコア、GOAL のエフェクト）を見ておける。
+       チームとエフェクトの設定のあいだに置き、プレビューだとわかるよう見出しと「プレビュー」の札をつける -->
+  <div class="preview-box">
+    <span class="split-label">👀 プレビュー（動画にはこう入ります）</span>
+    <div class="preview-frame">
+      <canvas id="preview" class="preview" width="1280" height="720" aria-label="得点板のプレビュー"></canvas>
+      <span class="preview-tag">プレビュー</span>
+    </div>
+    <p class="now-score">いまのスコア <b id="setupScore">0 - 0</b> <button id="resetScore" class="link" type="button">0 - 0 にする</button></p>
+  </div>
   <!-- GOAL のエフェクト：＋1 を押したとき、動画に「GOAL!」の帯を2秒ほど入れる -->
   <div class="split">
     <span class="split-label">GOAL のエフェクト（＋1 を押したとき）</span>
@@ -125,7 +130,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610202330"></script>
+<script src="app.js?v=202610202358"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
