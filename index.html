@@ -63,6 +63,8 @@
   <button id="openCamera" class="btn" type="button">📹 カメラを開く</button>
   <p id="setupError" class="error" hidden></p>
   <p class="hint">動画はこの端末にだけ保存します（サーバーには送りません）。録画中は画面を消したり、別のアプリに切りかえたりしないでください。</p>
+  <!-- 「📤 ろくがを紹介する」と仲間のアイコン列：おくるんで紹介カードを送る窓口（line-share/shared/tool-share.js。中身は line-share/data/hub-links.json） -->
+  <div data-tool-share></div>
 </main>
 
 <!-- 撮る画面：カメラ＋得点板を描いた画面がそのまま録画される。ボタンは録画には入らない -->
@@ -115,5 +117,8 @@
 </div>
 
 <script src="app.js"></script>
+<!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
+<script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
+<script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
 </body>
 </html>

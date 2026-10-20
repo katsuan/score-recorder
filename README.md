@@ -1,6 +1,6 @@
 # ろくが（RoQga）
 
-スマホで試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残すツール。名前は「録画」の「く」を Q にした、コネクト〜ConneQt〜の仲間（さくせん盤の追加アプリ）。アイコン・ロゴ・OGP は tools/icon.py で作る（おくるんの tools/brandkit.py を使う。さくせん盤と同じピッチの緑に、Q はカメラのレンズの輪と、真ん中に録画中の赤いランプ）。おくるん・ConneQt の一覧にはまだ載せない。
+スマホで試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残すツール。名前は「録画」の「く」を Q にした、コネクト〜ConneQt〜の仲間（さくせん盤の追加アプリ）。アイコン・ロゴ・OGP は tools/icon.py で作る（おくるんの tools/brandkit.py を使う。さくせん盤と同じピッチの緑に、Q はカメラのレンズの輪と、真ん中に録画中の赤いランプ）。おくるんの一覧（line-share の data/hub-links.json の `key: "roqga"`）に載っている。はじめの画面のいちばん下に「📤 ろくがを紹介する」と仲間のアイコン列（line-share の shared/tool-share.js）。
 
 公開URL: https://katsuan.github.io/score-recorder/
 
