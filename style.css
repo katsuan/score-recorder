@@ -17,7 +17,8 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 
 /* はじめの画面 */
 .setup { display: grid; gap: 14px; max-width: 520px; margin: 0 auto; padding: 20px 16px 40px; }
-.setup h1 { font-size: 22px; }
+.setup h1 { display: flex; align-items: center; gap: 8px; font-size: 22px; }
+.setup h1 .logo { border-radius: 7px; }
 .setup h1 small { margin-left: 8px; font-size: 13px; color: var(--ink-soft); letter-spacing: 0.04em; }
 .copy { margin-top: -10px; font-size: 13px; font-weight: 700; color: var(--accent); }
 .lead { line-height: 1.7; }

@@ -5,7 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ろくが｜得点板つきで試合を撮る</title>
 <meta name="description" content="ろくが（RoQga）。試合をスマホで撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残せます。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ろくが（RoQga）">
+<meta property="og:title" content="ろくが｜得点板つきで試合を撮る">
+<meta property="og:description" content="試合をスマホで撮りながら、得点板（チーム名とスコア）を動画にそのまま残せます">
+<meta property="og:url" content="https://katsuan.github.io/score-recorder/">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:image" content="https://katsuan.github.io/score-recorder/ogp.png?v=20261021">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ろくが（RoQga）：試合をスマホで撮りながら、得点板を動画にそのまま残せる">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0f1a14">
+<!-- アイコン・ロゴ・OGP は tools/icon.py で作る -->
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -13,7 +29,7 @@
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
 <main id="setup" class="setup">
-  <h1>ろくが<small>RoQga</small></h1>
+  <h1><img class="logo" src="icon.svg" alt="" width="28" height="28">ろくが<small>RoQga</small></h1>
   <p class="copy">撮って、得点もいっしょに残そう</p>
   <p class="lead">試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残します。<br>スマホは<b>横向き</b>で使います。</p>
   <!-- チーム：1行に 名前・色・▼（保存したチームから選ぶ）・保存／消す（いまの名前と色が保存済みなら「消す」）。
