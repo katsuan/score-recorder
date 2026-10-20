@@ -182,18 +182,51 @@ async function keepScreenOn() {
 }
 
 // ---- 描く：カメラの映像 ＋ 得点板（左上） ----
+// 縦の画面のまま横に倒して撮るとき（画面の回転がオフ）："left"・"right"。横向きの画面なら null
+let turn = null;
+
 function drawFrame() {
   if (!cameraStream) return;
-  const w = video.videoWidth || 1280;
-  const h = video.videoHeight || 720;
+  const vw = video.videoWidth || 1280;
+  const vh = video.videoHeight || 720;
+  // 倒して撮るときは、縦に届くカメラの映像を横に回して描く（動画は横長になる）
+  const rotate = turn && vh > vw;
+  const w = rotate ? vh : vw;
+  const h = rotate ? vw : vh;
   if (screen.width !== w || screen.height !== h) {
     screen.width = w;
     screen.height = h;
   }
-  ctx.drawImage(video, 0, 0, w, h);
+  ctx.save();
+  if (rotate && turn === "left") {
+    // 左に倒した（スマホの上が左）：映像の右が上になるので、左回りに 90°
+    ctx.translate(0, h);
+    ctx.rotate(-Math.PI / 2);
+  } else if (rotate) {
+    // 右に倒した（スマホの上が右）：映像の左が上になるので、右回りに 90°
+    ctx.translate(w, 0);
+    ctx.rotate(Math.PI / 2);
+  }
+  ctx.drawImage(video, 0, 0, vw, vh);
+  ctx.restore();
   drawScoreboard(w, h);
   requestAnimationFrame(drawFrame);
 }
+
+// 倒す向きを選ぶ・やめる。録画中は変えない（動画の向きが途中で変わるため）
+function setTurn(next) {
+  if (recorder?.state === "recording") return;
+  turn = next;
+  const studio = $("studio");
+  studio.classList.toggle("is-turned", Boolean(turn));
+  studio.classList.toggle("is-left", turn === "left");
+  studio.classList.toggle("is-right", turn === "right");
+  $("turnOff").hidden = !turn;
+}
+document.querySelectorAll("[data-turn]").forEach((b) => b.addEventListener("click", () => setTurn(b.dataset.turn)));
+$("turnOff").addEventListener("click", () => setTurn(null));
+// 画面の回転がオンで、ほんとうに横向きになったら、倒して撮るのはやめる（ふつうの横向きで撮る）
+window.matchMedia("(orientation: landscape)").addEventListener("change", (e) => e.matches && setTurn(null));
 
 // 得点板：左上に濃い札。[自チームの色] 自チーム 2 - 1 相手 [相手の色]。大きさは映像の高さに合わせる
 function drawScoreboard(w, h) {

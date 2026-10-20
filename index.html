@@ -56,10 +56,19 @@
   </div>
   <div class="bar">
     <button id="back" class="small" type="button">← 戻る</button>
+    <button id="turnOff" class="small" type="button" hidden>縦にもどす</button>
     <button id="record" class="record" type="button" aria-label="録画をはじめる"><span></span></button>
     <span id="elapsed" class="elapsed"></span>
   </div>
-  <p id="rotate" class="rotate">スマホを横向きにしてください</p>
+  <!-- 縦の画面のとき：横向きにしてもらうか、画面の回転をオフにしたまま横に倒して撮る（倒す向きを選ぶ） -->
+  <div id="rotate" class="rotate">
+    <p>スマホを横向きにしてください</p>
+    <p class="rotate-sub">画面の回転をオフにしているときは、倒す向きを選ぶと、縦の画面のまま横向きで撮れます</p>
+    <div class="turn-choices">
+      <button class="turn-btn" type="button" data-turn="left"><span class="phone is-left" aria-hidden="true"></span>左に倒す</button>
+      <button class="turn-btn" type="button" data-turn="right"><span class="phone is-right" aria-hidden="true"></span>右に倒す</button>
+    </div>
+  </div>
 </section>
 
 <!-- 録画を止めたあと：保存・共有 -->

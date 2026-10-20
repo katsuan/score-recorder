@@ -56,8 +56,20 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .elapsed { min-width: 64px; color: #fff; font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
 .elapsed:not(:empty)::before { content: "● "; color: #e5484d; }
 /* 縦向きのときは、横向きにしてもらう */
-.rotate { position: absolute; inset: 0; display: none; place-items: center; padding: 24px; background: rgba(0, 0, 0, 0.8); color: #fff; font-size: 18px; font-weight: 800; text-align: center; }
-@media (orientation: portrait) { .rotate { display: grid; } }
+.rotate { position: absolute; inset: 0; display: none; align-content: center; justify-items: center; gap: 14px; padding: 24px; background: rgba(0, 0, 0, 0.85); color: #fff; font-size: 18px; font-weight: 800; text-align: center; }
+@media (orientation: portrait) { .studio:not(.is-turned) .rotate { display: grid; } }
+.rotate-sub { max-width: 300px; font-size: 13px; font-weight: 700; opacity: 0.85; }
+.turn-choices { display: flex; gap: 12px; }
+.turn-btn { display: grid; justify-items: center; gap: 8px; padding: 14px 16px; border: 2px solid rgba(255, 255, 255, 0.7); border-radius: 16px; background: rgba(255, 255, 255, 0.08); color: #fff; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+/* 倒す向きの絵：横にしたスマホ */
+.phone { width: 44px; height: 24px; border: 3px solid #fff; border-radius: 6px; position: relative; }
+.phone::after { content: ""; position: absolute; top: 50%; width: 3px; height: 8px; border-radius: 2px; background: #fff; transform: translateY(-50%); }
+.phone.is-left::after { right: 3px; }
+.phone.is-right::after { left: 3px; }
+/* 縦の画面のまま横に倒して撮るとき：撮る画面ごと 90° 回して、横に持ったときにまっすぐ見えるように */
+.studio.is-turned { inset: auto; top: 0; width: 100vh; height: 100vw; transform-origin: top left; }
+.studio.is-turned.is-left { left: 100vw; transform: rotate(90deg); }
+.studio.is-turned.is-right { left: 0; top: 100vh; transform: rotate(-90deg); }
 
 /* 保存のシート */
 .sheet { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, 0.6); }
