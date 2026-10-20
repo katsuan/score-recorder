@@ -1,11 +1,11 @@
-// スコア録画（仮）：スマホで試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残す。
+// ろくが（RoQga）：スマホで試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残す。
 // しくみ：カメラの映像と得点板を1つのキャンバスに描き、そのキャンバス（＋マイクの音）を MediaRecorder で録る。
 // ボタン（得点の ＋・−、録画）はキャンバスの上に重ねた別の部品なので、動画には入らない。
 // 動画はこの端末にだけ残す（保存・共有メニュー、ダウンロード）。サーバーには送らない。
 "use strict";
 
 const $ = (id) => document.getElementById(id);
-const STORE_KEY = "scorecam:state";
+const STORE_KEY = "roqga:state";
 const SAQSEN_KEY = "soccer:state"; // さくせん盤（同じ katsuan.github.io）のチーム名・色
 
 const load = (key) => {

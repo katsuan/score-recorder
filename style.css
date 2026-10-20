@@ -1,4 +1,4 @@
-/* スコア録画（仮）。色・サイズは :root でまとめて変える */
+/* ろくが（RoQga）。色・サイズは :root でまとめて変える */
 :root {
   --accent: #e5484d;
   --ink: #23302a;
@@ -18,7 +18,8 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* はじめの画面 */
 .setup { display: grid; gap: 14px; max-width: 520px; margin: 0 auto; padding: 20px 16px 40px; }
 .setup h1 { font-size: 22px; }
-.setup h1 small { font-size: 13px; color: var(--ink-soft); }
+.setup h1 small { margin-left: 8px; font-size: 13px; color: var(--ink-soft); letter-spacing: 0.04em; }
+.copy { margin-top: -10px; font-size: 13px; font-weight: 700; color: var(--accent); }
 .lead { line-height: 1.7; }
 .teams { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
 .btn { display: grid; place-items: center; min-height: 52px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--accent); color: #fff; font: inherit; font-size: 17px; font-weight: 800; text-decoration: none; cursor: pointer; }
