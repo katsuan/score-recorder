@@ -1,6 +1,6 @@
 /* ろくが（RoQga）。色・サイズは :root でまとめて変える */
 :root {
-  --accent: #e5484d;
+  --accent: #2e8b4a; /* さくせん盤と同じピッチの緑（録画のボタン・ランプは赤のまま） */
   --ink: #23302a;
   --ink-soft: #5c6b62;
   --border: #dbe7df;

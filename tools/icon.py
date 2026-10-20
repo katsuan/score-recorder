@@ -2,7 +2,7 @@
 """ろくが（RoQga）のアイコン・ロゴ・OGP を作る。
 
 名前は「ろくが」（録画）。英字は RoQga（おくるん＝OQRN・キロっく＝kiloQ と同じ作り方で、「く」を Q にする）。
-アイコンはおくるんと同じ角の丸い四角に、ページと同じ赤（style.css の --accent #e5484d。録画の赤）。
+アイコンはおくるんと同じ角の丸い四角に、さくせん盤と同じピッチの緑（さくせん盤の追加アプリなので）。録画のランプだけ赤。
 Q はカメラのレンズの輪：白い輪の真ん中に、録画中の赤いランプ（白い丸の中の赤い点）。Q のしっぽは右下へ、短く太く（細長いと虫めがねに見える）。
 
   icon.svg・icon-32.png・apple-touch-icon.png・icon-512.png・icon-maskable-512.png … アイコン
@@ -17,7 +17,7 @@ import brandkit_path  # noqa: F401（となりのおくるん（q-oqrn）の too
 from brandkit import Brand, centered, polar
 
 ROOT = Path(__file__).resolve().parent.parent
-BRAND = Brand(light=(255, 128, 112), dark=(214, 52, 66))  # style.css の --accent #e5484d のまわり
+BRAND = Brand(light=(92, 194, 122), dark=(46, 139, 74))  # さくせん盤のアイコンと同じピッチの緑（--pitch #2e8b4a）
 REC = (229, 57, 53)  # 録画のランプの赤
 
 C = (46, 46)  # 輪の中心

@@ -234,12 +234,14 @@ function drawScoreboard(w, h) {
   const pad = 20 * s;
   const boxH = 64 * s;
   const font = (size, weight = 800) => `${weight} ${size}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
-  const nameUs = state.teamUs || "自チーム";
-  const nameThem = state.teamThem || "相手";
+  // チーム名がないときは、名前の代わりにチームの色の丸
+  const nameUs = state.teamUs.trim();
+  const nameThem = state.teamThem.trim();
+  const dot = 26 * s;
   const score = `${state.us} - ${state.them}`;
   ctx.font = font(26 * s);
-  const nameUsW = ctx.measureText(nameUs).width;
-  const nameThemW = ctx.measureText(nameThem).width;
+  const nameUsW = nameUs ? ctx.measureText(nameUs).width : dot;
+  const nameThemW = nameThem ? ctx.measureText(nameThem).width : dot;
   ctx.font = font(40 * s);
   const scoreW = ctx.measureText(score).width;
   const chip = 10 * s;
@@ -260,14 +262,29 @@ function drawScoreboard(w, h) {
   ctx.fillStyle = "#ffffff";
   ctx.textBaseline = "middle";
   let cx = x + gap * 0.6 + chip + gap;
-  ctx.font = font(26 * s);
-  ctx.fillText(nameUs, cx, y + boxH / 2 + 1 * s);
+  // 名前、なければ色の丸（白いふちで、濃い札の上でも見える）
+  const nameOrDot = (name, color, at) => {
+    if (name) {
+      ctx.font = font(26 * s);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(name, at, y + boxH / 2 + 1 * s);
+      return;
+    }
+    ctx.beginPath();
+    ctx.arc(at + dot / 2, y + boxH / 2, dot / 2, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.lineWidth = 2.5 * s;
+    ctx.strokeStyle = "#ffffff";
+    ctx.stroke();
+  };
+  nameOrDot(nameUs, state.colorUs, cx);
   cx += nameUsW + gap * 1.5;
   ctx.font = font(40 * s);
+  ctx.fillStyle = "#ffffff";
   ctx.fillText(score, cx, y + boxH / 2 + 2 * s);
   cx += scoreW + gap * 1.5;
-  ctx.font = font(26 * s);
-  ctx.fillText(nameThem, cx, y + boxH / 2 + 1 * s);
+  nameOrDot(nameThem, state.colorThem, cx);
   ctx.restore();
 }
 
