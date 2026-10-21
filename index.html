@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211020">
+<link rel="stylesheet" href="style.css?v=202610211314">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -127,10 +127,12 @@
   </div>
   <!-- 上のまんなか：録画中の時間（カメラのアプリと同じ場所。ボタンと重ならない） -->
   <span id="elapsed" class="elapsed"></span>
-  <!-- 右上：ときどき使うボタン（縦にもどす・戻る）。得点板（左上）や ＋1・録画（下）から離す。録画中は隠す（押しまちがい防止） -->
+  <!-- 右上：ときどき使うボタン（縦にもどす・戻る）。得点板（左上）や ＋1・録画（下）から離す。録画中は隠す（押しまちがい防止）。
+       いちばんはしの「↔」は ＋1 の位置の切りかえ（まんなか／はし）。録画中も使えるので隠さない -->
   <div class="tools">
     <button id="turnOff" class="small" type="button" hidden>📱 縦にもどす</button>
     <button id="back" class="small" type="button">← 戻る</button>
+    <button id="layoutToggle" class="small" type="button"></button>
   </div>
   <!-- 縦の画面のとき：横向きにしてもらうか、画面の回転をオフにしたまま横に倒して撮る（倒す向きを選ぶ） -->
   <div id="rotate" class="rotate">
@@ -170,7 +172,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211020"></script>
+<script src="app.js?v=202610211314"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

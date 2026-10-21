@@ -34,7 +34,8 @@ const state = {
   us: Number(saved.us) || 0,
   them: Number(saved.them) || 0,
   goalFx: saved.goalFx === true, // ＋1 のとき「GOAL!」のエフェクトを動画に入れるか（ふだんは出さない）
-  swapped: saved.swapped === true // 左右を入れかえる（相手を左に）
+  swapped: saved.swapped === true, // 左右を入れかえる（相手を左に）
+  edge: saved.edge === true // ＋1／−1 を画面のはしに置く（ふだんは録画ボタンの左右＝まんなか）
 };
 const fromSaqsen = !saved.teamUs && Boolean(saqsen.team || saqsen.opponent);
 
@@ -83,6 +84,18 @@ $("resetScore").addEventListener("click", () => {
     save();
   })
 );
+
+// ---- ＋1／−1 の位置：まんなか（録画ボタンの左右）か、はし（画面の左右のはし）。撮る画面の右上「↔」で、録画中も切りかえられる ----
+function showLayout() {
+  $("studio").classList.toggle("is-edge", state.edge);
+  $("layoutToggle").textContent = state.edge ? "↔ ＋1 をまんなかへ" : "↔ ＋1 をはしへ";
+}
+$("layoutToggle").addEventListener("click", () => {
+  state.edge = !state.edge;
+  save();
+  showLayout();
+});
+showLayout();
 
 // ---- 左右の入れかえ（はじめの画面のチームの並び・得点板・撮る画面の ＋1） ----
 function showSides() {
