@@ -44,8 +44,8 @@ RING_OUTER = R + RING_W / 2
 
 
 # OGP の左上の得点板：動画に入る得点板（app.js の drawScoreboard）と同じ形。チーム名がないときの、色の丸の形。
-# 色は、はじめて開いたときのチームの色（app.js の state の初期値）
-SCORE_US, SCORE_THEM = (108, 71, 255), (255, 255, 255)
+# 色は、はじめて開いたときのチームの色（js/core.js の TEAM_COLORS の緑・白。さくせん盤も同じ）
+SCORE_US, SCORE_THEM = (0x22, 0xA4, 0x47), (255, 255, 255)  # 緑・白（ろくが・さくせん盤の、はじめのチームの色）
 
 
 def scoreboard(d, s, k=1.15):
