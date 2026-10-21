@@ -90,9 +90,12 @@ const sideName = (key) => ((key === "us") !== state.swapped ? "左のチーム" 
 // ＋1／−1 のボタンをチームの色に。字は色の明るさで白か黒（白いユニフォームなら黒い字）
 function showTeamColors() {
   document.querySelectorAll(".side").forEach((el) => {
-    const color = el.classList.contains("is-us") ? state.colorUs : state.colorThem;
+    const key = el.classList.contains("is-us") ? "us" : "them";
+    const color = key === "us" ? state.colorUs : state.colorThem;
     el.style.setProperty("--team", color);
     el.style.setProperty("--team-ink", inkFor(color));
+    // 左よせ・右よせ（縦2段）のときに ＋1 の上に出すチーム名
+    el.querySelector(".side-name").textContent = (key === "us" ? state.teamUs : state.teamThem).trim() || sideName(key);
   });
 }
 function showSides() {

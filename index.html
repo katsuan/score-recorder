@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211520">
+<link rel="stylesheet" href="style.css?v=202610211523">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -103,7 +103,8 @@
   <!-- 録った動画があるときだけ：保存の画面をもう一度開く（はじめの画面にもどっても、0 - 0 から撮りなおすまで残っている） -->
   <button id="openSaved" class="btn ghost" type="button" hidden></button>
   <p id="setupError" class="error" hidden></p>
-  <p class="hint">動画はこの端末の中だけ。撮っているあいだは、ほかのアプリに切りかえないでください。</p>
+  <p class="hint" data-mode-only="shoot">動画はこの端末の中だけ。撮っているあいだは、ほかのアプリに切りかえないでください。</p>
+  <p class="hint" data-mode-only="later" hidden>動画はこの端末の中だけ。書き出すあいだは、ほかのアプリに切りかえないでください。</p>
   <!-- 「📤 ろくがを紹介する」と仲間のアイコン列：おくるんで紹介カードを送る窓口（line-share/shared/tool-share.js。中身は line-share/data/hub-links.json） -->
   <div data-tool-share></div>
 </main>
@@ -114,10 +115,12 @@
   <video id="camera" playsinline muted autoplay hidden></video>
   <!-- 得点：左のチーム・右のチーム（⇄ で入れかえたら、それに合わせる）。大きな ＋、小さな − -->
   <div class="side is-us">
+    <span class="side-name" data-name-of="us"></span>
     <button class="plus" type="button" data-score="us" data-delta="1" aria-label="左のチームに1点" data-side-aria="us:に1点">＋1</button>
     <button class="minus" type="button" data-score="us" data-delta="-1" aria-label="左のチームの1点を取り消す" data-side-aria="us:の1点を取り消す">−1</button>
   </div>
   <div class="side is-them">
+    <span class="side-name" data-name-of="them"></span>
     <button class="plus" type="button" data-score="them" data-delta="1" aria-label="右のチームに1点" data-side-aria="them:に1点">＋1</button>
     <button class="minus" type="button" data-score="them" data-delta="-1" aria-label="右のチームの1点を取り消す" data-side-aria="them:の1点を取り消す">−1</button>
   </div>
@@ -146,6 +149,19 @@
       <button class="turn-btn" type="button" data-turn="left"><span class="phone is-left" aria-hidden="true"></span>左に倒す</button>
       <button class="turn-btn" type="button" data-turn="right"><span class="phone is-right" aria-hidden="true"></span>右に倒す</button>
     </div>
+    <!-- 横にできないとき・やめたいときに、ここからも戻れるように（右上の 🏠 はこの画面の下にかくれる） -->
+    <button id="rotateHome" class="rotate-home" type="button">🏠 はじめの画面へ</button>
+  </div>
+  <!-- はじめて撮る画面を開いたときだけ：ボタンの使い方（「わかった」で閉じ、この端末では次から出さない） -->
+  <div id="studioTip" class="studio-tip" hidden>
+    <p class="tip-title">はじめての方へ</p>
+    <ul>
+      <li><b>🔴 赤い丸</b>：録画をはじめる・止める</li>
+      <li><b>＋1</b>：点が入ったら、そのチームの色を押す（まちがえたら −1）</li>
+      <li><b>⭐ ナイス</b>：おしい場面・いいプレーをハイライトに</li>
+      <li><b>右上の ●●●</b>：＋1 を左右に寄せる（片手で押しやすく）</li>
+    </ul>
+    <button id="tipOk" class="btn" type="button">わかった</button>
   </div>
 </section>
 
@@ -198,47 +214,53 @@
 <!-- 録画を止めたあと：保存・共有 -->
 <div id="saveSheet" class="sheet" hidden>
   <div class="sheet-card">
-    <p class="sheet-title">録画を保存</p>
-    <video id="playback" class="playback" playsinline controls></video>
-    <p id="saveInfo" class="hint"></p>
-    <!-- 保存のしかた（iPhone は「ビデオを保存」で写真へ。端末によって出し分ける） -->
-    <p id="saveGuide" class="guide" hidden></p>
-    <!-- 得点ハイライト：撮っているあいだに ＋1 を押した時間の前後（10秒前〜6秒後）だけをつないで1本に（得点板はもう入っている） -->
-    <button id="makeHighlight" class="btn ghost" type="button" hidden>⚡ 得点ハイライトを作る</button>
-    <!-- 5分を超えたとき：どれを残すか（全部・最初の5分・最後の5分＝最後の1本） -->
-    <div id="pickClips" class="seg" role="radiogroup" aria-label="どの動画を残すか" hidden>
-      <button class="chip" type="button" role="radio" data-pick="all">全部</button>
-      <button class="chip" type="button" role="radio" data-pick="first">最初の5分</button>
-      <button class="chip" type="button" role="radio" data-pick="last">最後の5分</button>
+    <!-- 左（横の画面のとき）：見返し -->
+    <div class="sheet-main">
+      <p class="sheet-title">録画を保存</p>
+      <video id="playback" class="playback" playsinline controls></video>
+      <p id="saveInfo" class="hint"></p>
     </div>
-    <!-- 録った動画（5分ごとに分けたときは何本か）。押すと上で見返せる -->
-    <div id="clipList" class="clip-list"></div>
-    <button id="shareAll" class="btn" type="button" hidden>📤 まとめて保存・共有</button>
-    <p id="sharedNote" class="shared-note" hidden>✓ 共有できました</p>
-    <!-- 次はどうする？：3つから選ぶ。それぞれ、押すとどうなるかを1行で。
-         続きを撮る（同じチーム・スコアそのまま）／同じチームで 0 - 0 から（次の試合）／はじめの画面へ（チームを変える）。
-         どれを選んでも動画は消さない（消すのは動画の行の 🗑。ページを閉じる・更新すると、どのみち消える）。
-         共有がすんだら「0 - 0 から」を目立たせる -->
-    <div id="nextShot" class="next-shot" role="group" aria-labelledby="nextTitle">
-      <p id="nextTitle" class="next-title">次はどうする？</p>
-      <button id="closeSave" class="next-btn" type="button"><b>▶ 続きを撮る</b><span id="nextKeep">いまのスコアのまま（後半など）</span></button>
-      <button id="restartSave" class="next-btn" type="button"><b>⟲ 同じチームで 0 - 0 から</b><span>次の試合（動画はこの画面に残ります）</span></button>
-      <button id="toSetup" class="next-btn" type="button"><b>🏠 はじめの画面へ</b><span>チーム・色を変える（動画は残ります）</span></button>
+    <!-- 右：まず保存・共有、そのあと ⚡ ハイライト、次はどうする？（横の画面では、この欄の中だけ動く） -->
+    <div class="sheet-side">
+      <!-- 保存のしかた（iPhone は「ビデオを保存」で写真へ。端末によって出し分ける） -->
+      <p id="saveGuide" class="guide" hidden></p>
+      <!-- 5分を超えたとき：どれを残すか（全部・最初の5分・最後の5分＝最後の1本） -->
+      <div id="pickClips" class="seg" role="radiogroup" aria-label="どの動画を残すか" hidden>
+        <button class="chip" type="button" role="radio" data-pick="all">全部</button>
+        <button class="chip" type="button" role="radio" data-pick="first">最初の5分</button>
+        <button class="chip" type="button" role="radio" data-pick="last">最後の5分</button>
+      </div>
+      <!-- 録った動画（5分ごとに分けたときは何本か）。押すと上で見返せる -->
+      <div id="clipList" class="clip-list"></div>
+      <button id="shareAll" class="btn" type="button" hidden>📤 まとめて保存・共有</button>
+      <p id="sharedNote" class="shared-note" hidden>✓ 共有できました</p>
+      <!-- 得点ハイライト：撮っているあいだに ＋1 を押した時間の前後（10秒前〜6秒後）だけをつないで1本に（得点板はもう入っている） -->
+      <button id="makeHighlight" class="btn ghost" type="button" hidden>⚡ 得点ハイライトを作る</button>
+      <!-- 次はどうする？：3つから選ぶ。それぞれ、押すとどうなるかを1行で。
+           続きを撮る（同じチーム・スコアそのまま）／同じチームで 0 - 0 から（次の試合）／はじめの画面へ（チームを変える）。
+           どれを選んでも動画は消さない（消すのは動画の行の 🗑。ページを閉じる・更新すると、どのみち消える）。
+           共有がすんだら「0 - 0 から」を目立たせる -->
+      <div id="nextShot" class="next-shot" role="group" aria-labelledby="nextTitle">
+        <p id="nextTitle" class="next-title">次はどうする？</p>
+        <button id="closeSave" class="next-btn" type="button"><b>▶ 続きを撮る</b><span id="nextKeep">いまのスコアのまま（後半など）</span></button>
+        <button id="restartSave" class="next-btn" type="button"><b>⟲ 同じチームで 0 - 0 から</b><span>次の試合（動画はこの画面に残ります）</span></button>
+        <button id="toSetup" class="next-btn" type="button"><b>🏠 はじめの画面へ</b><span>チーム・色を変える（動画は残ります）</span></button>
+      </div>
+      <!-- はじめの画面の「🎞 録った動画」から開いたときは、閉じるだけ -->
+      <button id="closeSheetOnly" class="btn ghost" type="button" hidden>閉じる</button>
     </div>
-    <!-- はじめの画面の「🎞 録った動画」から開いたときは、閉じるだけ -->
-    <button id="closeSheetOnly" class="btn ghost" type="button" hidden>閉じる</button>
   </div>
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610211520"></script>
-<script src="js/draw.js?v=202610211520"></script>
-<script src="js/setup.js?v=202610211520"></script>
-<script src="js/studio.js?v=202610211520"></script>
-<script src="js/record.js?v=202610211520"></script>
-<script src="js/editor.js?v=202610211520"></script>
-<script src="js/render.js?v=202610211520"></script>
-<script src="js/main.js?v=202610211520"></script>
+<script src="js/core.js?v=202610211523"></script>
+<script src="js/draw.js?v=202610211523"></script>
+<script src="js/setup.js?v=202610211523"></script>
+<script src="js/studio.js?v=202610211523"></script>
+<script src="js/record.js?v=202610211523"></script>
+<script src="js/editor.js?v=202610211523"></script>
+<script src="js/render.js?v=202610211523"></script>
+<script src="js/main.js?v=202610211523"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

@@ -28,9 +28,35 @@ async function openCamera() {
   $("studio").hidden = false;
   // 縦の画面で開いたとき、前に倒して撮った向きがあれば、選ばずにその向きで始める（ちがえば ⇅ で逆に）
   if (state.turn && window.matchMedia("(orientation: portrait)").matches) setTurn(state.turn, false);
+  maybeShowTip();
   await keepScreenOn();
   requestAnimationFrame(drawFrame);
 }
+
+// はじめて撮る画面を開いたときだけ、ボタンの使い方を出す（「わかった」でこの端末では次から出さない）。
+// 縦の画面で「横向きにしてください」が出ているあいだは出さず、横向き（倒す）になってから
+const TIP_KEY = "roqga:tip-seen";
+function maybeShowTip() {
+  let seen = false;
+  try {
+    seen = localStorage.getItem(TIP_KEY) === "1";
+  } catch {
+    // 残せない端末では毎回出さない
+    seen = true;
+  }
+  const blocked = !turn && window.matchMedia("(orientation: portrait)").matches;
+  $("studioTip").hidden = seen || blocked || $("studio").hidden;
+}
+$("tipOk").addEventListener("click", () => {
+  $("studioTip").hidden = true;
+  try {
+    localStorage.setItem(TIP_KEY, "1");
+  } catch {
+    // 残せなくても使える
+  }
+});
+// 横向きにしてくださいの画面からも、はじめの画面へ
+$("rotateHome").addEventListener("click", closeCamera);
 
 function closeCamera() {
   if (recording && !confirm("録画中です。止めて戻りますか？")) return;
@@ -104,11 +130,16 @@ function setTurn(next, remember = true) {
   studio.classList.toggle("is-left", turn === "left");
   studio.classList.toggle("is-right", turn === "right");
   $("turnFlip").hidden = !turn;
+  if (turn) maybeShowTip();
 }
 document.querySelectorAll("[data-turn]").forEach((b) => b.addEventListener("click", () => setTurn(b.dataset.turn)));
 $("turnFlip").addEventListener("click", () => setTurn(turn === "left" ? "right" : "left")); // 倒す向きを逆に
 // 画面の回転がオンで、ほんとうに横向きになったら、倒して撮るのはやめる（ふつうの横向きで撮る）
-window.matchMedia("(orientation: landscape)").addEventListener("change", (e) => e.matches && setTurn(null, false));
+window.matchMedia("(orientation: landscape)").addEventListener("change", (e) => {
+  if (!e.matches) return;
+  setTurn(null, false);
+  maybeShowTip();
+});
 
 // ---- ＋1 の位置：まんなか・左よせ・右よせ（片手で持つ側に寄せる）。撮る画面の右上の小さな丸で、録画中も切りかえられる ----
 const HAND_NAMES = { center: "まんなか", left: "左よせ", right: "右よせ" };
