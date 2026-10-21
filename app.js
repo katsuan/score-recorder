@@ -508,11 +508,8 @@ function drawGoalFx(w, h, c = screenCtx) {
 }
 
 // ---- 得点の ＋・−（録画中でも押せる。0 より下にはしない）。＋1 のときは GOAL のエフェクト ----
-// 点を変える（＋1・−1・取り消す）。押せたことが分かるように、まんなかに大きくスコアを出し、
-// ＋1 のあと5秒だけ「↶ 取り消す」を出す。Android は軽く震える（iPhone のブラウザは震えない）
-const UNDO_MS = 5000;
-let undoKey = null;
-let undoTimer = 0;
+// 点を変える（＋1・−1）。押せたことが分かるように、まんなかに大きくスコアを出す。Android は軽く震える（iPhone のブラウザは震えない）。
+// 押しまちがいは、そのチームの −1 で直す（画面がごちゃつかないよう「取り消す」ボタンは出さない）
 function changeScore(key, delta) {
   state[key] = Math.max(0, state[key] + delta);
   if (delta > 0 && state.goalFx) goalFx = { side: key, at: performance.now() };
@@ -520,17 +517,6 @@ function changeScore(key, delta) {
   save();
   navigator.vibrate?.(delta > 0 ? 30 : [15, 50, 15]);
   popScore(key, delta);
-  clearTimeout(undoTimer);
-  undoKey = delta > 0 ? key : null;
-  $("undo").hidden = !undoKey;
-  if (undoKey) {
-    const name = (key === "us" ? state.teamUs : state.teamThem).trim() || sideName(key);
-    $("undo").textContent = `↶ 取り消す（${name}の1点）`;
-    undoTimer = setTimeout(() => {
-      $("undo").hidden = true;
-      undoKey = null;
-    }, UNDO_MS);
-  }
 }
 // まんなかに「2 - 1」を大きく一瞬。変わった側の数字だけ色をつける（＋は黄、− は赤）。並びは得点板と同じ左右
 function popScore(key, delta) {
@@ -544,7 +530,6 @@ function popScore(key, delta) {
   pop.classList.add("is-show");
 }
 document.querySelectorAll("[data-score]").forEach((b) => b.addEventListener("click", () => changeScore(b.dataset.score, Number(b.dataset.delta))));
-$("undo").addEventListener("click", () => undoKey && changeScore(undoKey, -1));
 
 // ---- 録画 ----
 // LINE で送れる動画は 5分まで。いつも5分ごとに MediaRecorder を新しくして、1本ずつの動画（clips）にする

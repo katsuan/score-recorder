@@ -123,7 +123,6 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .record.is-holding::before { opacity: 1; animation: hold-fill 0.8s linear forwards; }
 @keyframes hold-fill { to { --hold: 100%; } }
 .record-hint { position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%); padding: 3px 10px; border-radius: 999px; background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 11px; font-weight: 800; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-.studio.is-recording .record-hint { opacity: 0.7; }
 .record-hint.is-flash { opacity: 1 !important; background: #e5484d; }
 .record span { width: 46px; height: 46px; border-radius: 50%; background: #e5484d; transition: all 0.2s; }
 .record.is-on span { width: 26px; height: 26px; border-radius: 6px; }
@@ -196,13 +195,6 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
   70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
 }
-/* ＋1 のあと5秒だけ：＋1・録画ボタンの上に、大きな「取り消す」 */
-.undo { position: absolute; left: var(--anchor); bottom: calc(150px + env(safe-area-inset-bottom)); transform: translateX(-50%); padding: 10px 18px; border: 0; border-radius: 999px; background: #fff; color: #1a1a1a; font: inherit; font-size: 15px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); cursor: pointer; }
-.undo:active { transform: translateX(-50%) scale(0.96); }
-.studio.is-turned .undo { bottom: 156px; }
-/* 寄せたときの「取り消す」は、縦の2段の上 */
-.studio.hand-left .undo { left: var(--stack-pad); transform: none; bottom: calc(var(--side-bottom) + 186px); }
-.studio.hand-right .undo { left: auto; right: var(--stack-pad); transform: none; bottom: calc(var(--side-bottom) + 186px); }
 /* 録画中は画面のふちを赤く（撮れているか、ひと目で分かるように。録画には入らない） */
 .studio.is-recording::after { content: ""; position: absolute; inset: 0; border: 5px solid #e5484d; pointer-events: none; animation: rec-edge 2s ease-in-out infinite; }
 @keyframes rec-edge { 50% { border-color: rgba(229, 72, 77, 0.45); } }

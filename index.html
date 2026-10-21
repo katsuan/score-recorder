@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211324">
+<link rel="stylesheet" href="style.css?v=202610211327">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -120,8 +120,6 @@
   </div>
   <!-- ＋1／−1 を押したとき：いまのスコアを、まんなかに大きく一瞬（押せたか、見なくても分かるように。録画には入らない） -->
   <div id="scorePop" class="score-pop" aria-live="polite"></div>
-  <!-- ＋1 のすぐあと5秒だけ：押しまちがいを大きなボタンで取り消せる（小さな −1 を探さなくていい） -->
-  <button id="undo" class="undo" type="button" hidden>↶ 取り消す</button>
   <!-- 録画ボタン：まんなかのときは下のまんなか（＋1／−1 はその左右）。左よせ・右よせのときは、親指から遠い反対側のはしへ（押しまちがい防止） -->
   <div class="bar">
     <button id="record" class="record" type="button" aria-label="録画をはじめる"><span></span></button>
@@ -179,7 +177,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211324"></script>
+<script src="app.js?v=202610211327"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
