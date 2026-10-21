@@ -58,7 +58,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .preview-tag { position: absolute; right: 8px; bottom: 8px; padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.9); color: var(--ink); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; }
 /* チームの色：丸いボタン（緑・黄・白）と、カスタム（自由な色）。さくせん盤と同じ形 */
 .chips.colors { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 44px; }
-.chip.color { position: relative; flex: 0 0 auto; width: 28px; height: 28px; padding: 0; border: 2px solid var(--border); border-radius: 50%; cursor: pointer; }
+.chip.color { position: relative; flex: 0 0 auto; width: 28px; height: 28px; min-height: 0; aspect-ratio: 1; /* .chip の高さ（40px）を外して、まん丸に */ padding: 0; border: 2px solid var(--border); border-radius: 50%; cursor: pointer; }
 .chip.color[aria-pressed="true"] { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent); }
 .chip.color.is-taken { opacity: 0.35; } /* もう片方のチームと同じ色：選べるが、見分けにくいので薄く */
 .chip.color.is-custom { overflow: hidden; background: conic-gradient(#e5484d, #ffd23f, #2fbf71, #38bdf8, #6c47ff, #e5484d); }
