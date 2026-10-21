@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211331">
+<link rel="stylesheet" href="style.css?v=202610211335">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -123,8 +123,6 @@
   <!-- 録画ボタン：まんなかのときは下のまんなか（＋1／−1 はその左右）。左よせ・右よせのときは、親指から遠い反対側のはしへ（押しまちがい防止） -->
   <div class="bar">
     <button id="record" class="record" type="button" aria-label="録画をはじめる"><span></span></button>
-    <!-- 録画中：止めるのは長押し（押しまちがいで止まらないように）。そのことを小さく出す -->
-    <span id="recordHint" class="record-hint">長押しで止める</span>
   </div>
   <!-- 上のまんなか：録画中の時間（カメラのアプリと同じ場所。ボタンと重ならない） -->
   <span id="elapsed" class="elapsed"></span>
@@ -161,7 +159,7 @@
     <p id="saveGuide" class="guide" hidden></p>
     <!-- 5分を超えたとき：どれを残すか（全部・最初の5分・最後の5分＝最後の1本） -->
     <div id="pickClips" class="seg" role="radiogroup" aria-label="どの動画を残すか" hidden>
-      <button class="chip" type="button" role="radio" data-pick="all">全部（5分ごと）</button>
+      <button class="chip" type="button" role="radio" data-pick="all">全部</button>
       <button class="chip" type="button" role="radio" data-pick="first">最初の5分</button>
       <button class="chip" type="button" role="radio" data-pick="last">最後の5分</button>
     </div>
@@ -170,12 +168,13 @@
     <button id="shareAll" class="btn" type="button" hidden>📤 まとめて保存・共有</button>
     <p id="sharedNote" class="shared-note" hidden>✓ 共有できました</p>
     <!-- 次はどうする？：3つから選ぶ。それぞれ、押すとどうなるかを1行で。
-         続きを撮る（同じチーム・スコアそのまま）／同じチームで 0 - 0 から（次の試合。動画はここで消す）／はじめの画面へ（チームを変える）。
+         続きを撮る（同じチーム・スコアそのまま）／同じチームで 0 - 0 から（次の試合）／はじめの画面へ（チームを変える）。
+         どれを選んでも動画は消さない（消すのは動画の行の 🗑。ページを閉じる・更新すると、どのみち消える）。
          共有がすんだら「0 - 0 から」を目立たせる -->
     <div id="nextShot" class="next-shot" role="group" aria-labelledby="nextTitle">
       <p id="nextTitle" class="next-title">次はどうする？</p>
       <button id="closeSave" class="next-btn" type="button"><b>▶ 続きを撮る</b><span id="nextKeep">いまのスコアのまま（後半など）</span></button>
-      <button id="restartSave" class="next-btn" type="button"><b>⟲ 同じチームで 0 - 0 から</b><span>次の試合（いままでの動画は消えます）</span></button>
+      <button id="restartSave" class="next-btn" type="button"><b>⟲ 同じチームで 0 - 0 から</b><span>次の試合（動画はこの画面に残ります）</span></button>
       <button id="toSetup" class="next-btn" type="button"><b>🏠 はじめの画面へ</b><span>チーム・色を変える（動画は残ります）</span></button>
     </div>
     <!-- はじめの画面の「🎞 録った動画」から開いたときは、閉じるだけ -->
@@ -183,7 +182,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211331"></script>
+<script src="app.js?v=202610211335"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

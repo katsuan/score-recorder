@@ -603,7 +603,7 @@ function startRecording() {
   startClip();
   $("record").classList.add("is-on");
   $("studio").classList.add("is-recording");
-  $("record").setAttribute("aria-label", "録画を止める（長押し）");
+  $("record").setAttribute("aria-label", "録画を止める");
   tick = setInterval(showElapsed, 500);
   showElapsed();
 }
@@ -667,6 +667,7 @@ function showSaveGuide() {
     : canShare
       ? "📱 「📤 保存・共有」から LINE などに送れます。端末に残すときは ⬇️ を押してください。"
       : "⬇️ を押すと、この端末に保存できます。";
+  $("saveGuide").textContent += "ページを閉じる・更新すると、ここの動画は消えます。";
 }
 
 // state の「どれを残すか」に合う動画（clips の番号）
@@ -701,7 +702,10 @@ function renderClips() {
       down.setAttribute("aria-label", `${c.file.name} をダウンロード`);
       down.addEventListener("click", () => markSaved([c]));
       row.dataset.index = String(i);
-      row.append(play, share, down);
+      const del = Object.assign(document.createElement("button"), { type: "button", className: "clip-btn", textContent: "🗑" });
+      del.setAttribute("aria-label", `${c.file.name} を消す`);
+      del.addEventListener("click", () => deleteClip(c));
+      row.append(play, share, down, del);
       return row;
     })
   );
@@ -737,7 +741,19 @@ async function shareFiles(list) {
     // やめたときは何もしない
   }
 }
-// 保存・共有した動画に印（✓）。0 - 0 にするとき、まだ保存していない動画があるか確かめるのに使う
+// 動画を消す（🗑）。まだ保存・共有していないものだけ確かめる。消したら一覧を出しなおし、なくなったら閉じる
+function deleteClip(c) {
+  if (!c.saved && !confirm("この動画はまだ保存・共有していません。消しますか？")) return;
+  if (c.url) URL.revokeObjectURL(c.url);
+  clips = clips.filter((x) => x !== c);
+  showOpenSaved();
+  if (!clips.length) {
+    closeSaveSheet();
+    return;
+  }
+  renderClips();
+}
+// 保存・共有した動画に印（✓）。消すとき、まだ保存していない動画か確かめるのに使う
 function markSaved(list) {
   list.forEach((c) => (c.saved = true));
   renderClips();
@@ -780,51 +796,16 @@ $("closeSheetOnly").addEventListener("click", () => {
   closeSaveSheet();
   showOpenSaved();
 });
-// 0 - 0 にして、撮る画面にもどる（次の試合など）。ここで、いままでの動画を消す（保存していないものがあれば確かめる）
+// 0 - 0 にして、撮る画面にもどる（次の試合など）。動画は消さない（消すのは動画の行の 🗑）
 $("restartSave").addEventListener("click", () => {
-  const unsaved = clips.filter((c) => !c.saved).length;
-  if (unsaved && !confirm(`まだ保存・共有していない動画が ${unsaved}本 あります。0 - 0 にすると、いままでの動画は消えます。よいですか？`)) return;
-  clips.forEach((c) => c.url && URL.revokeObjectURL(c.url));
-  clips = [];
-  showOpenSaved();
   state.us = 0;
   state.them = 0;
   save();
   showSetupScore();
   closeSaveSheet();
 });
-// 録画ボタン：はじめるのはタップ、止めるのは長押し（0.8秒。押しまちがいで止まらないように。押しているあいだ赤い輪がたまる）。
-// 録画中に短く押したときは「長押しで止める」を目立たせる。キーボード（Enter・Space）では、そのまま止められる
-const HOLD_MS = 800;
-let holdTimer = 0;
-let skipClickUntil = 0;
-const recordBtn = $("record");
-const endHold = () => {
-  clearTimeout(holdTimer);
-  recordBtn.classList.remove("is-holding");
-};
-recordBtn.addEventListener("pointerdown", () => {
-  if (!recording) return;
-  recordBtn.classList.add("is-holding");
-  holdTimer = setTimeout(() => {
-    endHold();
-    skipClickUntil = Date.now() + 700; // 指をはなしたときの click で、また録画がはじまらないように
-    navigator.vibrate?.(40);
-    stopRecording();
-  }, HOLD_MS);
-});
-["pointerup", "pointerleave", "pointercancel"].forEach((type) => recordBtn.addEventListener(type, endHold));
-recordBtn.addEventListener("contextmenu", (e) => e.preventDefault()); // 長押しのメニューを出さない
-recordBtn.addEventListener("click", (e) => {
-  if (Date.now() < skipClickUntil) return;
-  if (!recording) return startRecording();
-  if (e.detail === 0) return stopRecording(); // キーボード
-  const hint = $("recordHint");
-  hint.classList.remove("is-flash");
-  void hint.offsetWidth;
-  hint.classList.add("is-flash");
-  setTimeout(() => hint.classList.remove("is-flash"), 1500);
-});
+// 録画ボタン：タップで録画をはじめる・止める
+$("record").addEventListener("click", () => (recording ? stopRecording() : startRecording()));
 $("openCamera").addEventListener("click", openCamera);
 $("back").addEventListener("click", closeCamera);
 document.addEventListener("visibilitychange", () => {
