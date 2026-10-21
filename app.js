@@ -35,7 +35,7 @@ const state = {
   them: Number(saved.them) || 0,
   goalFx: saved.goalFx === true, // ＋1 のとき「GOAL!」のエフェクトを動画に入れるか（ふだんは出さない）
   swapped: saved.swapped === true, // 左右を入れかえる（us を右に）。us・them は中の呼び名で、自分のチームとはかぎらない
-  edge: saved.edge === true // ＋1／−1 を画面のはしに置く（ふだんは録画ボタンの左右＝まんなか）
+  hand: ["left", "right"].includes(saved.hand) ? saved.hand : "center" // ＋1・録画のまとまりの位置（片手で持つ側に寄せる）
 };
 const fromSaqsen = !saved.teamUs && Boolean(saqsen.team || saqsen.opponent);
 
@@ -85,17 +85,20 @@ $("resetScore").addEventListener("click", () => {
   })
 );
 
-// ---- ＋1／−1 の位置：まんなか（録画ボタンの左右）か、はし（画面の左右のはし）。撮る画面の右上「↔」で、録画中も切りかえられる ----
-function showLayout() {
-  $("studio").classList.toggle("is-edge", state.edge);
-  $("layoutToggle").textContent = state.edge ? "↔ ＋1 をまんなかへ" : "↔ ＋1 をはしへ";
+// ---- ＋1・録画のまとまりの位置：左よせ・まんなか・右よせ（片手で持つ側に寄せる）。撮る画面の右上で、録画中も切りかえられる ----
+function showHand() {
+  $("studio").classList.toggle("hand-left", state.hand === "left");
+  $("studio").classList.toggle("hand-right", state.hand === "right");
+  document.querySelectorAll("[data-hand]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.hand === state.hand)));
 }
-$("layoutToggle").addEventListener("click", () => {
-  state.edge = !state.edge;
-  save();
-  showLayout();
-});
-showLayout();
+document.querySelectorAll("[data-hand]").forEach((b) =>
+  b.addEventListener("click", () => {
+    state.hand = b.dataset.hand;
+    save();
+    showHand();
+  })
+);
+showHand();
 
 // ---- 左右の入れかえ（はじめの画面のチームの並び・得点板・撮る画面の ＋1） ----
 // いま左にいるか右にいるかで呼ぶ（自分のチームの試合とはかぎらないので「自チーム・相手」とは呼ばない）
