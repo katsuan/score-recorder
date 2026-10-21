@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211510">
+<link rel="stylesheet" href="style.css?v=202610211512">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -56,11 +56,11 @@
         <button type="button" data-step="us" data-delta="1" aria-label="左のチームの点を1ふやす" data-side-aria="us:の点を1ふやす">＋</button>
       </div>
     </div>
-    <!-- まんなか：いまのスコア（チーム名の高さ。並びは左右に合わせる）と、左右を入れかえるボタン
+    <!-- まんなか：左右を入れかえるボタン（「左のチーム」「右のチーム」のラベルのあいだ）と、その下にいまのスコア（チーム名の高さ。並びは左右に合わせる）
          （後半にコートが変わったときなど。得点板・撮る画面の ＋1 の左右も入れかわる） -->
     <div class="mid">
-      <b id="setupScore" class="mid-score" role="button" tabindex="0" aria-label="いまのスコア（押すと変えられる）">0 - 0</b>
       <button id="swapSides" class="swap" type="button" aria-label="左右のチームを入れかえる" title="左右を入れかえる">⇄</button>
+      <b id="setupScore" class="mid-score" role="button" tabindex="0" aria-label="いまのスコア（押すと変えられる）">0 - 0</b>
     </div>
     <div class="team-col" data-side="them">
       <label for="teamThem" data-side-label="them">右のチーム</label>
@@ -231,14 +231,14 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610211510"></script>
-<script src="js/draw.js?v=202610211510"></script>
-<script src="js/setup.js?v=202610211510"></script>
-<script src="js/studio.js?v=202610211510"></script>
-<script src="js/record.js?v=202610211510"></script>
-<script src="js/editor.js?v=202610211510"></script>
-<script src="js/render.js?v=202610211510"></script>
-<script src="js/main.js?v=202610211510"></script>
+<script src="js/core.js?v=202610211512"></script>
+<script src="js/draw.js?v=202610211512"></script>
+<script src="js/setup.js?v=202610211512"></script>
+<script src="js/studio.js?v=202610211512"></script>
+<script src="js/record.js?v=202610211512"></script>
+<script src="js/editor.js?v=202610211512"></script>
+<script src="js/render.js?v=202610211512"></script>
+<script src="js/main.js?v=202610211512"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

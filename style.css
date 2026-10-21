@@ -33,10 +33,9 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* 左右を入れかえたとき：them が左、us が右（ラベルは app.js で「左のチーム・右のチーム」に） */
 .teams.is-swapped .team-col[data-side="us"] { order: 3; }
 .teams.is-swapped .team-col[data-side="them"] { order: 1; }
-.mid { display: grid; grid-template-rows: auto 44px 44px; align-content: start; gap: 6px; justify-items: center; align-items: center; }
-.mid::before { content: ""; height: 14px; } /* ラベルの高さぶん下げて、スコアをチーム名の高さに */
+.mid { display: grid; grid-template-rows: 18px 44px; align-content: start; gap: 6px; justify-items: center; align-items: center; } /* 1段目はラベルの高さ（⇄）、2段目はチーム名の高さ（スコア） */
 .mid-score { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.swap { width: 36px; height: 36px; border: 2px solid var(--border); border-radius: 50%; background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
+.swap { width: 30px; height: 30px; padding: 0; border: 2px solid var(--border); border-radius: 50%; background: #fff; color: var(--ink); font: inherit; font-size: 14px; font-weight: 800; line-height: 1; cursor: pointer; }
 .swap:active { transform: scale(0.94); }
 /* 撮る画面の ＋1 も左右を入れかえる */
 /* たたんだ欄（プレビュー・GOAL のエフェクト） */
