@@ -1140,6 +1140,13 @@ function renderEditEvents() {
 
 // 書き出す：最初から流して、得点板つきの絵と動画の音を録る（動画と同じ時間かかる）。終わったら保存の画面
 function ensureAudio() {
+  // iPhone は、消音（マナーモード）のスイッチがオンだと、この音の通り道（Web Audio）の音が出なくなる。
+  // 「音を流すページ」だと伝えて、消音でも動画の音が聞こえるように（Safari 16.4 から）
+  try {
+    if (navigator.audioSession) navigator.audioSession.type = "playback";
+  } catch {
+    // 使えない端末もある
+  }
   if (audioCtx) return;
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
