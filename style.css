@@ -36,8 +36,6 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .swap { width: 36px; height: 36px; border: 2px solid var(--border); border-radius: 50%; background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
 .swap:active { transform: scale(0.94); }
 /* 撮る画面の ＋1 も左右を入れかえる */
-.studio.is-swapped .side.is-us { left: auto; right: calc(32px + env(safe-area-inset-right)); }
-.studio.is-swapped .side.is-them { right: auto; left: calc(32px + env(safe-area-inset-left)); }
 /* たたんだ欄（プレビュー・GOAL のエフェクト） */
 .fold { display: grid; gap: 10px; padding: 10px 12px; border: 2px solid var(--border); border-radius: 14px; background: #fff; }
 .fold summary { font-size: 14px; font-weight: 800; cursor: pointer; list-style: none; }
@@ -81,8 +79,11 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .studio { position: fixed; inset: 0; background: #000; overflow: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .screen { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .side { position: absolute; bottom: calc(16px + env(safe-area-inset-bottom)); display: grid; justify-items: center; gap: 8px; }
-.side.is-us { left: calc(32px + env(safe-area-inset-left)); }
-.side.is-them { right: calc(32px + env(safe-area-inset-right)); }
+/* ＋1／−1 は、画面のはしからではなく、まんなかの録画ボタンからの距離で置く（画面の長さがちがう端末でも、
+   いつも同じ場所・親指の届くところに。はしの丸みやノッチにもかからない）。左右の入れかえ・倒したときも同じ */
+.side.is-us, .studio.is-swapped .side.is-them { left: auto; right: calc(50% + var(--side-gap)); }
+.side.is-them, .studio.is-swapped .side.is-us { right: auto; left: calc(50% + var(--side-gap)); }
+.studio { --side-gap: 64px; }
 .side button { border: 0; border-radius: 999px; font: inherit; font-weight: 800; color: #fff; cursor: pointer; }
 .side .plus { width: 76px; height: 76px; background: rgba(0, 0, 0, 0.45); border: 3px solid rgba(255, 255, 255, 0.85); font-size: 22px; }
 .side .minus { width: 52px; height: 32px; background: rgba(0, 0, 0, 0.35); font-size: 14px; }
@@ -94,7 +95,8 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .record { display: grid; place-items: center; width: 68px; height: 68px; border: 4px solid #fff; border-radius: 50%; background: rgba(0, 0, 0, 0.3); cursor: pointer; }
 .record span { width: 46px; height: 46px; border-radius: 50%; background: #e5484d; transition: all 0.2s; }
 .record.is-on span { width: 26px; height: 26px; border-radius: 6px; }
-.elapsed { position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); white-space: nowrap; color: #fff; font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
+.elapsed { position: absolute; left: 50%; top: calc(16px + env(safe-area-inset-top)); transform: translateX(-50%); padding: 4px 12px; border-radius: 999px; background: rgba(0, 0, 0, 0.45); white-space: nowrap; color: #fff; font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
+.elapsed:empty { display: none; }
 .elapsed:not(:empty)::before { content: "● "; color: #e5484d; }
 /* 縦向きのときは、横向きにしてもらう */
 .rotate { position: absolute; inset: 0; display: none; align-content: center; justify-items: center; gap: 14px; padding: 24px; background: rgba(0, 0, 0, 0.85); color: #fff; font-size: 18px; font-weight: 800; text-align: center; }
@@ -113,8 +115,6 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .studio.is-turned.is-left { left: 100vw; transform: rotate(90deg); }
 .studio.is-turned.is-right { left: 0; top: 100vh; top: 100dvh; transform: rotate(-90deg); }
 /* 倒したときは、ノッチや角の丸みが左右のはしに来るので、＋1 を中ほどへ寄せる */
-.studio.is-turned .side.is-us, .studio.is-turned.is-swapped .side.is-them { left: calc(56px + max(env(safe-area-inset-top), env(safe-area-inset-bottom))); right: auto; }
-.studio.is-turned .side.is-them, .studio.is-turned.is-swapped .side.is-us { right: calc(56px + max(env(safe-area-inset-top), env(safe-area-inset-bottom))); left: auto; }
 .studio.is-turned .side { bottom: 24px; }
 .studio.is-turned .bar { bottom: 18px; }
 .studio.is-turned .tools { top: 14px; right: calc(20px + max(env(safe-area-inset-top), env(safe-area-inset-bottom))); }

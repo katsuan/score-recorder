@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610210936">
+<link rel="stylesheet" href="style.css?v=202610210939">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -113,11 +113,12 @@
     <button class="plus" type="button" data-score="them" data-delta="1" aria-label="相手に1点">＋1</button>
     <button class="minus" type="button" data-score="them" data-delta="-1" aria-label="相手の1点を取り消す">−1</button>
   </div>
-  <!-- 下のまんなか：録画ボタン（いちばん使う）。録画中の時間はその右に1行で -->
+  <!-- 下のまんなか：録画ボタン（いちばん使う）。＋1／−1 はこのボタンの左右（まんなかからの距離で置く） -->
   <div class="bar">
     <button id="record" class="record" type="button" aria-label="録画をはじめる"><span></span></button>
-    <span id="elapsed" class="elapsed"></span>
   </div>
+  <!-- 上のまんなか：録画中の時間（カメラのアプリと同じ場所。ボタンと重ならない） -->
+  <span id="elapsed" class="elapsed"></span>
   <!-- 右上：ときどき使うボタン（縦にもどす・戻る）。得点板（左上）や ＋1・録画（下）から離す。録画中は隠す（押しまちがい防止） -->
   <div class="tools">
     <button id="turnOff" class="small" type="button" hidden>📱 縦にもどす</button>
@@ -153,7 +154,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610210936"></script>
+<script src="app.js?v=202610210939"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
