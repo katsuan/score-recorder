@@ -6,7 +6,7 @@
 Q はカメラのレンズの輪：白い輪の真ん中に、録画中の赤いランプ（白い丸の中の赤い点）。Q のしっぽは右下へ、短く太く（細長いと虫めがねに見える）。
 
   icon.svg・icon-32.png・apple-touch-icon.png・icon-512.png・icon-maskable-512.png … アイコン
-  logo.svg … 横長のロゴ「RoQga」（Q はアイコンと同じ形、R・o・g・a は Jua）
+  logo.svg … 横長のロゴ「RoQga」（R の斜めの足が o＝サッカーボールを蹴る。tools/logo_ro.py。Q はアイコンと同じ形、R・g・a は Jua）
   ogp.png  … 共有したときの画像（1200×630）
 
 使い方: python3 tools/icon.py（となりのおくるん（q-oqrn）の tools/brandkit.py を使う）
@@ -44,7 +44,9 @@ RING_OUTER = R + RING_W / 2
 
 def main():
     BRAND.write_icons(ROOT, SHAPES)
-    logo, ratio = BRAND.logo_svg("RoQga", SHAPES, C, RING_OUTER, "RoQga（ろくが）")
+    from logo_ro import build as build_logo  # logo_ro は Q・g・a をここの BRAND・SHAPES で作る
+
+    logo, ratio = build_logo(BRAND, SHAPES, C, RING_OUTER)
     (ROOT / "logo.svg").write_text(logo, encoding="utf-8")
     BRAND.write_ogp(ROOT / "ogp.png", SHAPES, "ろくが", "RoQga", ["試合をスマホで撮りながら", "得点板を動画にそのまま残せる"], copy="得点もいっしょにとろう")
     print(f"アイコン・logo.svg（高さ 28px なら幅 {28 * ratio:.0f}px）・ogp.png を書き出しました")
