@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211341">
+<link rel="stylesheet" href="style.css?v=202610211343">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -136,16 +136,13 @@
   <!-- 上のまんなか：録画中の時間（カメラのアプリと同じ場所。ボタンと重ならない） -->
   <span id="elapsed" class="elapsed"></span>
   <!-- 右上：ときどき使うボタン（倒す向きを逆に・戻る）。得点板（左上）や ＋1・録画（下）から離す。録画中は隠す（押しまちがい防止）。
-       いちばんはしは、＋1・録画のまとまりの位置（左よせ・まんなか・右よせ）。片手で持つ側に寄せる。録画中も使えるので隠さない -->
+       いちばんはしの丸は、＋1 の位置（まんなか・左よせ・右よせ）。片手で持つ側に寄せる。録画中も使えるので隠さない -->
   <div class="tools">
     <!-- 倒して撮るときだけ：倒す向きを逆に（左に倒す ↔ 右に倒す。選びまちがえたとき）。ごちゃつかないよう小さな丸の印だけ -->
     <button id="turnFlip" class="small icon-btn" type="button" hidden aria-label="倒す向きを逆にする" title="倒す向きを逆にする">⇅</button>
     <button id="back" class="small" type="button">← 戻る</button>
-    <div class="hand-pick" role="radiogroup" aria-label="＋1 と録画ボタンの位置（片手で押しやすい側へ）">
-      <button type="button" role="radio" data-hand="left">◀ 左よせ</button>
-      <button type="button" role="radio" data-hand="center">まんなか</button>
-      <button type="button" role="radio" data-hand="right">右よせ ▶</button>
-    </div>
+    <!-- ＋1 の位置（まんなか → 左よせ → 右よせ をくり返す）。小さな丸に3つの点、いまの位置の点だけ白く。押すとすぐボタンが動く -->
+    <button id="handToggle" class="small icon-btn hand-toggle" type="button"><i></i><i></i><i></i></button>
   </div>
   <!-- 縦の画面のとき：横向きにしてもらうか、画面の回転をオフにしたまま横に倒して撮る（倒す向きを選ぶ） -->
   <div id="rotate" class="rotate">
@@ -219,7 +216,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211341"></script>
+<script src="app.js?v=202610211343"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

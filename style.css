@@ -111,11 +111,11 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .studio.hand-left .bar { left: auto; right: var(--rec-pad); transform: none; }
 .studio.hand-right .bar { left: var(--rec-pad); transform: none; }
 .tools { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: calc(14px + env(safe-area-inset-right)); display: flex; gap: 8px; }
-.studio.is-recording .tools > :not(.hand-pick) { visibility: hidden; } /* 場所はそのまま（左よせ・右よせが動かないように） */
+.studio.is-recording .tools > :not(#handToggle) { visibility: hidden; } /* 場所はそのまま（左よせ・右よせが動かないように） */
 .icon-btn { width: 34px; height: 34px; padding: 0; display: grid; place-items: center; font-size: 16px; }
-.hand-pick { display: flex; padding: 2px; border-radius: 999px; background: rgba(0, 0, 0, 0.5); }
-.hand-pick button { padding: 6px 10px; border: 0; border-radius: 999px; background: none; color: rgba(255, 255, 255, 0.75); font: inherit; font-size: 12px; font-weight: 800; white-space: nowrap; cursor: pointer; }
-.hand-pick button[aria-checked="true"] { background: #fff; color: #1a1a1a; }
+.hand-toggle { grid-auto-flow: column; gap: 3px; }
+.hand-toggle i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, 0.35); }
+.hand-toggle[data-hand="left"] i:nth-child(1), .hand-toggle[data-hand="center"] i:nth-child(2), .hand-toggle[data-hand="right"] i:nth-child(3) { background: #fff; }
 .small { padding: 8px 14px; border: 0; border-radius: 999px; background: rgba(0, 0, 0, 0.5); color: #fff; font: inherit; font-size: 13px; font-weight: 800; white-space: nowrap; cursor: pointer; }
 .record { position: relative; display: grid; place-items: center; width: 68px; height: 68px; border: 4px solid #fff; border-radius: 50%; background: rgba(0, 0, 0, 0.3); cursor: pointer; }
 .record span { width: 46px; height: 46px; border-radius: 50%; background: #e5484d; transition: all 0.2s; }

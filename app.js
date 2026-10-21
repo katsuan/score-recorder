@@ -85,19 +85,22 @@ $("resetScore").addEventListener("click", () => {
   })
 );
 
-// ---- ＋1・録画のまとまりの位置：左よせ・まんなか・右よせ（片手で持つ側に寄せる）。撮る画面の右上で、録画中も切りかえられる ----
+// ---- ＋1 の位置：まんなか・左よせ・右よせ（片手で持つ側に寄せる）。撮る画面の右上の小さな丸で、録画中も切りかえられる ----
+const HAND_NAMES = { center: "まんなか", left: "左よせ", right: "右よせ" };
 function showHand() {
   $("studio").classList.toggle("hand-left", state.hand === "left");
   $("studio").classList.toggle("hand-right", state.hand === "right");
-  document.querySelectorAll("[data-hand]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.hand === state.hand)));
+  const btn = $("handToggle");
+  btn.dataset.hand = state.hand;
+  btn.setAttribute("aria-label", `＋1 の位置：${HAND_NAMES[state.hand]}（押すと切りかえ）`);
+  btn.title = `＋1 の位置：${HAND_NAMES[state.hand]}`;
 }
-document.querySelectorAll("[data-hand]").forEach((b) =>
-  b.addEventListener("click", () => {
-    state.hand = b.dataset.hand;
-    save();
-    showHand();
-  })
-);
+// まんなか → 左よせ → 右よせ → まんなか …
+$("handToggle").addEventListener("click", () => {
+  state.hand = { center: "left", left: "right", right: "center" }[state.hand];
+  save();
+  showHand();
+});
 showHand();
 
 // ---- 左右の入れかえ（はじめの画面のチームの並び・得点板・撮る画面の ＋1） ----
