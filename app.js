@@ -470,16 +470,43 @@ function drawGoalFx(w, h, c = screenCtx) {
 }
 
 // ---- 得点の ＋・−（録画中でも押せる。0 より下にはしない）。＋1 のときは GOAL のエフェクト ----
-document.querySelectorAll("[data-score]").forEach((b) =>
-  b.addEventListener("click", () => {
-    const key = b.dataset.score;
-    state[key] = Math.max(0, state[key] + Number(b.dataset.delta));
-    if (Number(b.dataset.delta) > 0 && state.goalFx) goalFx = { side: key, at: performance.now() };
-    if (Number(b.dataset.delta) < 0) goalFx = null; // 取り消したら消す
-    save();
-    navigator.vibrate?.(10);
-  })
-);
+// 点を変える（＋1・−1・取り消す）。押せたことが分かるように、まんなかに大きくスコアを出し、
+// ＋1 のあと5秒だけ「↶ 取り消す」を出す。Android は軽く震える（iPhone のブラウザは震えない）
+const UNDO_MS = 5000;
+let undoKey = null;
+let undoTimer = 0;
+function changeScore(key, delta) {
+  state[key] = Math.max(0, state[key] + delta);
+  if (delta > 0 && state.goalFx) goalFx = { side: key, at: performance.now() };
+  if (delta < 0) goalFx = null; // 取り消したら消す
+  save();
+  navigator.vibrate?.(delta > 0 ? 30 : [15, 50, 15]);
+  popScore(key, delta);
+  clearTimeout(undoTimer);
+  undoKey = delta > 0 ? key : null;
+  $("undo").hidden = !undoKey;
+  if (undoKey) {
+    const name = (key === "us" ? state.teamUs : state.teamThem).trim() || (key === "us" ? "自チーム" : "相手");
+    $("undo").textContent = `↶ 取り消す（${name}の1点）`;
+    undoTimer = setTimeout(() => {
+      $("undo").hidden = true;
+      undoKey = null;
+    }, UNDO_MS);
+  }
+}
+// まんなかに「2 - 1」を大きく一瞬。変わった側の数字だけ色をつける（＋は黄、− は赤）。並びは得点板と同じ左右
+function popScore(key, delta) {
+  const [l, r] = state.swapped ? ["them", "us"] : ["us", "them"];
+  const num = (k) => Object.assign(document.createElement("span"), { textContent: state[k], className: k === key ? "is-hit" : "" });
+  const pop = $("scorePop");
+  pop.replaceChildren(num(l), " - ", num(r));
+  pop.classList.toggle("is-minus", delta < 0);
+  pop.classList.remove("is-show");
+  void pop.offsetWidth; // 続けて押しても、はじめから出しなおす
+  pop.classList.add("is-show");
+}
+document.querySelectorAll("[data-score]").forEach((b) => b.addEventListener("click", () => changeScore(b.dataset.score, Number(b.dataset.delta))));
+$("undo").addEventListener("click", () => undoKey && changeScore(undoKey, -1));
 
 // ---- 録画 ----
 // LINE で送れる動画は 5分まで。いつも5分ごとに MediaRecorder を新しくして、1本ずつの動画（clips）にする
@@ -594,11 +621,24 @@ function showSaved() {
     c.file = new File([c.blob], name, { type: c.type });
     c.url = URL.createObjectURL(c.blob);
   });
+  showSaveGuide();
   // 5分を超えていたら（2本以上）、どれを残すか選ぶ：全部・最初の5分・最後の5分
   $("pickClips").hidden = clips.length < 2;
   renderClips();
   if (clips.length) showClip(clips.length - 1);
   $("saveSheet").hidden = false;
+}
+
+// 保存のしかた：iPhone・iPad は共有から「ビデオを保存」で写真へ。共有できる端末は LINE などへ、できなければ ⬇️ で保存
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+function showSaveGuide() {
+  const canShare = clips.length && navigator.canShare?.({ files: [clips[0].file] });
+  $("saveGuide").hidden = !clips.length;
+  $("saveGuide").textContent = isIOS && canShare
+    ? "📱 写真に残すには「📤 保存・共有」→「ビデオを保存」。LINE に送るときは、そのまま LINE を選べます。"
+    : canShare
+      ? "📱 「📤 保存・共有」から LINE などに送れます。端末に残すときは ⬇️ を押してください。"
+      : "⬇️ を押すと、この端末に保存できます。";
 }
 
 // state の「どれを残すか」に合う動画（clips の番号）

@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610210957">
+<link rel="stylesheet" href="style.css?v=202610211004">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -117,6 +117,10 @@
     <button class="plus" type="button" data-score="them" data-delta="1" aria-label="相手に1点">＋1</button>
     <button class="minus" type="button" data-score="them" data-delta="-1" aria-label="相手の1点を取り消す">−1</button>
   </div>
+  <!-- ＋1／−1 を押したとき：いまのスコアを、まんなかに大きく一瞬（押せたか、見なくても分かるように。録画には入らない） -->
+  <div id="scorePop" class="score-pop" aria-live="polite"></div>
+  <!-- ＋1 のすぐあと5秒だけ：押しまちがいを大きなボタンで取り消せる（小さな −1 を探さなくていい） -->
+  <button id="undo" class="undo" type="button" hidden>↶ 取り消す</button>
   <!-- 下のまんなか：録画ボタン（いちばん使う）。＋1／−1 はこのボタンの左右（まんなかからの距離で置く） -->
   <div class="bar">
     <button id="record" class="record" type="button" aria-label="録画をはじめる"><span></span></button>
@@ -145,6 +149,8 @@
     <p class="sheet-title">録画を保存</p>
     <video id="playback" class="playback" playsinline controls></video>
     <p id="saveInfo" class="hint"></p>
+    <!-- 保存のしかた（iPhone は「ビデオを保存」で写真へ。端末によって出し分ける） -->
+    <p id="saveGuide" class="guide" hidden></p>
     <!-- 5分を超えたとき：どれを残すか（全部・最初の5分・最後の5分＝最後の1本） -->
     <div id="pickClips" class="seg" role="radiogroup" aria-label="どの動画を残すか" hidden>
       <button class="chip" type="button" role="radio" data-pick="all">全部（5分ごと）</button>
@@ -164,7 +170,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610210957"></script>
+<script src="app.js?v=202610211004"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
