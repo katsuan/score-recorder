@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610210341">
+<link rel="stylesheet" href="style.css?v=202610210344">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -44,8 +44,12 @@
         <button class="team-action" type="button">保存</button>
       </div>
     </div>
-    <!-- 左右を入れかえる（後半にコートが変わったときなど。得点板・撮る画面の ＋1 の左右も入れかわる） -->
-    <button id="swapSides" class="swap" type="button" aria-label="自チームと相手の左右を入れかえる" title="左右を入れかえる">⇄</button>
+    <!-- まんなか：いまのスコア（チーム名の高さ。並びは左右に合わせる）と、左右を入れかえるボタン
+         （後半にコートが変わったときなど。得点板・撮る画面の ＋1 の左右も入れかわる） -->
+    <div class="mid">
+      <b id="setupScore" class="mid-score" aria-label="いまのスコア">0 - 0</b>
+      <button id="swapSides" class="swap" type="button" aria-label="自チームと相手の左右を入れかえる" title="左右を入れかえる">⇄</button>
+    </div>
     <div class="team-col" data-side="them">
       <label for="teamThem">相手</label>
       <input id="teamThem" maxlength="12" placeholder="相手">
@@ -56,6 +60,8 @@
       </div>
     </div>
   </div>
+  <!-- 点が入っているときだけ：次の試合の前に 0 - 0 にもどす -->
+  <p id="scoreReset" class="score-reset" hidden><button id="resetScore" class="link" type="button">スコアを 0 - 0 にする</button></p>
   <p id="fromSaqsen" class="hint" hidden>さくせん盤のチーム名・色を使っています。</p>
   <!-- 得点板のプレビューと GOAL のエフェクト：たたんだ欄（開くと、動画に入る得点板を見ておける。エフェクトはふだん出さない） -->
   <details id="previewFold" class="fold">
@@ -73,7 +79,6 @@
       </div>
     </div>
   </details>
-  <p class="now-score">いまのスコア <b id="setupScore">0 - 0</b> <button id="resetScore" class="link" type="button">0 - 0 にする</button></p>
   <button id="openCamera" class="btn" type="button">📹 カメラを開く</button>
   <p id="setupError" class="error" hidden></p>
   <p class="hint">動画はこの端末にだけ保存します（サーバーには送りません）。録画中は画面を消したり、別のアプリに切りかえたりしないでください。</p>
@@ -130,7 +135,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610210341"></script>
+<script src="app.js?v=202610210344"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

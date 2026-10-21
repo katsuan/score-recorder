@@ -25,12 +25,15 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* チームは左右に（左が自チーム、右が相手。得点板と同じ並び） */
 .teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; }
 .teams .team-col[data-side="us"] { order: 1; }
-.teams .swap { order: 2; }
+.teams .mid { order: 2; }
 .teams .team-col[data-side="them"] { order: 3; }
 /* 左右を入れかえたとき：相手が左、自チームが右 */
 .teams.is-swapped .team-col[data-side="us"] { order: 3; }
 .teams.is-swapped .team-col[data-side="them"] { order: 1; }
-.swap { align-self: center; width: 36px; height: 36px; margin-top: 18px; border: 2px solid var(--border); border-radius: 50%; background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
+.mid { display: grid; grid-template-rows: auto 44px 44px; gap: 6px; justify-items: center; align-items: center; }
+.mid::before { content: ""; height: 14px; } /* ラベルの高さぶん下げて、スコアをチーム名の高さに */
+.mid-score { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.swap { width: 36px; height: 36px; border: 2px solid var(--border); border-radius: 50%; background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
 .swap:active { transform: scale(0.94); }
 /* 撮る画面の ＋1 も左右を入れかえる */
 .studio.is-swapped .side.is-us { left: auto; right: calc(16px + env(safe-area-inset-right)); }
@@ -61,8 +64,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .btn { display: grid; place-items: center; min-height: 52px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--accent); color: #fff; font: inherit; font-size: 17px; font-weight: 800; text-decoration: none; cursor: pointer; }
 .btn.ghost { background: #fff; color: var(--ink); border: 2px solid var(--border); }
-.now-score { display: flex; align-items: center; gap: 10px; font-size: 14px; }
-.now-score b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.score-reset { margin-top: -4px; text-align: center; font-size: 13px; }
 .hint { font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
 .error { color: #c2410c; font-size: 13px; font-weight: 700; }
 .link { border: 0; background: none; color: var(--ink-soft); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; }

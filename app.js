@@ -44,7 +44,11 @@ $("teamThem").value = state.teamThem;
 $("colorUs").value = state.colorUs;
 $("colorThem").value = state.colorThem;
 $("fromSaqsen").hidden = !fromSaqsen;
-const showSetupScore = () => ($("setupScore").textContent = `${state.us} - ${state.them}`);
+// いまのスコア（左右の並びに合わせる）。点があるときだけ「0 - 0 にする」を出す
+function showSetupScore() {
+  $("setupScore").textContent = state.swapped ? `${state.them} - ${state.us}` : `${state.us} - ${state.them}`;
+  $("scoreReset").hidden = state.us === 0 && state.them === 0;
+}
 showSetupScore();
 // 次の試合の前に：スコアを 0 - 0 に
 $("resetScore").addEventListener("click", () => {
@@ -65,6 +69,7 @@ $("resetScore").addEventListener("click", () => {
 function showSides() {
   document.querySelector(".teams").classList.toggle("is-swapped", state.swapped);
   $("studio").classList.toggle("is-swapped", state.swapped);
+  showSetupScore();
 }
 $("swapSides").addEventListener("click", () => {
   state.swapped = !state.swapped;
