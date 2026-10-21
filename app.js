@@ -613,9 +613,10 @@ function showClip(i) {
   document.querySelectorAll(".clip").forEach((row) => row.classList.toggle("is-current", row.dataset.index === String(i)));
 }
 
+// 共有は動画だけ（題名や文字をつけると、LINE などで別のメッセージとして届くことがあるため）
 async function shareFiles(files) {
   try {
-    await navigator.share({ files, title: "試合の動画" });
+    await navigator.share({ files });
   } catch {
     // やめたときは何もしない
   }
