@@ -1074,10 +1074,14 @@ function renderEditScore() {
 }
 
 function addEditEvent(key, delta) {
-  editEvents.push({ t: editVideo.currentTime, key, delta });
+  const ev = { t: editVideo.currentTime, key, delta };
+  editEvents.push(ev);
   editEvents.sort((a, b) => a.t - b.t);
   navigator.vibrate?.(delta > 0 ? 30 : [15, 50, 15]);
   renderEditEvents();
+  // 入れた得点の行が一覧の中で見えるように（一覧の中だけ動かす）
+  const row = $("editEvents").children[editEvents.indexOf(ev)];
+  if (row) $("editEvents").scrollTop = row.offsetTop - $("editEvents").offsetTop - 40;
 }
 
 // 入れた得点の一覧：時間（押すとそこへ）・どちらのチーム・そのあとのスコア・✕（消す）

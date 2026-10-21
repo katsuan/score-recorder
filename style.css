@@ -207,7 +207,8 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .editor { position: fixed; inset: 0; z-index: 8; overflow-y: auto; display: grid; align-content: start; gap: 12px; padding: calc(12px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); background: #0f1a14; color: #fff; }
 .editor-bar { display: flex; align-items: center; gap: 10px; }
 .editor-title { font-weight: 800; }
-.editor-stage { display: grid; place-items: center; border-radius: 12px; overflow: hidden; background: #000; }
+/* 動画は上に固定（得点の一覧がのびて下へ動かしても、動画が画面の外へ出ていかないように） */
+.editor-stage { position: sticky; top: 0; z-index: 2; display: grid; place-items: center; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 6px 12px #0f1a14; }
 .edit-screen { display: block; width: 100%; max-height: 50vh; object-fit: contain; }
 .src-video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; } /* 絵は canvas に描くので、元の動画は見せない */
 .editor-controls { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 10px; }
@@ -224,7 +225,8 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .edit-side .plus { width: 100%; min-height: 64px; border: 3px solid rgba(255, 255, 255, 0.9); border-radius: 16px; background: var(--team); color: var(--team-ink); font: inherit; font-size: 22px; font-weight: 800; cursor: pointer; }
 .edit-side .minus { min-width: 64px; min-height: 32px; border: 2px solid var(--team); border-radius: 999px; background: rgba(0, 0, 0, 0.4); color: #fff; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
 .edit-side button:active { transform: scale(0.96); }
-.edit-events { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+/* 得点の一覧は高さを決めて、その中で動かす（ページがのびつづけないように。新しい得点が見えるように動かす） */
+.edit-events { display: grid; align-content: start; gap: 6px; max-height: 26vh; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
 .edit-events:empty::before { content: "まだ得点はありません"; font-size: 13px; opacity: 0.7; }
 .edit-events li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; background: rgba(255, 255, 255, 0.08); font-size: 13px; font-weight: 700; }
 .edit-events .ev-dot { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 50%; border: 1px solid #fff; vertical-align: -1px; }
