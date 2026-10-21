@@ -101,7 +101,7 @@ showSides();
 // ---- GOAL のエフェクトを出すか・試す ----
 const showGoalFxSetting = () => {
   document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
-  $("fxMeta").textContent = state.goalFx ? "エフェクトあり" : "";
+  $("fxMeta").textContent = state.goalFx ? "ON" : ""; // GOAL のエフェクトを出すときだけ、たたんだ見出しに小さく
 };
 document.querySelectorAll("[data-goal-fx]").forEach((b) =>
   b.addEventListener("click", () => {
@@ -173,17 +173,38 @@ const saveTeams = () => {
 const SIDES = { us: { name: "teamUs", color: "colorUs" }, them: { name: "teamThem", color: "colorThem" } };
 const sameTeam = (t, name, color) => t.name === name && t.color.toLowerCase() === String(color).toLowerCase();
 
-// それぞれの行：▼ は保存したチームがあるときだけ。右のボタンは、いまの名前と色が保存済みなら「消す」、まだなら「保存」
+// さくせん盤で入れたチーム（自チーム・相手の名前と色）。▼ で選べるように。保存したチームと同じ名前・色のものは出さない
+function saqsenTeams() {
+  const now = load(SAQSEN_KEY);
+  return [
+    { name: String(now.team || "").trim(), color: now.ourColor || "#6c47ff" },
+    { name: String(now.opponent || "").trim(), color: now.oppColor || "#ffffff" }
+  ].filter((t, i, list) => t.name && !teams.some((s) => sameTeam(s, t.name, t.color)) && list.findIndex((u) => sameTeam(u, t.name, t.color)) === i);
+}
+const pickList = () => [...teams.map((t, i) => ({ ...t, value: `t${i}` })), ...saqsenTeams().map((t, i) => ({ ...t, value: `s${i}` }))];
+const option = (value, text) => Object.assign(document.createElement("option"), { value, textContent: text });
+const group = (label, list) => {
+  const g = Object.assign(document.createElement("optgroup"), { label });
+  g.append(...list.map((t) => option(t.value, t.name)));
+  return g;
+};
+
+// それぞれの行：▼ は選べるチーム（保存したチーム・さくせん盤のチーム）があるときだけ。
+// 右のボタンは、いまの名前と色が保存済みなら「消す」、まだなら「保存」
 function renderTeams() {
+  const list = pickList();
+  const fromTeams = list.filter((t) => t.value[0] === "t");
+  const fromSaqsen = list.filter((t) => t.value[0] === "s");
   document.querySelectorAll(".team-col").forEach((row) => {
     const keys = SIDES[row.dataset.side];
     const name = state[keys.name].trim();
     const saved = teams.some((t) => sameTeam(t, name, state[keys.color]));
-    row.querySelector(".team-pick").hidden = !teams.length;
+    row.querySelector(".team-pick").hidden = !list.length;
     const select = row.querySelector("select");
     select.replaceChildren(
-      Object.assign(document.createElement("option"), { value: "", textContent: "保存したチーム" }),
-      ...teams.map((t, i) => Object.assign(document.createElement("option"), { value: String(i), textContent: t.name }))
+      option("", "チームを選ぶ"),
+      ...(fromTeams.length ? [group("保存したチーム", fromTeams)] : []),
+      ...(fromSaqsen.length ? [group("さくせん盤から", fromSaqsen)] : [])
     );
     select.value = "";
     const action = row.querySelector(".team-action");
@@ -197,7 +218,7 @@ document.querySelectorAll(".team-col").forEach((row) => {
   const keys = SIDES[row.dataset.side];
   // ▼ で選ぶ：名前と色をまとめて入れる
   row.querySelector("select").addEventListener("change", (e) => {
-    const t = teams[Number(e.target.value)];
+    const t = pickList().find((p) => p.value === e.target.value);
     if (!t) return;
     state[keys.name] = t.name;
     state[keys.color] = t.color;
@@ -516,6 +537,11 @@ function startClip() {
 function startRecording() {
   if (!window.MediaRecorder || !screen.captureStream) {
     alert("この端末のブラウザでは録画できません。");
+    return;
+  }
+  // カメラが使えていないとき（許可していない・ほかのアプリが使っている）は録画しない
+  if (!cameraStream) {
+    alert("カメラが使えません。「← 戻る」から、もう一度「カメラを開く」を押して、カメラとマイクを許可してください。");
     return;
   }
   recordStream = screen.captureStream(30);

@@ -18,8 +18,9 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* はじめの画面 */
 .setup { display: grid; gap: 14px; max-width: 520px; margin: 0 auto; padding: 20px 16px 40px; }
 .setup h1 { display: flex; align-items: center; gap: 8px; font-size: 22px; }
+.brand-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .setup h1 .logo { border-radius: 7px; }
-.setup h1 small { margin-left: 8px; font-size: 13px; color: var(--ink-soft); letter-spacing: 0.04em; }
+.wordmark { display: block; width: auto; height: 28px; } /* アイコン＋名前の行と同じ高さ */
 .copy { margin-top: -10px; font-size: 13px; font-weight: 700; color: var(--accent); }
 .lead { line-height: 1.7; }
 /* チームは左右に（左が自チーム、右が相手。得点板と同じ並び） */
@@ -38,13 +39,15 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* 撮る画面の ＋1 も左右を入れかえる */
 /* たたんだ欄（プレビュー・GOAL のエフェクト） */
 .fold { display: grid; gap: 10px; padding: 10px 12px; border: 2px solid var(--border); border-radius: 14px; background: #fff; }
-.fold summary { font-size: 14px; font-weight: 800; cursor: pointer; list-style: none; }
+.fold summary { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 800; cursor: pointer; list-style: none; }
 .fold summary::-webkit-details-marker { display: none; }
-.fold summary::after { content: "›"; float: right; color: var(--ink-soft); transition: transform 0.2s; }
+.fold summary::after { content: "›"; color: var(--ink-soft); transition: transform 0.2s; }
 .fold[open] summary::after { transform: rotate(90deg); }
 .fold[open] { gap: 10px; }
 .fold[open] > :not(summary) { margin-top: 8px; }
-.meta { margin-left: 6px; font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+.fold-title { flex: 1; min-width: 0; }
+.meta { white-space: nowrap; font-size: 11px; font-weight: 800; color: #fff; background: var(--accent); border-radius: 999px; padding: 1px 8px; }
+.meta:empty { display: none; }
 .team-col { display: grid; gap: 6px; align-content: start; }
 .team-row { display: grid; grid-template-columns: 40px auto minmax(0, 1fr); align-items: stretch; gap: 4px; }
 /* 得点板のプレビュー（動画と同じ 16:9） */

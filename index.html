@@ -24,12 +24,16 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610210944">
+<link rel="stylesheet" href="style.css?v=202610210957">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
 <main id="setup" class="setup">
-  <h1><img class="logo" src="icon.svg" alt="" width="28" height="28">ろくが<small>RoQga</small></h1>
+  <!-- 見出しは1行：アイコン＋名前（左）と、横長のロゴ（右。R の足が o のボールを蹴る。tools/logo_ro.py）。さくせん盤と同じ形 -->
+  <div class="brand-row">
+    <h1><img class="logo" src="icon.svg" alt="" width="28" height="28">ろくが</h1>
+    <img class="wordmark" src="logo.svg" alt="RoQga" height="28">
+  </div>
   <p class="copy">とった点まで、とっておこう</p>
   <p class="lead">試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残します。<br>スマホは<b>横向き</b>で使います。</p>
   <!-- チーム：得点板と同じく、左が自チーム・右が相手。名前・色・▼（保存したチームから選ぶ）・保存／消す。
@@ -79,7 +83,7 @@
   <p id="fromSaqsen" class="hint" hidden>さくせん盤のチーム名・色を使っています。</p>
   <!-- 得点板のプレビューと GOAL のエフェクト：たたんだ欄（開くと、動画に入る得点板を見ておける。エフェクトはふだん出さない） -->
   <details id="previewFold" class="fold">
-    <summary>👀 プレビュー・GOAL のエフェクト <span id="fxMeta" class="meta"></span></summary>
+    <summary><span class="fold-title">👀 プレビュー・GOAL のエフェクト</span><span id="fxMeta" class="meta"></span></summary>
     <div class="preview-frame">
       <canvas id="preview" class="preview" width="1280" height="720" aria-label="得点板のプレビュー"></canvas>
       <span class="preview-tag">プレビュー</span>
@@ -160,7 +164,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610210944"></script>
+<script src="app.js?v=202610210957"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
