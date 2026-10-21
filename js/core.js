@@ -85,7 +85,8 @@ const state = {
   them: Number(saved.them) || 0,
   goalFx: saved.goalFx === true, // ＋1 のとき「GOAL!」のエフェクトを動画に入れるか（ふだんは出さない）
   swapped: saved.swapped === true, // 左右を入れかえる（us を右に）。us・them は中の呼び名で、自分のチームとはかぎらない
-  hand: ["left", "right"].includes(saved.hand) ? saved.hand : "center" // ＋1・録画のまとまりの位置（片手で持つ側に寄せる）
+  hand: ["left", "right"].includes(saved.hand) ? saved.hand : "center", // ＋1・録画のまとまりの位置（片手で持つ側に寄せる）
+  turn: ["left", "right"].includes(saved.turn) ? saved.turn : null // 縦の画面のまま倒して撮るときの向き（前に選んだもの。次からは選ばずに始める）
 };
 // チーム名・色を、さくせん盤の側にも書く（ほかのところはそのまま）
 const shareTeams = () => {

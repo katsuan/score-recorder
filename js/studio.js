@@ -26,6 +26,8 @@ async function openCamera() {
   await video.play().catch(() => {});
   $("setup").hidden = true;
   $("studio").hidden = false;
+  // 縦の画面で開いたとき、前に倒して撮った向きがあれば、選ばずにその向きで始める（ちがえば ⇅ で逆に）
+  if (state.turn && window.matchMedia("(orientation: portrait)").matches) setTurn(state.turn, false);
   await keepScreenOn();
   requestAnimationFrame(drawFrame);
 }
@@ -88,9 +90,15 @@ function drawFrame() {
 }
 
 // 倒す向きを選ぶ・やめる。録画中は変えない（動画の向きが途中で変わるため）
-function setTurn(next) {
+// remember：選んだ向きを端末に覚える（次にカメラを開いたとき、縦の画面ならその向きで始める）。
+// ほんとうに横向きになって外すときは覚えたままにする
+function setTurn(next, remember = true) {
   if (recording) return;
   turn = next;
+  if (remember && next) {
+    state.turn = next;
+    save();
+  }
   const studio = $("studio");
   studio.classList.toggle("is-turned", Boolean(turn));
   studio.classList.toggle("is-left", turn === "left");
@@ -100,7 +108,7 @@ function setTurn(next) {
 document.querySelectorAll("[data-turn]").forEach((b) => b.addEventListener("click", () => setTurn(b.dataset.turn)));
 $("turnFlip").addEventListener("click", () => setTurn(turn === "left" ? "right" : "left")); // 倒す向きを逆に
 // 画面の回転がオンで、ほんとうに横向きになったら、倒して撮るのはやめる（ふつうの横向きで撮る）
-window.matchMedia("(orientation: landscape)").addEventListener("change", (e) => e.matches && setTurn(null));
+window.matchMedia("(orientation: landscape)").addEventListener("change", (e) => e.matches && setTurn(null, false));
 
 // ---- ＋1 の位置：まんなか・左よせ・右よせ（片手で持つ側に寄せる）。撮る画面の右上の小さな丸で、録画中も切りかえられる ----
 const HAND_NAMES = { center: "まんなか", left: "左よせ", right: "右よせ" };
