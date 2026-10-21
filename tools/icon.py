@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ろくが（RoQga）のアイコン・ロゴ・OGP を作る。
 
-名前は「ろくが」（録画）。キャッチコピーは「とった点まで、とっておこう」（取った点＝ゴールまで、撮っておく＝録画のかけことば）。英字は RoQga（おくるん＝OQRN・キロっく＝kiloQ と同じ作り方で、「く」を Q にする）。
+名前は「ろくが」（録画）。キャッチコピーは「とった点が、とっておき」（取った点＝ゴールが、とっておき＝撮っておく・取っておきの宝物 のかけことば）。英字は RoQga（おくるん＝OQRN・キロっく＝kiloQ と同じ作り方で、「く」を Q にする）。
 アイコンはおくるんと同じ角の丸い四角に、さくせん盤と同じピッチの緑（さくせん盤の追加アプリなので）。録画のランプだけ赤。
 Q はカメラのレンズの輪：白い輪の真ん中に、録画中の赤いランプ（白い丸の中の赤い点）。Q のしっぽは右下へ、短く太く（細長いと虫めがねに見える）。
 
@@ -78,7 +78,7 @@ def main():
 
     logo, ratio = build_logo(BRAND, SHAPES, C, RING_OUTER)
     (ROOT / "logo.svg").write_text(logo, encoding="utf-8")
-    BRAND.write_ogp(ROOT / "ogp.png", SHAPES, "ろくが", "RoQga", ["試合をスマホで撮りながら", "得点板を動画にそのまま残せる"], scoreboard, copy="とった点まで、とっておこう")
+    BRAND.write_ogp(ROOT / "ogp.png", SHAPES, "ろくが", "RoQga", ["試合をスマホで撮りながら", "得点板を動画にそのまま残せる"], scoreboard, copy="とった点が、とっておき")
     print(f"アイコン・logo.svg（高さ 28px なら幅 {28 * ratio:.0f}px）・ogp.png を書き出しました")
 
 
