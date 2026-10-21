@@ -83,7 +83,10 @@ const state = {
   colorThem: pickHex(saqsen.oppColor, saved.colorThem, TEAM_COLORS[2].hex),
   us: Number(saved.us) || 0,
   them: Number(saved.them) || 0,
-  goalFx: saved.goalFx === true, // ＋1 のとき「GOAL!」のエフェクトを動画に入れるか（ふだんは出さない）
+  // ＋1 のとき「GOAL!」のエフェクトを動画に入れるか。はじめは出す（ON）。
+  // 前は「はじめは出さない」で OFF が覚えられているので、fxV（この決まりの版）が 2 でなければ、いちどだけ ON にする
+  goalFx: saved.fxV === 2 ? saved.goalFx !== false : true,
+  fxV: 2,
   swapped: saved.swapped === true, // 左右を入れかえる（us を右に）。us・them は中の呼び名で、自分のチームとはかぎらない
   hand: ["left", "right"].includes(saved.hand) ? saved.hand : "center", // ＋1・録画のまとまりの位置（片手で持つ側に寄せる）
   turn: ["left", "right"].includes(saved.turn) ? saved.turn : null // 縦の画面のまま倒して撮るときの向き（前に選んだもの。次からは選ばずに始める）
