@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211400">
+<link rel="stylesheet" href="style.css?v=202610211405">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -174,21 +174,22 @@
   <!-- 点が入ったところで ＋1（左右は得点板と同じ並び。ボタンはチームの色）。まちがえたら −1 か、下の一覧の ✕ -->
   <div id="editSides" class="edit-score"></div>
   <ol id="editEvents" class="edit-events"></ol>
-  <!-- 書き出す範囲：全部／得点の前後だけ（各得点の10秒前〜6秒後をつなぐ。短く書き出せて、LINE でも送りやすい） -->
+  <!-- 書き出す範囲：全部／⚡ ハイライト（各得点の10秒前〜6秒後をつなぐ。撮るときの得点ハイライトと同じ。短く書き出せて、LINE でも送りやすい） -->
   <div class="export-range" role="radiogroup" aria-label="書き出す範囲">
     <button type="button" role="radio" data-range="all" aria-checked="true">全部</button>
-    <button type="button" role="radio" data-range="goals" aria-checked="false">得点の前後だけ</button>
+    <button type="button" role="radio" data-range="goals" aria-checked="false">⚡ ハイライト</button>
   </div>
   <button id="editExport" class="btn" type="button">📼 得点板つきで書き出す</button>
   <p class="hint editor-hint">点が入ったところで ＋1。書き出すあいだは、この画面のままで。</p>
-  <!-- 書き出し中：ほかの操作はできないように上からかぶせる -->
-  <div id="exportOverlay" class="export-overlay" hidden>
-    <p class="export-title">書き出し中…</p>
-    <p id="exportProg" class="export-prog"></p>
-    <p class="hint">終わるまで、この画面のままにしてください。</p>
-    <button id="exportCancel" class="btn ghost" type="button">やめる</button>
-  </div>
 </section>
+
+<!-- 書き出し中（あとから付ける・得点ハイライト）：ほかの操作はできないように上からかぶせる -->
+<div id="exportOverlay" class="export-overlay" hidden>
+  <p id="exportTitle" class="export-title">書き出し中…</p>
+  <p id="exportProg" class="export-prog"></p>
+  <p class="hint">終わるまで、この画面のままにしてください。</p>
+  <button id="exportCancel" class="btn ghost" type="button">やめる</button>
+</div>
 
 <!-- 録画を止めたあと：保存・共有 -->
 <div id="saveSheet" class="sheet" hidden>
@@ -198,6 +199,8 @@
     <p id="saveInfo" class="hint"></p>
     <!-- 保存のしかた（iPhone は「ビデオを保存」で写真へ。端末によって出し分ける） -->
     <p id="saveGuide" class="guide" hidden></p>
+    <!-- 得点ハイライト：撮っているあいだに ＋1 を押した時間の前後（10秒前〜6秒後）だけをつないで1本に（得点板はもう入っている） -->
+    <button id="makeHighlight" class="btn ghost" type="button" hidden>⚡ 得点ハイライトを作る</button>
     <!-- 5分を超えたとき：どれを残すか（全部・最初の5分・最後の5分＝最後の1本） -->
     <div id="pickClips" class="seg" role="radiogroup" aria-label="どの動画を残すか" hidden>
       <button class="chip" type="button" role="radio" data-pick="all">全部</button>
@@ -223,7 +226,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211400"></script>
+<script src="app.js?v=202610211405"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

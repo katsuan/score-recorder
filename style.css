@@ -230,7 +230,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .edit-events .ev-dot { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 50%; border: 1px solid #fff; vertical-align: -1px; }
 .edit-events button { border: 0; border-radius: 999px; background: rgba(255, 255, 255, 0.16); color: #fff; font: inherit; font-size: 12px; font-weight: 800; padding: 4px 10px; cursor: pointer; }
 .editor-hint { color: rgba(255, 255, 255, 0.7); }
-.export-overlay { position: fixed; inset: auto 0 0 0; z-index: 9; display: grid; gap: 8px; justify-items: center; padding: 20px 16px calc(24px + env(safe-area-inset-bottom)); background: rgba(10, 18, 13, 0.96); text-align: center; }
+.export-overlay { position: fixed; inset: auto 0 0 0; z-index: 11; display: grid; gap: 8px; justify-items: center; padding: 20px 16px calc(24px + env(safe-area-inset-bottom)); background: rgba(10, 18, 13, 0.96); text-align: center; }
 .export-title { font-size: 18px; font-weight: 800; }
 .export-prog { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .export-overlay .hint { color: rgba(255, 255, 255, 0.75); }

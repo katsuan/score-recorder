@@ -517,8 +517,18 @@ function drawGoalFx(w, h, c = screenCtx) {
 // 点を変える（＋1・−1）。押したボタンが一瞬光る（画面のまんなかには何も出さない。動画に入るのか迷わせないため。
 // いまの点は、動画に入る左上の得点板で見える）。Android は軽く震える（iPhone のブラウザは震えない）。
 // 押しまちがいは、そのチームの −1 で直す（画面がごちゃつかないよう「取り消す」ボタンは出さない）
+// 撮っているあいだに ＋1 を押した時間（得点ハイライト用）。[{ take, t: その回の録りはじめからの秒, key }]
+let liveGoals = [];
 function changeScore(key, delta, button) {
   state[key] = Math.max(0, state[key] + delta);
+  if (recording && recKind === "shot") {
+    if (delta > 0) liveGoals.push({ take, t: (Date.now() - startedAt) / 1000, key });
+    else {
+      // −1（押しまちがい）：その回の、そのチームのいちばん新しい得点を消す
+      const i = liveGoals.map((g) => g.take === take && g.key === key).lastIndexOf(true);
+      if (i >= 0) liveGoals.splice(i, 1);
+    }
+  }
   if (delta > 0 && state.goalFx) goalFx = { side: key, at: performance.now() };
   if (delta < 0) goalFx = null; // 取り消したら消す
   save();
@@ -563,14 +573,17 @@ function pickMimeType() {
 function startClip() {
   const rec = new MediaRecorder(recordStream, { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: 6_000_000 });
   const parts = [];
-  const from = Math.round((Date.now() - startedAt) / 1000);
+  const fromExact = (Date.now() - startedAt) / 1000; // 得点ハイライトで、得点の時間を動画の中の時間に直すのに使う
+  const from = Math.round(fromExact);
+  const kind = recKind;
   rec.addEventListener("dataavailable", (e) => e.data.size && parts.push(e.data));
   rec.addEventListener("stop", () => {
     activeRecs.delete(rec);
     const type = rec.mimeType || parts[0]?.type || "video/webm";
     const blob = new Blob(parts, { type });
-    const to = Math.round((Date.now() - startedAt) / 1000);
-    if (blob.size) clips.push({ blob, type, from, to, take, takeAt: startedAt, saved: false });
+    const toExact = (Date.now() - startedAt) / 1000;
+    const to = Math.round(toExact);
+    if (blob.size) clips.push({ blob, type, from, to, fromExact, toExact, kind, take, takeAt: startedAt, saved: false });
     // 録画を止めて、すべての1本が止まりきったら保存のシート（止まる順がずれても、録った順に並べる）
     if (!recording && !activeRecs.size) {
       clips.sort((a, b) => a.take - b.take || a.from - b.from);
@@ -605,7 +618,10 @@ function startRecording() {
 }
 
 // 録画をはじめる（カメラの画面でも、あとから付けるの書き出しでも同じ）：canvas の絵と音を、5分ごとに分けて録る
-function beginRecording(canvas, audioTracks) {
+// kind：shot（カメラで撮る）・edit（あとから付けるの書き出し）・highlight（得点ハイライト）
+let recKind = "shot";
+function beginRecording(canvas, audioTracks, kind = "shot") {
+  recKind = kind;
   recordStream = canvas.captureStream(30);
   audioTracks.forEach((t) => recordStream.addTrack(t));
   mimeType = pickMimeType();
@@ -658,7 +674,8 @@ function showSaved() {
     const d = new Date(c.takeAt);
     const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}`;
     const ext = c.type.includes("mp4") ? "mp4" : "webm";
-    const name = now.length > 1 ? `score-${stamp}-${i + 1}.${ext}` : `score-${stamp}.${ext}`;
+    const tail = c.kind === "highlight" ? "-highlight" : now.length > 1 ? `-${i + 1}` : "";
+    const name = `score-${stamp}${tail}.${ext}`;
     c.file = new File([c.blob], name, { type: c.type });
     c.url = URL.createObjectURL(c.blob);
   });
@@ -695,6 +712,7 @@ const pickedIndexes = () => {
 };
 
 function renderClips() {
+  showHighlightButton();
   document.querySelectorAll("[data-pick]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.pick === pick)));
   const shown = pickedIndexes();
   const list = $("clipList");
@@ -704,7 +722,13 @@ function renderClips() {
       const row = document.createElement("div");
       row.className = "clip";
       const sameTake = clips.filter((x) => x.take === c.take);
-      const label = `${take > 1 || c.take !== take ? `${takeNumber(c.take)}回目　` : ""}${sameTake.length > 1 ? `${sameTake.indexOf(c) + 1}本目　` : ""}${clock(c.from)}〜${clock(c.to)}（${(c.blob.size / 1024 / 1024).toFixed(1)}MB）${c.saved ? "　✓" : ""}`;
+      const size = `（${(c.blob.size / 1024 / 1024).toFixed(1)}MB）${c.saved ? "　✓" : ""}`;
+      const label =
+        c.kind === "highlight"
+          ? `⚡ ハイライト　${clock(c.to - c.from)}${size}`
+          : c.kind === "edit"
+            ? `🎞 あとから付けた動画　${sameTake.length > 1 ? `${sameTake.indexOf(c) + 1}本目　` : ""}${clock(c.from)}〜${clock(c.to)}${size}`
+            : `${shotTakes().length > 1 ? `${takeNumber(c.take)}回目　` : ""}${sameTake.length > 1 ? `${sameTake.indexOf(c) + 1}本目　` : ""}${clock(c.from)}〜${clock(c.to)}${size}`;
       const play = Object.assign(document.createElement("button"), { type: "button", className: "clip-play", textContent: label });
       play.addEventListener("click", () => showClip(i));
       const share = Object.assign(document.createElement("button"), { type: "button", className: "clip-btn", textContent: "📤 保存・共有" });
@@ -771,7 +795,9 @@ function markSaved(list) {
   renderClips();
 }
 // 何回目の録画か（0 - 0 にしてからの数え方）
-const takeNumber = (t) => [...new Set(clips.map((c) => c.take))].sort((a, b) => a - b).indexOf(t) + 1;
+// 何回目の録画か（カメラで撮ったものだけで数える）
+const shotTakes = () => [...new Set(clips.filter((c) => c.kind === "shot").map((c) => c.take))].sort((a, b) => a - b);
+const takeNumber = (t) => shotTakes().indexOf(t) + 1;
 
 // 共有がすんだら：「✓ 共有できました」と、「0 - 0 から撮りなおす」を目立たせる（次の試合へ）
 function markShared() {
@@ -844,7 +870,7 @@ let exportMode = false; // 書き出しの録画が終わったら、保存の�
 let audioCtx = null;
 let audioDest = null;
 let editRate = 1; // 得点を入れるときの再生の速さ（書き出しはいつも 1×）
-let exportRange = "all"; // 書き出す範囲：all（全部）／goals（得点の前後だけ）
+let exportRange = "all"; // 書き出す範囲：all（全部）／goals（⚡ ハイライト＝得点の前後だけ）
 const GOAL_BEFORE = 10; // 得点の前後だけ：何秒前から
 const GOAL_AFTER = 6; //  何秒後まで
 
@@ -901,8 +927,10 @@ function scoreAt(t) {
 }
 
 // 毎コマ：動画の絵 ＋ その時間の得点板 ＋（点が入った時間を通ったら）GOAL のエフェクト
+let rendering = false; // 書き出し中（あとから付ける・得点ハイライト）
+let renderOverlay = true; // 得点板・GOAL を描くか（得点ハイライトは、動画にもう入っているので描かない）
 function drawEditFrame() {
-  if ($("editor").hidden) return;
+  if ($("editor").hidden && !rendering) return;
   const vw = editVideo.videoWidth;
   const vh = editVideo.videoHeight;
   if (vw && vh) {
@@ -911,6 +939,11 @@ function drawEditFrame() {
       editScreen.height = vh;
     }
     const t = editVideo.currentTime;
+    if (!renderOverlay) {
+      editCtx.drawImage(editVideo, 0, 0, vw, vh);
+      requestAnimationFrame(drawEditFrame);
+      return;
+    }
     const score = scoreAt(t);
     state.us = score.us;
     state.them = score.them;
@@ -1102,32 +1135,39 @@ const seekTo = (t) =>
 
 // 書き出す：書き出すところを順に流して、得点板つきの絵と動画の音を録る（流した時間だけかかる）。
 // 得点の前後だけのときは、あいだを飛ばすあいだ録画を一時停止して、1本の動画につなぐ
-async function exportVideo() {
+// 書き出す（共通）：pieces＝[{ src: 動画の URL, a: はじめの秒, b: 終わりの秒 }] を順に流して、canvas の絵と動画の音を1本に録る。
+// あいだを飛ばすときは録画を一時停止してつなぐ。流した時間だけかかる
+async function renderPieces(pieces, { overlay, kind, title }) {
   if (!window.MediaRecorder || !editScreen.captureStream) {
     alert("この端末のブラウザでは書き出せません。");
     return;
   }
-  if (!Number.isFinite(editVideo.duration) || !editVideo.duration) return alert("動画の長さが分かりません。少し待ってから、もう一度お試しください。");
-  const segs = exportSegments();
-  if (!segs.length) return;
+  if (!pieces.length) return;
   ensureAudio();
   await audioCtx?.resume().catch(() => {});
   editVideo.pause();
   editVideo.playbackRate = 1;
   exporting = true;
-  exportMode = true;
+  rendering = true;
+  renderOverlay = overlay;
+  $("exportTitle").textContent = title;
   $("exportOverlay").hidden = false;
+  if ($("editor").hidden) requestAnimationFrame(drawEditFrame); // あとから付けるの画面では、もう描きつづけている
   await keepScreenOn();
-  const total = segs.reduce((sum, [a, b]) => sum + (b - a), 0);
+  const total = pieces.reduce((sum, p) => sum + (p.b - p.a), 0);
   let done = 0;
   let started = false;
-  for (const [a, b] of segs) {
+  for (const { src, a, b } of pieces) {
     if (!exporting) break;
+    if (editVideo.src !== src) {
+      editVideo.src = src;
+      await new Promise((r) => editVideo.addEventListener("loadeddata", r, { once: true }));
+    }
     await seekTo(a);
     editLastT = a;
     goalFx = null;
     if (!started) {
-      beginRecording(editScreen, audioDest ? audioDest.stream.getAudioTracks() : []);
+      beginRecording(editScreen, audioDest ? audioDest.stream.getAudioTracks() : [], kind);
       started = true;
     } else if (recorder?.state === "paused") {
       recorder.resume();
@@ -1149,9 +1189,65 @@ async function exportVideo() {
   }
   finishExport(false);
 }
+
+// あとから付ける：選んだ範囲を、得点板つきで書き出す（終わったら保存の画面は「閉じる」だけ）
+async function exportVideo() {
+  if (!Number.isFinite(editVideo.duration) || !editVideo.duration) return alert("動画の長さが分かりません。少し待ってから、もう一度お試しください。");
+  const pieces = exportSegments().map(([a, b]) => ({ src: editVideo.src, a, b }));
+  if (!pieces.length) return;
+  exportMode = true;
+  const highlight = exportRange === "goals"; // ⚡ ハイライト：保存の画面でも「⚡ ハイライト」として並ぶ
+  await renderPieces(pieces, { overlay: true, kind: highlight ? "highlight" : "edit", title: highlight ? "⚡ ハイライトを作っています…" : "書き出し中…" });
+}
+
+// 得点ハイライト：撮っているあいだに ＋1 を押した時間の前後（10秒前〜6秒後）を、録った動画（5分ごとの何本か）から切り出してつなぐ。
+// 近い得点はひとつにまとめる。録った動画が分かれているところは、それぞれの動画から続けて切り出す
+function highlightPieces() {
+  const pieces = [];
+  const takes = [...new Set(liveGoals.map((g) => g.take))].sort((a, b) => a - b);
+  takes.forEach((t) => {
+    const own = clips.filter((c) => c.take === t && c.kind === "shot" && c.url).sort((a, b) => a.fromExact - b.fromExact);
+    if (!own.length) return;
+    const end = own[own.length - 1].toExact;
+    const segs = [];
+    liveGoals
+      .filter((g) => g.take === t)
+      .sort((a, b) => a.t - b.t)
+      .forEach((g) => {
+        const a = Math.max(0, g.t - GOAL_BEFORE);
+        const b = Math.min(end, g.t + GOAL_AFTER);
+        const last = segs[segs.length - 1];
+        if (last && a <= last[1]) last[1] = Math.max(last[1], b);
+        else segs.push([a, b]);
+      });
+    segs.forEach(([a, b]) =>
+      own.forEach((c) => {
+        const from = Math.max(a, c.fromExact);
+        const to = Math.min(b, c.toExact);
+        if (to - from > 0.3) pieces.push({ src: c.url, a: from - c.fromExact, b: to - c.fromExact });
+      })
+    );
+  });
+  return pieces;
+}
+function showHighlightButton() {
+  const total = highlightPieces().reduce((sum, p) => sum + (p.b - p.a), 0);
+  $("makeHighlight").hidden = !total;
+  if (total) $("makeHighlight").textContent = `⚡ 得点ハイライトを作る（約 ${clock(Math.ceil(total))}）`;
+}
+$("makeHighlight").addEventListener("click", () => {
+  const pieces = highlightPieces();
+  if (!pieces.length) return;
+  $("saveSheet").hidden = true;
+  $("playback").pause();
+  renderPieces(pieces, { overlay: false, kind: "highlight", title: "⚡ ハイライトを作っています…" });
+});
+
 function finishExport(cancelled) {
   if (!exporting) return;
   exporting = false;
+  rendering = false;
+  renderOverlay = true;
   editVideo.pause();
   editVideo.playbackRate = editRate;
   $("exportOverlay").hidden = true;
