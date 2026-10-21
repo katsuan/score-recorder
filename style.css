@@ -151,10 +151,8 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .studio.is-turned.is-right { left: 0; top: 100vh; top: 100dvh; transform: rotate(-90deg); }
 /* 倒したときは、ノッチや角の丸みが左右のはしに来るので、＋1 を中ほどへ寄せる */
 .studio.is-turned .bar { bottom: 18px; }
-/* 倒したときの「戻る」「⇅（倒す向きを逆に）」は、スマホの上のはし（縦に持ったときの上）の側へ。
-   左に倒す → 上のはしは横画面の左、右に倒す → 右。左のときは、左上の得点板の下に置く */
+/* 倒したとき（左・右どちらでも）：右上のボタンは、ふつうの横向きと同じく右上に1列で */
 .studio.is-turned .tools { top: 14px; right: calc(20px + env(safe-area-inset-top)); }
-.studio.is-turned.is-left .tools { right: auto; left: calc(20px + env(safe-area-inset-top)); top: 22%; flex-direction: column; align-items: flex-start; }
 
 /* 保存のシート */
 .sheet { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, 0.6); }
