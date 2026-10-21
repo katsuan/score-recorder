@@ -25,12 +25,12 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .wordmark { display: block; width: auto; height: 28px; } /* アイコン＋名前の行と同じ高さ */
 .copy { margin-top: -10px; font-size: 13px; font-weight: 700; color: var(--accent); }
 .lead { line-height: 1.7; }
-/* チームは左右に（左が自チーム、右が相手。得点板と同じ並び） */
+/* チームは左右に（左のチーム・右のチーム。得点板と同じ並び） */
 .teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; }
 .teams .team-col[data-side="us"] { order: 1; }
 .teams .mid { order: 2; }
 .teams .team-col[data-side="them"] { order: 3; }
-/* 左右を入れかえたとき：相手が左、自チームが右 */
+/* 左右を入れかえたとき：them が左、us が右（ラベルは app.js で「左のチーム・右のチーム」に） */
 .teams.is-swapped .team-col[data-side="us"] { order: 3; }
 .teams.is-swapped .team-col[data-side="them"] { order: 1; }
 .mid { display: grid; grid-template-rows: auto 44px 44px; align-content: start; gap: 6px; justify-items: center; align-items: center; }
@@ -53,7 +53,6 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .team-col { display: grid; gap: 6px; align-content: start; }
 .team-row { display: grid; grid-template-columns: 40px auto minmax(0, 1fr); align-items: stretch; gap: 4px; }
 /* 得点板のプレビュー（動画と同じ 16:9） */
-.preview-box { display: grid; gap: 6px; }
 .preview-frame { position: relative; }
 .preview { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; background: #2e8b4a; }
 /* 「プレビュー」の札（画面の上だけ。動画には入らない） */

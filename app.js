@@ -1,10 +1,44 @@
-// ろくが（RoQga）：スマホで試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残す。
-// しくみ：カメラの映像と得点板を1つのキャンバスに描き、そのキャンバス（＋マイクの音）を MediaRecorder で録る。
-// ボタン（得点の ＋・−、録画）はキャンバスの上に重ねた別の部品なので、動画には入らない。
+// ろくが（RoQga）：試合の動画に、得点板（チーム名とスコア）をそのまま入れて残す。
+// 使い方は2つ：📹 撮る（カメラで撮りながら ＋1）／🎞 あとから付ける（撮っておいた動画に、得点の時間を入れて書き出す）。
+// どちらも ⚡ ハイライト（得点・⭐ ナイスプレーの前後だけをつなぐ）を作れる。
+// しくみ：映像と得点板を1つのキャンバスに描き、そのキャンバス（＋音）を MediaRecorder で録る。
+// ボタン（＋1・録画など）はキャンバスの上に重ねた別の部品なので、動画には入らない。
 // 動画はこの端末にだけ残す（保存・共有メニュー、ダウンロード）。サーバーには送らない。
+//
+// 目次（上から順に）：
+//   共通の道具 → 覚えておくこと（state） → はじめの画面（スコア・＋1 の位置・左右・GOAL・プレビュー・保存したチーム）
+//   → カメラ → 描く（得点板・GOAL のエフェクト）→ 得点の ＋・−・⭐ → 録画 → 保存の画面
+//   → 使い方のタブ → あとから付ける → 書き出し（共通）・⚡ ハイライト
 "use strict";
 
+// ---- 共通の道具 ----
 const $ = (id) => document.getElementById(id);
+const clock = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+// 明るい色か（白いユニフォームなど）。明るい色の上は濃い字にする（＋1 のボタン・GOAL の帯）
+const isLight = (hex) => {
+  const n = parseInt(String(hex).replace("#", ""), 16) || 0;
+  return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 > 0.62;
+};
+const inkFor = (hex) => (isLight(hex) ? "#1a1a1a" : "#ffffff");
+// ⚡ ハイライト：得点・⭐ ナイスプレーの何秒前から何秒後までを入れるか
+const HIGHLIGHT_BEFORE = 10;
+const HIGHLIGHT_AFTER = 6;
+// 時間（秒）のならびから、ハイライトに入れるところ [はじめ, 終わり] のならびを作る。近いものはひとつにつなぐ
+function highlightSpans(times, end) {
+  const spans = [];
+  [...times]
+    .sort((a, b) => a - b)
+    .forEach((t) => {
+      const a = Math.max(0, t - HIGHLIGHT_BEFORE);
+      const b = Math.min(end, t + HIGHLIGHT_AFTER);
+      const last = spans[spans.length - 1];
+      if (last && a <= last[1]) last[1] = Math.max(last[1], b);
+      else spans.push([a, b]);
+    });
+  return spans;
+}
+
+// ---- 覚えておくこと（state）。この端末の localStorage に残す ----
 const STORE_KEY = "roqga:state";
 const SAQSEN_KEY = "soccer:state"; // さくせん盤（同じ katsuan.github.io）のチーム名・色
 
@@ -107,11 +141,6 @@ showHand();
 // いま左にいるか右にいるかで呼ぶ（自分のチームの試合とはかぎらないので「自チーム・相手」とは呼ばない）
 const sideName = (key) => ((key === "us") !== state.swapped ? "左のチーム" : "右のチーム");
 // ＋1／−1 のボタンをチームの色に。字は色の明るさで白か黒（白いユニフォームなら黒い字）
-const inkFor = (hex) => {
-  const n = parseInt(String(hex).replace("#", ""), 16) || 0;
-  const lum = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
-  return lum > 0.62 ? "#1a1a1a" : "#ffffff";
-};
 function showTeamColors() {
   document.querySelectorAll(".side").forEach((el) => {
     const color = el.classList.contains("is-us") ? state.colorUs : state.colorThem;
@@ -456,11 +485,6 @@ function drawScoreboard(w, h, ctx = screenCtx) {
 const GOAL_FX_MS = 2200;
 let goalFx = null; // { side: "us"|"them", at: 時刻 }
 
-// 明るい色の上は濃い字（白いチームの帯でも読める）
-const isLight = (hex) => {
-  const n = parseInt(String(hex).slice(1), 16);
-  return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 > 170;
-};
 
 function drawGoalFx(w, h, c = screenCtx) {
   if (!goalFx) return;
@@ -567,7 +591,6 @@ $("markLive").addEventListener("click", () => {
 const SEGMENT_MS = (Number(new URLSearchParams(location.search).get("segment")) || 295) * 1000;
 let recorder = null;
 let recording = false;
-let chunks = [];
 // 録り終えた動画 [{ blob, type, from, to, take, takeAt, file, url, saved }]。from・to はその回の録りはじめからの秒。
 // 「スコアそのままで続きを撮る」で録りなおしても前の動画は消さず、続けて足していく（take が何回目の録画か）。
 // 消すのは「0 - 0 から撮りなおす」のときだけ（保存していない動画があれば確かめる）
@@ -665,8 +688,6 @@ function stopRecording() {
   $("record").setAttribute("aria-label", "録画をはじめる");
 }
 
-const clock = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
-
 // 録画中の時間。5分を超えて分けはじめたら「（2本目）」
 function showElapsed() {
   const sec = Math.floor((Date.now() - startedAt) / 1000);
@@ -675,6 +696,7 @@ function showElapsed() {
   $("elapsed").textContent = `${clock(sec)}${note}`;
 }
 
+// ---- 保存の画面 ----
 // 止めたら：見返し・保存・共有（何本かあるときは1本ずつ、またはまとめて）
 function showSaved() {
   // あとから付けるの書き出しのあとは「次はどうする？」（撮る画面向け）は出さず、閉じるだけ
@@ -888,9 +910,7 @@ let exportMode = false; // 書き出しの録画が終わったら、保存の�
 let audioCtx = null;
 let audioDest = null;
 let editRate = 1; // 得点を入れるときの再生の速さ（書き出しはいつも 1×）
-let exportRange = "all"; // 書き出す範囲：all（全部）／goals（⚡ ハイライト＝得点の前後だけ）
-const GOAL_BEFORE = 10; // 得点の前後だけ：何秒前から
-const GOAL_AFTER = 6; //  何秒後まで
+let exportRange = "all"; // 書き出す範囲：all（全部）／goals（⚡ ハイライト＝得点・⭐ の前後だけ）
 
 $("pickVideo").addEventListener("click", () => $("videoFile").click());
 $("videoFile").addEventListener("change", (e) => {
@@ -1029,22 +1049,12 @@ document.querySelectorAll("[data-range]").forEach((b) =>
     showExportRange();
   })
 );
-// 書き出すところ：[はじめの秒, 終わりの秒] のならび。得点の前後だけのときは、近い得点の前後はひとつにつなぐ
+// 書き出すところ：[はじめの秒, 終わりの秒] のならび。全部か、⚡ ハイライト（得点・⭐ の前後。近いものはひとつにつなぐ）
 function exportSegments() {
   const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
   if (!d) return [];
   if (exportRange === "all") return [[0, d]];
-  const segs = [];
-  editEvents
-    .filter((ev) => ev.delta > 0 || ev.mark) // 得点と ⭐ ナイスプレー
-    .forEach((ev) => {
-      const a = Math.max(0, ev.t - GOAL_BEFORE);
-      const b = Math.min(d, ev.t + GOAL_AFTER);
-      const last = segs[segs.length - 1];
-      if (last && a <= last[1]) last[1] = Math.max(last[1], b);
-      else segs.push([a, b]);
-    });
-  return segs;
+  return highlightSpans(editEvents.filter((ev) => ev.delta > 0 || ev.mark).map((ev) => ev.t), d); // 得点と ⭐ ナイスプレー
 }
 // 範囲の切りかえと、書き出すボタンにかかる時間の目安（書き出しは流した時間だけかかる）
 function showExportRange() {
@@ -1167,6 +1177,7 @@ function ensureAudio() {
   }
 }
 
+// 動画をその秒へ動かして、動き終わるまで待つ
 const seekTo = (t) =>
   new Promise((resolve) => {
     if (Math.abs(editVideo.currentTime - t) < 0.01) return resolve();
@@ -1174,8 +1185,7 @@ const seekTo = (t) =>
     editVideo.currentTime = t;
   });
 
-// 書き出す：書き出すところを順に流して、得点板つきの絵と動画の音を録る（流した時間だけかかる）。
-// 得点の前後だけのときは、あいだを飛ばすあいだ録画を一時停止して、1本の動画につなぐ
+// ---- 書き出し（共通）・⚡ ハイライト ----
 // 書き出す（共通）：pieces＝[{ src: 動画の URL, a: はじめの秒, b: 終わりの秒 }] を順に流して、canvas の絵と動画の音を1本に録る。
 // あいだを飛ばすときは録画を一時停止してつなぐ。流した時間だけかかる
 async function renderPieces(pieces, { overlay, kind, title }) {
@@ -1228,7 +1238,7 @@ async function renderPieces(pieces, { overlay, kind, title }) {
     if (recorder?.state === "recording") recorder.pause();
     done += b - a;
   }
-  finishExport(false);
+  finishExport();
 }
 
 // あとから付ける：選んだ範囲を、得点板つきで書き出す（終わったら保存の画面は「閉じる」だけ）
@@ -1241,8 +1251,8 @@ async function exportVideo() {
   await renderPieces(pieces, { overlay: true, kind: highlight ? "highlight" : "edit", title: highlight ? "⚡ ハイライトを作っています…" : "書き出し中…" });
 }
 
-// 得点ハイライト：撮っているあいだに ＋1 を押した時間の前後（10秒前〜6秒後）を、録った動画（5分ごとの何本か）から切り出してつなぐ。
-// 近い得点はひとつにまとめる。録った動画が分かれているところは、それぞれの動画から続けて切り出す
+// ⚡ ハイライト（撮るとき）：撮っているあいだに ＋1・⭐ を押した時間の前後を、録った動画（5分ごとの何本か）から切り出してつなぐ。
+// 近いものはひとつにまとめる（highlightSpans）。録った動画が分かれているところは、それぞれの動画から続けて切り出す
 function highlightPieces() {
   const pieces = [];
   const takes = [...new Set(liveGoals.map((g) => g.take))].sort((a, b) => a - b);
@@ -1250,18 +1260,7 @@ function highlightPieces() {
     const own = clips.filter((c) => c.take === t && c.kind === "shot" && c.url).sort((a, b) => a.fromExact - b.fromExact);
     if (!own.length) return;
     const end = own[own.length - 1].toExact;
-    const segs = [];
-    liveGoals
-      .filter((g) => g.take === t)
-      .sort((a, b) => a.t - b.t)
-      .forEach((g) => {
-        const a = Math.max(0, g.t - GOAL_BEFORE);
-        const b = Math.min(end, g.t + GOAL_AFTER);
-        const last = segs[segs.length - 1];
-        if (last && a <= last[1]) last[1] = Math.max(last[1], b);
-        else segs.push([a, b]);
-      });
-    segs.forEach(([a, b]) =>
+    highlightSpans(liveGoals.filter((g) => g.take === t).map((g) => g.t), end).forEach(([a, b]) =>
       own.forEach((c) => {
         const from = Math.max(a, c.fromExact);
         const to = Math.min(b, c.toExact);
@@ -1284,7 +1283,7 @@ $("makeHighlight").addEventListener("click", () => {
   renderPieces(pieces, { overlay: false, kind: "highlight", title: "⚡ ハイライトを作っています…" });
 });
 
-function finishExport(cancelled) {
+function finishExport() {
   if (!exporting) return;
   exporting = false;
   rendering = false;
@@ -1294,14 +1293,14 @@ function finishExport(cancelled) {
   $("exportOverlay").hidden = true;
   wakeLock?.release?.().catch(() => {});
   wakeLock = null;
-  // やめたときも、そこまでの動画は保存の画面に出す（撮るときと同じ。cancelled はいまは使わない）
+  // やめたときも、そこまでの動画は保存の画面に出す（撮るときと同じ）
   stopRecording();
 }
 $("editExport").addEventListener("click", () => {
   if (!editEvents.length && !confirm("まだ得点を入れていません。はじめのスコアのまま書き出しますか？")) return;
   exportVideo();
 });
-$("exportCancel").addEventListener("click", () => finishExport(true));
+$("exportCancel").addEventListener("click", () => finishExport());
 $("back").addEventListener("click", closeCamera);
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && cameraStream && !wakeLock) keepScreenOn();
