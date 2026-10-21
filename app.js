@@ -528,6 +528,7 @@ function startRecording() {
   startedAt = Date.now();
   startClip();
   $("record").classList.add("is-on");
+  $("studio").classList.add("is-recording");
   $("record").setAttribute("aria-label", "録画を止める");
   tick = setInterval(showElapsed, 500);
   showElapsed();
@@ -542,6 +543,7 @@ function stopRecording() {
   clearInterval(tick);
   $("elapsed").textContent = "";
   $("record").classList.remove("is-on");
+  $("studio").classList.remove("is-recording");
   $("record").setAttribute("aria-label", "録画をはじめる");
 }
 
