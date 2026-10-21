@@ -64,18 +64,36 @@ const save = () => {
   }
 };
 
-// チーム名・色は、前に使ったもの → さくせん盤のもの → 初めの値 の順に使う
+// チームの色の選びかた（さくせん盤と同じ形の丸いボタン）。ほかの色はカスタムで
+const TEAM_COLORS = [
+  { label: "緑", hex: "#22a447" },
+  { label: "黄", hex: "#ffd23f" },
+  { label: "白", hex: "#ffffff" }
+];
+// チーム名・色は、さくせん盤と共通（同じ katsuan.github.io の soccer:state の team・opponent・ourColor・oppColor）。
+// 左のチーム（us）＝さくせん盤の自チーム、右のチーム（them）＝相手。どちらで変えても、もう一方にも出る。
+// さくせん盤にまだなければ、ろくがで前に使ったもの → 初めの値（緑・白）
 const saqsen = load(SAQSEN_KEY);
 const saved = load(STORE_KEY);
+const pickHex = (...list) => list.find((c) => /^#[0-9a-f]{6}$/i.test(String(c || ""))) || "#ffffff";
 const state = {
-  teamUs: saved.teamUs ?? saqsen.team ?? "",
-  teamThem: saved.teamThem ?? saqsen.opponent ?? "",
-  colorUs: saved.colorUs || saqsen.ourColor || "#6c47ff",
-  colorThem: saved.colorThem || saqsen.oppColor || "#ffffff",
+  teamUs: saqsen.team ?? saved.teamUs ?? "",
+  teamThem: saqsen.opponent ?? saved.teamThem ?? "",
+  colorUs: pickHex(saqsen.ourColor, saved.colorUs, TEAM_COLORS[0].hex),
+  colorThem: pickHex(saqsen.oppColor, saved.colorThem, TEAM_COLORS[2].hex),
   us: Number(saved.us) || 0,
   them: Number(saved.them) || 0,
   goalFx: saved.goalFx === true, // ＋1 のとき「GOAL!」のエフェクトを動画に入れるか（ふだんは出さない）
   swapped: saved.swapped === true, // 左右を入れかえる（us を右に）。us・them は中の呼び名で、自分のチームとはかぎらない
   hand: ["left", "right"].includes(saved.hand) ? saved.hand : "center" // ＋1・録画のまとまりの位置（片手で持つ側に寄せる）
 };
-const fromSaqsen = !saved.teamUs && Boolean(saqsen.team || saqsen.opponent);
+// チーム名・色を、さくせん盤の側にも書く（ほかのところはそのまま）
+const shareTeams = () => {
+  try {
+    const now = load(SAQSEN_KEY);
+    Object.assign(now, { team: state.teamUs, opponent: state.teamThem, ourColor: state.colorUs, oppColor: state.colorThem });
+    localStorage.setItem(SAQSEN_KEY, JSON.stringify(now));
+  } catch {
+    // 残せなくても使える
+  }
+};

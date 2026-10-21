@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211456">
+<link rel="stylesheet" href="style.css?v=202610211459">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -43,17 +43,13 @@
   <p class="lead" data-mode-only="shoot">スマホを<b>横</b>にして、得点板つきで撮ります。</p>
   <p class="lead" data-mode-only="later" hidden>撮った動画に、あとから得点板を入れます。</p>
   <!-- チーム：得点板と同じく、左のチーム・右のチーム（自分のチームの試合とはかぎらないので「自チーム・相手」とは呼ばない。
-       ⇄ で入れかえると、ラベルも並びに合わせて変わる）。名前・色・▼（保存したチームから選ぶ）・保存／消す。
-       保存したチームは左右で同じ一覧（よく撮るチームを保存できる） -->
+       ⇄ で入れかえると、ラベルも並びに合わせて変わる）。名前と色（緑・黄・白・カスタム。さくせん盤と同じ形）。
+       チーム名・色はさくせん盤と共通（左のチーム＝さくせん盤の自チーム、右のチーム＝相手） -->
   <div class="teams">
     <div class="team-col" data-side="us">
       <label for="teamUs" data-side-label="us">左のチーム</label>
       <input id="teamUs" maxlength="12" placeholder="チーム名" data-side-name="us">
-      <div class="team-row">
-        <input id="colorUs" type="color" aria-label="左のチームの色" data-side-aria="us:の色">
-        <label class="team-pick" hidden><span class="sr">保存したチームから選ぶ</span><select></select></label>
-        <button class="team-action" type="button">保存</button>
-      </div>
+      <div class="chips colors" data-colors="us" role="group" aria-label="左のチームの色" data-side-aria="us:の色"></div>
       <div class="score-step" aria-label="左のチームの点" data-side-aria="us:の点">
         <button type="button" data-step="us" data-delta="-1" aria-label="左のチームの点を1へらす" data-side-aria="us:の点を1へらす">−</button>
         <b data-score-of="us">0</b>
@@ -69,11 +65,7 @@
     <div class="team-col" data-side="them">
       <label for="teamThem" data-side-label="them">右のチーム</label>
       <input id="teamThem" maxlength="12" placeholder="チーム名" data-side-name="them">
-      <div class="team-row">
-        <input id="colorThem" type="color" aria-label="右のチームの色" data-side-aria="them:の色">
-        <label class="team-pick" hidden><span class="sr">保存したチームから選ぶ</span><select></select></label>
-        <button class="team-action" type="button">保存</button>
-      </div>
+      <div class="chips colors" data-colors="them" role="group" aria-label="右のチームの色" data-side-aria="them:の色"></div>
       <div class="score-step" aria-label="右のチームの点" data-side-aria="them:の点">
         <button type="button" data-step="them" data-delta="-1" aria-label="右のチームの点を1へらす" data-side-aria="them:の点を1へらす">−</button>
         <b data-score-of="them">0</b>
@@ -87,7 +79,7 @@
     <button id="editScore" class="link" type="button" aria-expanded="false">✏️ スコアを変える（途中からのとき）</button>
     <button id="resetScore" class="link" type="button" hidden>0 - 0 にする</button>
   </p>
-  <p id="fromSaqsen" class="hint" hidden>さくせん盤のチーム名・色を使っています。</p>
+  <p class="hint team-shared">チーム名・色は、さくせん盤と共通です。</p>
   <!-- 得点板のプレビューと GOAL のエフェクト：たたんだ欄（開くと、動画に入る得点板を見ておける。エフェクトはふだん出さない） -->
   <details id="previewFold" class="fold">
     <summary><span class="fold-title">👀 プレビュー・GOAL のエフェクト</span><span id="fxMeta" class="meta"></span></summary>
@@ -239,14 +231,14 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610211456"></script>
-<script src="js/draw.js?v=202610211456"></script>
-<script src="js/setup.js?v=202610211456"></script>
-<script src="js/studio.js?v=202610211456"></script>
-<script src="js/record.js?v=202610211456"></script>
-<script src="js/editor.js?v=202610211456"></script>
-<script src="js/render.js?v=202610211456"></script>
-<script src="js/main.js?v=202610211456"></script>
+<script src="js/core.js?v=202610211459"></script>
+<script src="js/draw.js?v=202610211459"></script>
+<script src="js/setup.js?v=202610211459"></script>
+<script src="js/studio.js?v=202610211459"></script>
+<script src="js/record.js?v=202610211459"></script>
+<script src="js/editor.js?v=202610211459"></script>
+<script src="js/render.js?v=202610211459"></script>
+<script src="js/main.js?v=202610211459"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

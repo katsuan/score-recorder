@@ -201,12 +201,12 @@ function renderEditScore() {
       swatch.addEventListener("input", () => {
         const colorKey = key === "us" ? "colorUs" : "colorThem";
         state[colorKey] = swatch.value;
-        $(colorKey).value = swatch.value;
         save();
+        shareTeams();
+        renderColorChips();
         side.style.setProperty("--team", swatch.value);
         side.style.setProperty("--team-ink", inkFor(swatch.value));
         renderEditEvents();
-        renderTeams();
       });
       label.append(swatch, Object.assign(document.createElement("span"), { className: "name", textContent: name }));
       const plus = Object.assign(document.createElement("button"), { type: "button", className: "plus", textContent: "＋1" });

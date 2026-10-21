@@ -1,13 +1,10 @@
-// ろくが：はじめの画面（スコア・左右の入れかえ・GOAL の設定・プレビュー・保存したチーム・使い方のタブ）。
+// ろくが：はじめの画面（チーム名・色・スコア・左右の入れかえ・GOAL の設定・プレビュー・使い方のタブ）。
 // 読み込む順は index.html（core → draw → setup → studio → record → editor → render → main）。
 "use strict";
 
 // ---- はじめの画面 ----
 $("teamUs").value = state.teamUs;
 $("teamThem").value = state.teamThem;
-$("colorUs").value = state.colorUs;
-$("colorThem").value = state.colorThem;
-$("fromSaqsen").hidden = !fromSaqsen;
 // いまのスコア（左右の並びに合わせる）。点があるときだけ「0 - 0 にする」を出す
 function showSetupScore() {
   $("setupScore").textContent = state.swapped ? `${state.them} - ${state.us}` : `${state.us} - ${state.them}`;
@@ -40,12 +37,52 @@ $("resetScore").addEventListener("click", () => {
   showSetupScore();
   drawPreview();
 });
-[["teamUs", "teamUs"], ["teamThem", "teamThem"], ["colorUs", "colorUs"], ["colorThem", "colorThem"]].forEach(([id, key]) =>
-  $(id).addEventListener("input", () => {
-    state[key] = $(id).value.trim();
+// チーム名：変えたら、さくせん盤の側にも
+["teamUs", "teamThem"].forEach((key) =>
+  $(key).addEventListener("input", () => {
+    state[key] = $(key).value.trim();
     save();
+    shareTeams();
   })
 );
+
+// チームの色：緑・黄・白の丸いボタンと、カスタム（自由な色）。さくせん盤と同じ形。
+// もう片方のチームと同じ色も選べるが、見分けにくいので薄くする（並びは変えない）
+function setTeamColor(key, hex) {
+  state[key === "us" ? "colorUs" : "colorThem"] = hex;
+  save();
+  shareTeams();
+  renderColorChips();
+  showTeamColors();
+  drawPreview();
+}
+function renderColorChips() {
+  document.querySelectorAll("[data-colors]").forEach((box) => {
+    const key = box.dataset.colors;
+    const current = String(key === "us" ? state.colorUs : state.colorThem).toLowerCase();
+    const other = String(key === "us" ? state.colorThem : state.colorUs).toLowerCase();
+    const isPreset = TEAM_COLORS.some((c) => c.hex === current);
+    const buttons = TEAM_COLORS.map((c) => {
+      const b = Object.assign(document.createElement("button"), { type: "button", className: "chip color" });
+      b.style.background = c.hex;
+      b.setAttribute("aria-pressed", String(current === c.hex));
+      b.classList.toggle("is-taken", c.hex === other);
+      b.setAttribute("aria-label", c.hex === other ? `${c.label}（もう片方のチームと同じ色）` : c.label);
+      b.addEventListener("click", () => setTeamColor(key, c.hex));
+      return b;
+    });
+    // カスタム：選んでいる間は、その色で丸を塗る
+    const custom = document.createElement("label");
+    custom.className = "chip color is-custom";
+    custom.setAttribute("aria-label", "カスタム（自由な色）");
+    custom.setAttribute("aria-pressed", String(!isPreset));
+    if (!isPreset) custom.style.background = current;
+    const input = Object.assign(document.createElement("input"), { type: "color", value: /^#[0-9a-f]{6}$/.test(current) ? current : "#ffffff" });
+    input.addEventListener("change", () => setTeamColor(key, input.value));
+    custom.append(input);
+    box.replaceChildren(...buttons, custom);
+  });
+}
 
 // ---- 左右の入れかえ（はじめの画面のチームの並び・得点板・撮る画面の ＋1） ----
 // いま左にいるか右にいるかで呼ぶ（自分のチームの試合とはかぎらないので「自チーム・相手」とは呼ばない）
@@ -125,102 +162,6 @@ function drawPreview() {
   if (goalFx && $("studio").hidden) previewLoop = requestAnimationFrame(drawPreview);
 }
 document.querySelectorAll(".team-col input").forEach((input) => input.addEventListener("input", drawPreview));
-
-// ---- 保存したチーム（名前と色の組）。さくせん盤など Q のサッカー系で共通に使えるよう、共通の名前で残す ----
-const TEAMS_KEY = "q-soccer:teams";
-const MAX_TEAMS = 30;
-let teams = (() => {
-  try {
-    const list = JSON.parse(localStorage.getItem(TEAMS_KEY));
-    return Array.isArray(list) ? list.filter((t) => t && t.name) : [];
-  } catch {
-    return [];
-  }
-})();
-const saveTeams = () => {
-  try {
-    localStorage.setItem(TEAMS_KEY, JSON.stringify(teams));
-  } catch {
-    // 残せなくても使える
-  }
-};
-const SIDES = { us: { name: "teamUs", color: "colorUs" }, them: { name: "teamThem", color: "colorThem" } };
-const sameTeam = (t, name, color) => t.name === name && t.color.toLowerCase() === String(color).toLowerCase();
-
-// さくせん盤で入れたチーム（さくせん盤の自チーム・相手の名前と色）。▼ で選べるように。保存したチームと同じ名前・色のものは出さない
-function saqsenTeams() {
-  const now = load(SAQSEN_KEY);
-  return [
-    { name: String(now.team || "").trim(), color: now.ourColor || "#6c47ff" },
-    { name: String(now.opponent || "").trim(), color: now.oppColor || "#ffffff" }
-  ].filter((t, i, list) => t.name && !teams.some((s) => sameTeam(s, t.name, t.color)) && list.findIndex((u) => sameTeam(u, t.name, t.color)) === i);
-}
-const pickList = () => [...teams.map((t, i) => ({ ...t, value: `t${i}` })), ...saqsenTeams().map((t, i) => ({ ...t, value: `s${i}` }))];
-const option = (value, text) => Object.assign(document.createElement("option"), { value, textContent: text });
-const group = (label, list) => {
-  const g = Object.assign(document.createElement("optgroup"), { label });
-  g.append(...list.map((t) => option(t.value, t.name)));
-  return g;
-};
-
-// それぞれの行：▼ は選べるチーム（保存したチーム・さくせん盤のチーム）があるときだけ。
-// 右のボタンは、いまの名前と色が保存済みなら「消す」、まだなら「保存」
-function renderTeams() {
-  const list = pickList();
-  const fromTeams = list.filter((t) => t.value[0] === "t");
-  const fromSaqsen = list.filter((t) => t.value[0] === "s");
-  document.querySelectorAll(".team-col").forEach((row) => {
-    const keys = SIDES[row.dataset.side];
-    const name = state[keys.name].trim();
-    const saved = teams.some((t) => sameTeam(t, name, state[keys.color]));
-    row.querySelector(".team-pick").hidden = !list.length;
-    const select = row.querySelector("select");
-    select.replaceChildren(
-      option("", "チームを選ぶ"),
-      ...(fromTeams.length ? [group("保存したチーム", fromTeams)] : []),
-      ...(fromSaqsen.length ? [group("さくせん盤から", fromSaqsen)] : [])
-    );
-    select.value = "";
-    const action = row.querySelector(".team-action");
-    action.textContent = saved ? "消す" : "保存";
-    action.classList.toggle("is-remove", saved);
-    action.disabled = !name;
-  });
-}
-
-document.querySelectorAll(".team-col").forEach((row) => {
-  const keys = SIDES[row.dataset.side];
-  // ▼ で選ぶ：名前と色をまとめて入れる
-  row.querySelector("select").addEventListener("change", (e) => {
-    const t = pickList().find((p) => p.value === e.target.value);
-    if (!t) return;
-    state[keys.name] = t.name;
-    state[keys.color] = t.color;
-    $(keys.name).value = t.name;
-    $(keys.color).value = t.color;
-    save();
-    renderTeams();
-    drawPreview();
-  });
-  // 保存／消す
-  row.querySelector(".team-action").addEventListener("click", () => {
-    const name = state[keys.name].trim();
-    const color = state[keys.color];
-    if (!name) return;
-    const i = teams.findIndex((t) => sameTeam(t, name, color));
-    if (i >= 0) {
-      if (!confirm(`「${name}」を保存したチームから消しますか？`)) return;
-      teams.splice(i, 1);
-    } else {
-      if (teams.length >= MAX_TEAMS) return alert(`保存できるのは ${MAX_TEAMS} チームまでです。使わないものを消してください。`);
-      // 同じ名前は色を上書き（色だけ変えて保存し直せる）
-      teams = [{ name, color }, ...teams.filter((t) => t.name !== name)];
-    }
-    saveTeams();
-    renderTeams();
-  });
-});
-document.querySelectorAll(".team-col input").forEach((input) => input.addEventListener("input", renderTeams));
 
 // ---- 使い方のタブ：撮る／あとから付ける（チーム・色・プレビュー・スコアは共通） ----
 document.querySelectorAll("[data-mode]").forEach((tab) =>

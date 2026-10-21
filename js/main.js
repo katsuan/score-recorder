@@ -5,7 +5,7 @@ showSetupScore();
 showHand();
 showSides();
 showGoalFxSetting();
-renderTeams();
+renderColorChips();
 // プレビューは、字（M PLUS Rounded）を読みこんだあとにも描き直す
 drawPreview();
 document.fonts?.ready.then(drawPreview);
