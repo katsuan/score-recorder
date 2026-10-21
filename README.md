@@ -65,7 +65,10 @@
 
 ## ファイル
 
-- index.html・style.css・app.js：画面と動き（app.js の先頭に目次）
+- index.html・style.css：画面
+- js/：動き（役ごとのファイル。index.html の順に読む。いちばん先の core.js の頭に、ファイルの一覧）
+  - core.js 共通の道具と state ／ draw.js 得点板・GOAL のエフェクトを描く ／ setup.js はじめの画面 ／ studio.js 撮る画面
+  - record.js 録画と保存の画面 ／ editor.js あとから付ける ／ render.js 書き出し・⚡ ハイライト ／ main.js 最初の表示（全部読んでから）
 - tools/icon.py：アイコン・ロゴ・OGP（おくるんの tools/brandkit.py を使う。さくせん盤と同じピッチの緑に、Q はカメラのレンズの輪と録画中の赤いランプ）。tools/logo_ro.py：横ロゴの「Ro」（R の足が o のボールを蹴る）
 - 公開前に `python3 ../q-oqrn/tools/qstamp.py index.html`（読み込む CSS・JS に版の番号）
 - おくるんの一覧（line-share の data/hub-links.json の `key: "roqga"`）に載っている。はじめの画面のいちばん下に「📤 ろくがを紹介する」と仲間のアイコン列（line-share の shared/tool-share.js）
