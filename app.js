@@ -525,7 +525,7 @@ function changeScore(key, delta, button) {
     if (delta > 0) liveGoals.push({ take, t: (Date.now() - startedAt) / 1000, key });
     else {
       // −1（押しまちがい）：その回の、そのチームのいちばん新しい得点を消す
-      const i = liveGoals.map((g) => g.take === take && g.key === key).lastIndexOf(true);
+      const i = liveGoals.map((g) => g.take === take && g.key === key && !g.mark).lastIndexOf(true);
       if (i >= 0) liveGoals.splice(i, 1);
     }
   }
@@ -540,6 +540,16 @@ function changeScore(key, delta, button) {
   }
 }
 document.querySelectorAll("[data-score]").forEach((b) => b.addEventListener("click", () => changeScore(b.dataset.score, Number(b.dataset.delta), b)));
+// ⭐ 見どころ（録画中だけ）：点は変えずに、その時間を得点ハイライトに入れる
+$("markLive").addEventListener("click", () => {
+  if (!recording || recKind !== "shot") return;
+  liveGoals.push({ take, t: (Date.now() - startedAt) / 1000, key: null, mark: true });
+  navigator.vibrate?.(20);
+  const b = $("markLive");
+  b.classList.remove("is-hit");
+  void b.offsetWidth;
+  b.classList.add("is-hit");
+});
 
 // ---- 録画 ----
 // LINE で送れる動画は 5分まで。いつも5分ごとに MediaRecorder を新しくして、1本ずつの動画（clips）にする
@@ -922,7 +932,7 @@ $("editBack").addEventListener("click", closeEditor);
 function scoreAt(t) {
   const score = { ...editBase };
   editEvents.forEach((ev) => {
-    if (ev.t <= t) score[ev.key] = Math.max(0, score[ev.key] + ev.delta);
+    if (ev.t <= t && !ev.mark) score[ev.key] = Math.max(0, score[ev.key] + ev.delta);
   });
   return score;
 }
@@ -1014,7 +1024,7 @@ function exportSegments() {
   if (exportRange === "all") return [[0, d]];
   const segs = [];
   editEvents
-    .filter((ev) => ev.delta > 0)
+    .filter((ev) => ev.delta > 0 || ev.mark) // 得点と ⭐ 見どころ
     .forEach((ev) => {
       const a = Math.max(0, ev.t - GOAL_BEFORE);
       const b = Math.min(d, ev.t + GOAL_AFTER);
@@ -1026,7 +1036,7 @@ function exportSegments() {
 }
 // 範囲の切りかえと、書き出すボタンにかかる時間の目安（書き出しは流した時間だけかかる）
 function showExportRange() {
-  const hasGoals = editEvents.some((ev) => ev.delta > 0);
+  const hasGoals = editEvents.some((ev) => ev.delta > 0 || ev.mark);
   if (!hasGoals && exportRange === "goals") exportRange = "all";
   document.querySelectorAll("[data-range]").forEach((b) => {
     b.setAttribute("aria-checked", String(b.dataset.range === exportRange));
@@ -1082,8 +1092,9 @@ function renderEditScore() {
   );
 }
 
-function addEditEvent(key, delta) {
-  const ev = { t: editVideo.currentTime, key, delta };
+$("editMark").addEventListener("click", () => addEditEvent(null, 0, true));
+function addEditEvent(key, delta, mark = false) {
+  const ev = { t: editVideo.currentTime, key, delta, ...(mark ? { mark: true } : {}) };
   editEvents.push(ev);
   editEvents.sort((a, b) => a.t - b.t);
   navigator.vibrate?.(delta > 0 ? 30 : [15, 50, 15]);
@@ -1105,14 +1116,14 @@ function renderEditEvents() {
         editVideo.currentTime = Math.max(0, ev.t - 3); // 少し前から見られるように
         editLastT = editVideo.currentTime;
       });
-      const color = ev.key === "us" ? state.colorUs : state.colorThem;
-      const name = (ev.key === "us" ? state.teamUs : state.teamThem).trim() || sideName(ev.key);
+      const color = ev.mark ? "#ffd54a" : ev.key === "us" ? state.colorUs : state.colorThem;
+      const name = ev.mark ? "" : (ev.key === "us" ? state.teamUs : state.teamThem).trim() || sideName(ev.key);
       const after = scoreAt(ev.t);
       const [l, r] = state.swapped ? [after.them, after.us] : [after.us, after.them];
       const text = document.createElement("span");
       const dot = Object.assign(document.createElement("i"), { className: "ev-dot" });
       dot.style.background = color;
-      text.append(dot, `${name} ${ev.delta > 0 ? "＋1" : "−1"} → ${l} - ${r}`);
+      text.append(dot, ev.mark ? "⭐ 見どころ" : `${name} ${ev.delta > 0 ? "＋1" : "−1"} → ${l} - ${r}`);
       const del = Object.assign(document.createElement("button"), { type: "button", textContent: "✕" });
       del.setAttribute("aria-label", "この得点を消す");
       del.addEventListener("click", () => {

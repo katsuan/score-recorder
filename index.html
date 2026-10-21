@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211415">
+<link rel="stylesheet" href="style.css?v=202610211416">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -129,6 +129,8 @@
     <button class="plus" type="button" data-score="them" data-delta="1" aria-label="右のチームに1点" data-side-aria="them:に1点">＋1</button>
     <button class="minus" type="button" data-score="them" data-delta="-1" aria-label="右のチームの1点を取り消す" data-side-aria="them:の1点を取り消す">−1</button>
   </div>
+  <!-- 録画中だけ：⭐ 見どころ（おしい・いいプレーなど）。点は変えずに、その時間を得点ハイライトに入れる -->
+  <button id="markLive" class="mark-btn" type="button" aria-label="見どころ（ハイライトに入れる）">⭐</button>
   <!-- 録画ボタン：まんなかのときは下のまんなか（＋1／−1 はその左右）。左よせ・右よせのときは、親指から遠い反対側のはしへ（押しまちがい防止） -->
   <div class="bar">
     <button id="record" class="record" type="button" aria-label="録画をはじめる"><span></span></button>
@@ -177,6 +179,8 @@
   </div>
   <!-- 点が入ったところで ＋1（左右は得点板と同じ並び。ボタンはチームの色）。まちがえたら −1 か、下の一覧の ✕ -->
   <div id="editSides" class="edit-score"></div>
+  <!-- ⭐ 見どころ（おしい・いいプレーなど）：点は変えずに、その時間をハイライトに入れる -->
+  <button id="editMark" class="mark-wide" type="button">⭐ 見どころ（おしい・いいプレー）</button>
   <ol id="editEvents" class="edit-events"></ol>
   <!-- 書き出す範囲：全部／⚡ ハイライト（各得点の10秒前〜6秒後をつなぐ。撮るときの得点ハイライトと同じ。短く書き出せて、LINE でも送りやすい） -->
   <div class="export-range" role="radiogroup" aria-label="書き出す範囲">
@@ -230,7 +234,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211415"></script>
+<script src="app.js?v=202610211416"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

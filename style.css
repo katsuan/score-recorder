@@ -246,3 +246,12 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .export-range button { min-height: 38px; border: 0; border-radius: 10px; background: none; color: rgba(255, 255, 255, 0.75); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
 .export-range button[aria-checked="true"] { background: #fff; color: #1a1a1a; }
 .export-range button:disabled { opacity: 0.4; cursor: default; }
+
+/* ⭐ 見どころ：録画中だけ出す。まんなかのときは録画ボタンの上、寄せたときは縦2段の ＋1 の上 */
+.mark-btn { position: absolute; left: 50%; bottom: calc(var(--side-bottom) + 98px); transform: translateX(-50%); width: 48px; height: 48px; border: 2px solid rgba(255, 255, 255, 0.85); border-radius: 50%; background: rgba(0, 0, 0, 0.45); font-size: 22px; cursor: pointer; }
+.studio:not(.is-recording) .mark-btn { display: none; }
+.studio.hand-left .mark-btn { left: calc(var(--stack-pad) + 14px); transform: none; bottom: calc(var(--side-bottom) + 184px); }
+.studio.hand-right .mark-btn { left: auto; right: calc(var(--stack-pad) + 14px); transform: none; bottom: calc(var(--side-bottom) + 184px); }
+.mark-btn.is-hit { animation: hit 0.45s ease-out; }
+.mark-wide { min-height: 40px; border: 2px dashed rgba(255, 213, 74, 0.8); border-radius: 12px; background: rgba(255, 213, 74, 0.12); color: #ffe082; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+.mark-wide:active { transform: scale(0.98); }
