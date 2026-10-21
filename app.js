@@ -55,7 +55,7 @@ showSetupScore();
 // スコアを変える（途中から撮るとき）：各チームの下に − ＋ を出す／しまう。まんなかのスコアを押しても同じ
 function toggleScoreEdit() {
   const on = document.querySelector(".teams").classList.toggle("is-editing");
-  $("editScore").textContent = on ? "✓ できた" : "✏️ スコアを変える（途中から撮るとき）";
+  $("editScore").textContent = on ? "✓ できた" : "✏️ スコアを変える（途中からのとき）";
   $("editScore").setAttribute("aria-expanded", on);
 }
 $("editScore").addEventListener("click", toggleScoreEdit);
@@ -622,7 +622,7 @@ function stopRecording() {
   clearTimeout(segmentTimer);
   if (recording) {
     recording = false;
-    if (recorder?.state === "recording") recorder.stop();
+    if (recorder && recorder.state !== "inactive") recorder.stop(); // 書き出しの合間で一時停止中でも止める
   }
   clearInterval(tick);
   $("elapsed").textContent = "";
@@ -675,11 +675,11 @@ function showSaveGuide() {
   const canShare = clips.length && navigator.canShare?.({ files: [clips[0].file] });
   $("saveGuide").hidden = !clips.length;
   $("saveGuide").textContent = isIOS && canShare
-    ? "📱 写真に残すには「📤 保存・共有」→「ビデオを保存」。LINE に送るときは、そのまま LINE を選べます。"
+    ? "📱 写真へは「📤 保存・共有」→「ビデオを保存」。"
     : canShare
-      ? "📱 「📤 保存・共有」から LINE などに送れます。端末に残すときは ⬇️ を押してください。"
-      : "⬇️ を押すと、この端末に保存できます。";
-  $("saveGuide").textContent += "ページを閉じる・更新すると、ここの動画は消えます。";
+      ? "📱 「📤 保存・共有」で LINE などへ。端末には ⬇️。"
+      : "⬇️ で端末に保存。";
+  $("saveGuide").textContent += "ページを閉じると消えます。";
 }
 
 // state の「どれを残すか」に合う動画（clips の番号）
@@ -726,8 +726,8 @@ function renderClips() {
   const earlier = clips.length - now.length;
   $("shareAll").hidden = files.length < 2 || !navigator.canShare?.({ files });
   $("saveInfo").textContent = [
-    now.length > 1 ? `5分を超えたので、${now.length}本（1本 5分まで）に分けて録りました。LINE でそのまま送れます。` : now.length ? "" : "録れませんでした。もう一度お試しください。",
-    earlier ? `前に録った動画（${earlier}本）も下に残っています。` : ""
+    now.length > 1 ? `LINE で送れるよう、5分ずつ ${now.length}本に分けました。` : now.length ? "" : "録れませんでした。もう一度お試しください。",
+    earlier ? `前の動画（${earlier}本）も下にあります。` : ""
   ].filter(Boolean).join("");
   if (shown.length) showClip(shown[shown.length - 1]);
 }
@@ -841,9 +841,12 @@ let editLastT = 0;
 let editUrl = "";
 let exporting = false;
 let exportMode = false; // 書き出しの録画が終わったら、保存の画面を「閉じるだけ」にする
-let exportTimer = 0;
 let audioCtx = null;
 let audioDest = null;
+let editRate = 1; // 得点を入れるときの再生の速さ（書き出しはいつも 1×）
+let exportRange = "all"; // 書き出す範囲：all（全部）／goals（得点の前後だけ）
+const GOAL_BEFORE = 10; // 得点の前後だけ：何秒前から
+const GOAL_AFTER = 6; //  何秒後まで
 
 $("pickVideo").addEventListener("click", () => $("videoFile").click());
 $("videoFile").addEventListener("change", (e) => {
@@ -858,6 +861,10 @@ function openEditor(file) {
   editVideo.src = editUrl;
   editVideo.load();
   editEvents = [];
+  exportRange = "all";
+  editRate = 1;
+  editVideo.playbackRate = 1;
+  $("editRate").textContent = "1×";
   editBase = { us: state.us, them: state.them };
   editLastT = 0;
   goalFx = null;
@@ -943,6 +950,50 @@ editVideo.addEventListener("loadedmetadata", () => {
   editVideo.currentTime = 1e101;
 });
 $("editPlay").addEventListener("click", () => (editVideo.paused ? editVideo.play().catch(() => {}) : editVideo.pause()));
+// 速さ：1× → 2× → 4× → 1×（点の場面を探すとき速く流す）
+$("editRate").addEventListener("click", () => {
+  editRate = { 1: 2, 2: 4, 4: 1 }[editRate];
+  editVideo.playbackRate = editRate;
+  $("editRate").textContent = `${editRate}×`;
+  $("editRate").setAttribute("aria-label", `再生の速さ：${editRate}倍（押すと切りかえ）`);
+});
+// 書き出す範囲
+document.querySelectorAll("[data-range]").forEach((b) =>
+  b.addEventListener("click", () => {
+    if (b.disabled) return;
+    exportRange = b.dataset.range;
+    showExportRange();
+  })
+);
+// 書き出すところ：[はじめの秒, 終わりの秒] のならび。得点の前後だけのときは、近い得点の前後はひとつにつなぐ
+function exportSegments() {
+  const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
+  if (!d) return [];
+  if (exportRange === "all") return [[0, d]];
+  const segs = [];
+  editEvents
+    .filter((ev) => ev.delta > 0)
+    .forEach((ev) => {
+      const a = Math.max(0, ev.t - GOAL_BEFORE);
+      const b = Math.min(d, ev.t + GOAL_AFTER);
+      const last = segs[segs.length - 1];
+      if (last && a <= last[1]) last[1] = Math.max(last[1], b);
+      else segs.push([a, b]);
+    });
+  return segs;
+}
+// 範囲の切りかえと、書き出すボタンにかかる時間の目安（書き出しは流した時間だけかかる）
+function showExportRange() {
+  const hasGoals = editEvents.some((ev) => ev.delta > 0);
+  if (!hasGoals && exportRange === "goals") exportRange = "all";
+  document.querySelectorAll("[data-range]").forEach((b) => {
+    b.setAttribute("aria-checked", String(b.dataset.range === exportRange));
+    if (b.dataset.range === "goals") b.disabled = !hasGoals;
+  });
+  const total = exportSegments().reduce((sum, [a, b]) => sum + (b - a), 0);
+  $("editExport").textContent = total ? `📼 得点板つきで書き出す（約 ${clock(Math.ceil(total))}）` : "📼 得点板つきで書き出す";
+}
+["loadedmetadata", "durationchange"].forEach((type) => editVideo.addEventListener(type, showExportRange));
 $("editSeek").addEventListener("input", (e) => {
   const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
   if (!d) return;
@@ -998,6 +1049,7 @@ function addEditEvent(key, delta) {
 
 // 入れた得点の一覧：時間（押すとそこへ）・どちらのチーム・そのあとのスコア・✕（消す）
 function renderEditEvents() {
+  showExportRange();
   $("editEvents").replaceChildren(
     ...editEvents.map((ev) => {
       const li = document.createElement("li");
@@ -1041,34 +1093,67 @@ function ensureAudio() {
   }
 }
 
+const seekTo = (t) =>
+  new Promise((resolve) => {
+    if (Math.abs(editVideo.currentTime - t) < 0.01) return resolve();
+    editVideo.addEventListener("seeked", resolve, { once: true });
+    editVideo.currentTime = t;
+  });
+
+// 書き出す：書き出すところを順に流して、得点板つきの絵と動画の音を録る（流した時間だけかかる）。
+// 得点の前後だけのときは、あいだを飛ばすあいだ録画を一時停止して、1本の動画につなぐ
 async function exportVideo() {
   if (!window.MediaRecorder || !editScreen.captureStream) {
     alert("この端末のブラウザでは書き出せません。");
     return;
   }
   if (!Number.isFinite(editVideo.duration) || !editVideo.duration) return alert("動画の長さが分かりません。少し待ってから、もう一度お試しください。");
+  const segs = exportSegments();
+  if (!segs.length) return;
   ensureAudio();
   await audioCtx?.resume().catch(() => {});
   editVideo.pause();
-  editVideo.currentTime = 0;
-  await new Promise((r) => editVideo.addEventListener("seeked", r, { once: true }));
-  editLastT = 0;
-  goalFx = null;
+  editVideo.playbackRate = 1;
   exporting = true;
   exportMode = true;
   $("exportOverlay").hidden = false;
   await keepScreenOn();
-  beginRecording(editScreen, audioDest ? audioDest.stream.getAudioTracks() : []);
-  await editVideo.play().catch(() => {});
-  const showProgress = () => ($("exportProg").textContent = `${clock(Math.floor(editVideo.currentTime))} / ${clock(Math.floor(editVideo.duration || 0))}`);
-  showProgress();
-  exportTimer = setInterval(showProgress, 500);
+  const total = segs.reduce((sum, [a, b]) => sum + (b - a), 0);
+  let done = 0;
+  let started = false;
+  for (const [a, b] of segs) {
+    if (!exporting) break;
+    await seekTo(a);
+    editLastT = a;
+    goalFx = null;
+    if (!started) {
+      beginRecording(editScreen, audioDest ? audioDest.stream.getAudioTracks() : []);
+      started = true;
+    } else if (recorder?.state === "paused") {
+      recorder.resume();
+    }
+    await editVideo.play().catch(() => {});
+    await new Promise((resolve) => {
+      const iv = setInterval(() => {
+        const t = editVideo.currentTime;
+        $("exportProg").textContent = `${clock(Math.floor(done + Math.max(0, t - a)))} / ${clock(Math.ceil(total))}`;
+        if (!exporting || t >= b - 0.05 || editVideo.ended) {
+          clearInterval(iv);
+          resolve();
+        }
+      }, 50);
+    });
+    editVideo.pause();
+    if (recorder?.state === "recording") recorder.pause();
+    done += b - a;
+  }
+  finishExport(false);
 }
 function finishExport(cancelled) {
   if (!exporting) return;
   exporting = false;
-  clearInterval(exportTimer);
   editVideo.pause();
+  editVideo.playbackRate = editRate;
   $("exportOverlay").hidden = true;
   wakeLock?.release?.().catch(() => {});
   wakeLock = null;
@@ -1079,7 +1164,6 @@ $("editExport").addEventListener("click", () => {
   if (!editEvents.length && !confirm("まだ得点を入れていません。はじめのスコアのまま書き出しますか？")) return;
   exportVideo();
 });
-editVideo.addEventListener("ended", () => finishExport(false));
 $("exportCancel").addEventListener("click", () => finishExport(true));
 $("back").addEventListener("click", closeCamera);
 document.addEventListener("visibilitychange", () => {

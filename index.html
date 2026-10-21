@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211354">
+<link rel="stylesheet" href="style.css?v=202610211400">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -40,8 +40,8 @@
     <button type="button" role="tab" data-mode="shoot" aria-selected="true">📹 撮る</button>
     <button type="button" role="tab" data-mode="later" aria-selected="false">🎞 あとから付ける</button>
   </div>
-  <p class="lead" data-mode-only="shoot">試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残します。<br>スマホは<b>横向き</b>で使います。</p>
-  <p class="lead" data-mode-only="later" hidden>撮っておいた動画に、あとから得点板を入れます。動画を流しながら、点が入ったところで ＋1 を押すだけ。<br>動画が途中からなら、下の「スコアを変える」で、はじめのスコアを入れておきます。</p>
+  <p class="lead" data-mode-only="shoot">スマホを<b>横</b>にして、得点板つきで撮ります。</p>
+  <p class="lead" data-mode-only="later" hidden>撮った動画に、あとから得点板を入れます。</p>
   <!-- チーム：得点板と同じく、左のチーム・右のチーム（自分のチームの試合とはかぎらないので「自チーム・相手」とは呼ばない。
        ⇄ で入れかえると、ラベルも並びに合わせて変わる）。名前・色・▼（保存したチームから選ぶ）・保存／消す。
        保存したチームは左右で同じ一覧（よく撮るチームを保存できる） -->
@@ -84,7 +84,7 @@
   <!-- スコアを変える：試合の途中から撮るときに、いまの点を入れておく（各チームの下に − ＋ が出る）。
        0 - 0 にするは、点があるときだけ（次の試合の前に） -->
   <p class="score-edit">
-    <button id="editScore" class="link" type="button" aria-expanded="false">✏️ スコアを変える（途中から撮るとき）</button>
+    <button id="editScore" class="link" type="button" aria-expanded="false">✏️ スコアを変える（途中からのとき）</button>
     <button id="resetScore" class="link" type="button" hidden>0 - 0 にする</button>
   </p>
   <p id="fromSaqsen" class="hint" hidden>さくせん盤のチーム名・色を使っています。</p>
@@ -96,7 +96,7 @@
       <span class="preview-tag">プレビュー</span>
     </div>
     <div class="split">
-      <span class="split-label">GOAL のエフェクト（＋1 を押したとき、動画に「GOAL!」の帯を2秒ほど）</span>
+      <span class="split-label">GOAL のエフェクト（＋1 のとき「GOAL!」の帯）</span>
       <div class="seg" role="radiogroup" aria-label="GOAL のエフェクト">
         <button class="chip" type="button" role="radio" data-goal-fx="off">出さない</button>
         <button class="chip" type="button" role="radio" data-goal-fx="on">出す</button>
@@ -111,7 +111,7 @@
   <!-- 録った動画があるときだけ：保存の画面をもう一度開く（はじめの画面にもどっても、0 - 0 から撮りなおすまで残っている） -->
   <button id="openSaved" class="btn ghost" type="button" hidden></button>
   <p id="setupError" class="error" hidden></p>
-  <p class="hint">動画はこの端末にだけ保存します（サーバーには送りません）。録画中は画面を消したり、別のアプリに切りかえたりしないでください。</p>
+  <p class="hint">動画はこの端末の中だけ。撮っているあいだは、ほかのアプリに切りかえないでください。</p>
   <!-- 「📤 ろくがを紹介する」と仲間のアイコン列：おくるんで紹介カードを送る窓口（line-share/shared/tool-share.js。中身は line-share/data/hub-links.json） -->
   <div data-tool-share></div>
 </main>
@@ -168,12 +168,19 @@
     <button id="editPlay" class="play-btn" type="button" aria-label="再生">▶</button>
     <input id="editSeek" class="edit-seek" type="range" min="0" max="1000" value="0" aria-label="動画の位置">
     <span id="editTime" class="edit-time">0:00 / 0:00</span>
+    <!-- 速さ（1× → 2× → 4×）。得点の場面を探すとき速く流せる。書き出しはいつも 1× -->
+    <button id="editRate" class="rate-btn" type="button" aria-label="再生の速さ：1倍（押すと切りかえ）">1×</button>
   </div>
   <!-- 点が入ったところで ＋1（左右は得点板と同じ並び。ボタンはチームの色）。まちがえたら −1 か、下の一覧の ✕ -->
   <div id="editSides" class="edit-score"></div>
   <ol id="editEvents" class="edit-events"></ol>
+  <!-- 書き出す範囲：全部／得点の前後だけ（各得点の10秒前〜6秒後をつなぐ。短く書き出せて、LINE でも送りやすい） -->
+  <div class="export-range" role="radiogroup" aria-label="書き出す範囲">
+    <button type="button" role="radio" data-range="all" aria-checked="true">全部</button>
+    <button type="button" role="radio" data-range="goals" aria-checked="false">得点の前後だけ</button>
+  </div>
   <button id="editExport" class="btn" type="button">📼 得点板つきで書き出す</button>
-  <p class="hint editor-hint">書き出しは、動画を最初から流して録り直すので、動画と同じ時間かかります。終わるまでこの画面のままにしてください。</p>
+  <p class="hint editor-hint">点が入ったところで ＋1。書き出すあいだは、この画面のままで。</p>
   <!-- 書き出し中：ほかの操作はできないように上からかぶせる -->
   <div id="exportOverlay" class="export-overlay" hidden>
     <p class="export-title">書き出し中…</p>
@@ -216,7 +223,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211354"></script>
+<script src="app.js?v=202610211400"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
