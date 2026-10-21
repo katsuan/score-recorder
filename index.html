@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211418">
+<link rel="stylesheet" href="style.css?v=202610211423">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -164,8 +164,11 @@
     <button id="editBack" class="small" type="button">← 戻る</button>
     <span class="editor-title">🎞 あとから付ける</span>
   </div>
+  <!-- 動画：枠は動画の縦横比で大きさを決める（行がふえても縮まない。動画は枠の中にまるごと入れる） -->
   <div class="editor-stage"><canvas id="editScreen" class="edit-screen"></canvas></div>
   <video id="editVideo" class="src-video" playsinline preload="auto"></video>
+  <!-- 操作：この欄の中だけ上下に動く（動画は動かない） -->
+  <div class="editor-side">
   <div class="editor-controls">
     <button id="editPlay" class="play-btn" type="button" aria-label="再生">▶</button>
     <input id="editSeek" class="edit-seek" type="range" min="0" max="1000" value="0" aria-label="動画の位置">
@@ -189,6 +192,7 @@
   </div>
   <button id="editExport" class="btn" type="button">📼 得点板つきで書き出す</button>
   <p class="hint editor-hint">点が入ったところで ＋1。書き出すあいだは、この画面のままで。</p>
+  </div>
 </section>
 
 <!-- 書き出し中（あとから付ける・得点ハイライト）：ほかの操作はできないように上からかぶせる -->
@@ -234,7 +238,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211418"></script>
+<script src="app.js?v=202610211423"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

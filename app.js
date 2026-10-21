@@ -979,6 +979,10 @@ const showEditTime = () => {
   $("editPlay").setAttribute("aria-label", editVideo.paused ? "再生" : "止める");
 };
 ["timeupdate", "loadedmetadata", "play", "pause", "seeked"].forEach((type) => editVideo.addEventListener(type, showEditTime));
+// 動画の縦横比を、動画の枠の大きさに使う（枠は縮まず、動画は枠の中にまるごと入る）
+editVideo.addEventListener("loadedmetadata", () => {
+  if (editVideo.videoWidth && editVideo.videoHeight) $("editor").style.setProperty("--ar", `${editVideo.videoWidth} / ${editVideo.videoHeight}`);
+});
 // ブラウザで録った webm（Android のろくがの動画など）は長さが入っていない（Infinity）ことがある。
 // いちど最後まで飛ばすと長さが分かるので、分かったら最初にもどす
 editVideo.addEventListener("loadedmetadata", () => {
@@ -1099,9 +1103,7 @@ function addEditEvent(key, delta, mark = false) {
   editEvents.sort((a, b) => a.t - b.t);
   navigator.vibrate?.(delta > 0 ? 30 : [15, 50, 15]);
   renderEditEvents();
-  // 入れた得点の行が一覧の中で見えるように（一覧の中だけ動かす）
-  const row = $("editEvents").children[editEvents.indexOf(ev)];
-  if (row) $("editEvents").scrollTop = row.offsetTop - $("editEvents").offsetTop - 40;
+  // 一覧へは自動で動かさない（続けて ＋1 を押せるように、ボタンを画面に残す）
 }
 
 // 入れた得点の一覧：時間（押すとそこへ）・どちらのチーム・そのあとのスコア・✕（消す）
