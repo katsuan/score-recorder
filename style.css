@@ -36,8 +36,8 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .swap { width: 36px; height: 36px; border: 2px solid var(--border); border-radius: 50%; background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
 .swap:active { transform: scale(0.94); }
 /* 撮る画面の ＋1 も左右を入れかえる */
-.studio.is-swapped .side.is-us { left: auto; right: calc(16px + env(safe-area-inset-right)); }
-.studio.is-swapped .side.is-them { right: auto; left: calc(16px + env(safe-area-inset-left)); }
+.studio.is-swapped .side.is-us { left: auto; right: calc(32px + env(safe-area-inset-right)); }
+.studio.is-swapped .side.is-them { right: auto; left: calc(32px + env(safe-area-inset-left)); }
 /* たたんだ欄（プレビュー・GOAL のエフェクト） */
 .fold { display: grid; gap: 10px; padding: 10px 12px; border: 2px solid var(--border); border-radius: 14px; background: #fff; }
 .fold summary { font-size: 14px; font-weight: 800; cursor: pointer; list-style: none; }
@@ -81,8 +81,8 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .studio { position: fixed; inset: 0; background: #000; overflow: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .screen { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .side { position: absolute; bottom: calc(16px + env(safe-area-inset-bottom)); display: grid; justify-items: center; gap: 8px; }
-.side.is-us { left: calc(16px + env(safe-area-inset-left)); }
-.side.is-them { right: calc(16px + env(safe-area-inset-right)); }
+.side.is-us { left: calc(32px + env(safe-area-inset-left)); }
+.side.is-them { right: calc(32px + env(safe-area-inset-right)); }
 .side button { border: 0; border-radius: 999px; font: inherit; font-weight: 800; color: #fff; cursor: pointer; }
 .side .plus { width: 76px; height: 76px; background: rgba(0, 0, 0, 0.45); border: 3px solid rgba(255, 255, 255, 0.85); font-size: 22px; }
 .side .minus { width: 52px; height: 32px; background: rgba(0, 0, 0, 0.35); font-size: 14px; }
@@ -106,9 +106,14 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .phone.is-left::after { right: 3px; }
 .phone.is-right::after { left: 3px; }
 /* 縦の画面のまま横に倒して撮るとき：撮る画面ごと 90° 回して、横に持ったときにまっすぐ見えるように */
-.studio.is-turned { inset: auto; top: 0; width: 100vh; height: 100vw; transform-origin: top left; }
+/* 見えている高さ（dvh）を横幅に（100vh だと、Safari のアドレスバーのぶん長くなって右はしが切れる） */
+.studio.is-turned { inset: auto; top: 0; width: 100vh; width: 100dvh; height: 100vw; height: 100dvw; transform-origin: top left; }
 .studio.is-turned.is-left { left: 100vw; transform: rotate(90deg); }
-.studio.is-turned.is-right { left: 0; top: 100vh; transform: rotate(-90deg); }
+.studio.is-turned.is-right { left: 0; top: 100vh; top: 100dvh; transform: rotate(-90deg); }
+/* 倒したときは、ノッチや角の丸みが左右のはしに来るので、＋1 を中ほどへ寄せる */
+.studio.is-turned .side.is-us, .studio.is-turned.is-swapped .side.is-them { left: calc(56px + max(env(safe-area-inset-top), env(safe-area-inset-bottom))); right: auto; }
+.studio.is-turned .side.is-them, .studio.is-turned.is-swapped .side.is-us { right: calc(56px + max(env(safe-area-inset-top), env(safe-area-inset-bottom))); left: auto; }
+.studio.is-turned .side { bottom: 24px; }
 
 /* 保存のシート */
 .sheet { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, 0.6); }
