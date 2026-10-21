@@ -126,10 +126,11 @@
   </div>
   <!-- 上のまんなか：録画中の時間（カメラのアプリと同じ場所。ボタンと重ならない） -->
   <span id="elapsed" class="elapsed"></span>
-  <!-- 右上：ときどき使うボタン（縦にもどす・戻る）。得点板（左上）や ＋1・録画（下）から離す。録画中は隠す（押しまちがい防止）。
+  <!-- 右上：ときどき使うボタン（倒す向きを逆に・戻る）。得点板（左上）や ＋1・録画（下）から離す。録画中は隠す（押しまちがい防止）。
        いちばんはしは、＋1・録画のまとまりの位置（左よせ・まんなか・右よせ）。片手で持つ側に寄せる。録画中も使えるので隠さない -->
   <div class="tools">
-    <button id="turnOff" class="small" type="button" hidden>📱 縦にもどす</button>
+    <!-- 倒して撮るときだけ：倒す向きを逆に（左に倒す ↔ 右に倒す。選びまちがえたとき）。ごちゃつかないよう小さな丸の印だけ -->
+    <button id="turnFlip" class="small icon-btn" type="button" hidden aria-label="倒す向きを逆にする" title="倒す向きを逆にする">⇅</button>
     <button id="back" class="small" type="button">← 戻る</button>
     <div class="hand-pick" role="radiogroup" aria-label="＋1 と録画ボタンの位置（片手で押しやすい側へ）">
       <button type="button" role="radio" data-hand="left">◀ 左よせ</button>

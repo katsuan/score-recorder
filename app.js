@@ -378,10 +378,10 @@ function setTurn(next) {
   studio.classList.toggle("is-turned", Boolean(turn));
   studio.classList.toggle("is-left", turn === "left");
   studio.classList.toggle("is-right", turn === "right");
-  $("turnOff").hidden = !turn;
+  $("turnFlip").hidden = !turn;
 }
 document.querySelectorAll("[data-turn]").forEach((b) => b.addEventListener("click", () => setTurn(b.dataset.turn)));
-$("turnOff").addEventListener("click", () => setTurn(null));
+$("turnFlip").addEventListener("click", () => setTurn(turn === "left" ? "right" : "left")); // 倒す向きを逆に
 // 画面の回転がオンで、ほんとうに横向きになったら、倒して撮るのはやめる（ふつうの横向きで撮る）
 window.matchMedia("(orientation: landscape)").addEventListener("change", (e) => e.matches && setTurn(null));
 
