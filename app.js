@@ -961,7 +961,22 @@ function renderEditScore() {
       side.className = "edit-side";
       side.style.setProperty("--team", color);
       side.style.setProperty("--team-ink", inkFor(color));
-      const label = Object.assign(document.createElement("span"), { className: "name", textContent: name });
+      // 名前の横の色：動画を入れたあとでも、ユニフォームの色に合わせて変えられる（得点板・ボタン・一覧にすぐ出る。はじめの画面の色も変わる）
+      const label = document.createElement("div");
+      label.className = "name-row";
+      const swatch = Object.assign(document.createElement("input"), { type: "color", value: color, className: "swatch" });
+      swatch.setAttribute("aria-label", `${name}の色`);
+      swatch.addEventListener("input", () => {
+        const colorKey = key === "us" ? "colorUs" : "colorThem";
+        state[colorKey] = swatch.value;
+        $(colorKey).value = swatch.value;
+        save();
+        side.style.setProperty("--team", swatch.value);
+        side.style.setProperty("--team-ink", inkFor(swatch.value));
+        renderEditEvents();
+        renderTeams();
+      });
+      label.append(swatch, Object.assign(document.createElement("span"), { className: "name", textContent: name }));
       const plus = Object.assign(document.createElement("button"), { type: "button", className: "plus", textContent: "＋1" });
       plus.setAttribute("aria-label", `${name}に1点（いまの時間）`);
       plus.addEventListener("click", () => addEditEvent(key, 1));
