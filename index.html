@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211336">
+<link rel="stylesheet" href="style.css?v=202610211341">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -35,7 +35,13 @@
     <img class="wordmark" src="logo.svg" alt="RoQga" height="28">
   </div>
   <p class="copy">とった点まで、とっておこう</p>
-  <p class="lead">試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残します。<br>スマホは<b>横向き</b>で使います。</p>
+  <!-- 2つの使い方：いま撮る（カメラ）／撮っておいた動画に、あとから得点板を付ける。チーム・色・プレビューは共通 -->
+  <div class="mode-tabs" role="tablist" aria-label="使い方">
+    <button type="button" role="tab" data-mode="shoot" aria-selected="true">📹 撮る</button>
+    <button type="button" role="tab" data-mode="later" aria-selected="false">🎞 あとから付ける</button>
+  </div>
+  <p class="lead" data-mode-only="shoot">試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残します。<br>スマホは<b>横向き</b>で使います。</p>
+  <p class="lead" data-mode-only="later" hidden>撮っておいた動画に、あとから得点板を入れます。動画を流しながら、点が入ったところで ＋1 を押すだけ。<br>動画が途中からなら、下の「スコアを変える」で、はじめのスコアを入れておきます。</p>
   <!-- チーム：得点板と同じく、左のチーム・右のチーム（自分のチームの試合とはかぎらないので「自チーム・相手」とは呼ばない。
        ⇄ で入れかえると、ラベルも並びに合わせて変わる）。名前・色・▼（保存したチームから選ぶ）・保存／消す。
        保存したチームは左右で同じ一覧（よく撮るチームを保存できる） -->
@@ -98,7 +104,10 @@
       </div>
     </div>
   </details>
-  <button id="openCamera" class="btn" type="button">📹 カメラを開く</button>
+  <button id="openCamera" class="btn" type="button" data-mode-only="shoot">📹 カメラを開く</button>
+  <!-- あとから付ける：端末の動画を選ぶ（動画はこの端末の中だけで使う） -->
+  <button id="pickVideo" class="btn" type="button" data-mode-only="later" hidden>🎞 動画を選ぶ</button>
+  <input id="videoFile" type="file" accept="video/*" hidden>
   <!-- 録った動画があるときだけ：保存の画面をもう一度開く（はじめの画面にもどっても、0 - 0 から撮りなおすまで残っている） -->
   <button id="openSaved" class="btn ghost" type="button" hidden></button>
   <p id="setupError" class="error" hidden></p>
@@ -149,6 +158,34 @@
   </div>
 </section>
 
+<!-- あとから付ける：選んだ動画を流しながら、点が入ったところで ＋1（その時間を覚える）。そのあと得点板つきで書き出す。
+     書き出しは動画を最初から流して、画面（得点板つき）をそのまま録る（ブラウザでは動画と同じ時間かかる） -->
+<section id="editor" class="editor" hidden>
+  <div class="editor-bar">
+    <button id="editBack" class="small" type="button">← 戻る</button>
+    <span class="editor-title">🎞 あとから付ける</span>
+  </div>
+  <div class="editor-stage"><canvas id="editScreen" class="edit-screen"></canvas></div>
+  <video id="editVideo" class="src-video" playsinline preload="auto"></video>
+  <div class="editor-controls">
+    <button id="editPlay" class="play-btn" type="button" aria-label="再生">▶</button>
+    <input id="editSeek" class="edit-seek" type="range" min="0" max="1000" value="0" aria-label="動画の位置">
+    <span id="editTime" class="edit-time">0:00 / 0:00</span>
+  </div>
+  <!-- 点が入ったところで ＋1（左右は得点板と同じ並び。ボタンはチームの色）。まちがえたら −1 か、下の一覧の ✕ -->
+  <div id="editSides" class="edit-score"></div>
+  <ol id="editEvents" class="edit-events"></ol>
+  <button id="editExport" class="btn" type="button">📼 得点板つきで書き出す</button>
+  <p class="hint editor-hint">書き出しは、動画を最初から流して録り直すので、動画と同じ時間かかります。終わるまでこの画面のままにしてください。</p>
+  <!-- 書き出し中：ほかの操作はできないように上からかぶせる -->
+  <div id="exportOverlay" class="export-overlay" hidden>
+    <p class="export-title">書き出し中…</p>
+    <p id="exportProg" class="export-prog"></p>
+    <p class="hint">終わるまで、この画面のままにしてください。</p>
+    <button id="exportCancel" class="btn ghost" type="button">やめる</button>
+  </div>
+</section>
+
 <!-- 録画を止めたあと：保存・共有 -->
 <div id="saveSheet" class="sheet" hidden>
   <div class="sheet-card">
@@ -182,7 +219,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211336"></script>
+<script src="app.js?v=202610211341"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

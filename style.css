@@ -192,6 +192,39 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .studio.is-recording::after { content: ""; position: absolute; inset: 0; border: 5px solid #e5484d; pointer-events: none; animation: rec-edge 2s ease-in-out infinite; }
 @keyframes rec-edge { 50% { border-color: rgba(229, 72, 77, 0.45); } }
 /* はじめの画面：「カメラを開く」は画面の下に固定（スクロールしなくても押せる） */
-#openCamera { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 5; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2); }
+#openCamera, #pickVideo { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 5; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2); }
 /* 保存のしかたの案内 */
 .guide { padding: 8px 12px; border-radius: 10px; background: #eef7f0; color: var(--ink); font-size: 13px; font-weight: 700; line-height: 1.5; }
+
+/* 使い方のタブ：撮る／あとから付ける */
+.mode-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: #e6eee8; }
+.mode-tabs button { min-height: 40px; border: 0; border-radius: 10px; background: none; color: var(--ink-soft); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+.mode-tabs button[aria-selected="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+
+/* あとから付ける：動画に得点の時間を入れる画面 */
+.editor { position: fixed; inset: 0; z-index: 8; overflow-y: auto; display: grid; align-content: start; gap: 12px; padding: calc(12px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); background: #0f1a14; color: #fff; }
+.editor-bar { display: flex; align-items: center; gap: 10px; }
+.editor-title { font-weight: 800; }
+.editor-stage { display: grid; place-items: center; border-radius: 12px; overflow: hidden; background: #000; }
+.edit-screen { display: block; width: 100%; max-height: 50vh; object-fit: contain; }
+.src-video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; } /* 絵は canvas に描くので、元の動画は見せない */
+.editor-controls { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.play-btn { width: 44px; height: 44px; border: 0; border-radius: 50%; background: #fff; color: #1a1a1a; font-size: 18px; cursor: pointer; }
+.edit-seek { width: 100%; accent-color: #5cc27a; }
+.edit-time { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.edit-score { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.edit-side { display: grid; justify-items: center; gap: 6px; }
+.edit-side .name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 800; opacity: 0.85; }
+.edit-side .plus { width: 100%; min-height: 64px; border: 3px solid rgba(255, 255, 255, 0.9); border-radius: 16px; background: var(--team); color: var(--team-ink); font: inherit; font-size: 22px; font-weight: 800; cursor: pointer; }
+.edit-side .minus { min-width: 64px; min-height: 32px; border: 2px solid var(--team); border-radius: 999px; background: rgba(0, 0, 0, 0.4); color: #fff; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.edit-side button:active { transform: scale(0.96); }
+.edit-events { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.edit-events:empty::before { content: "まだ得点はありません。動画を流して、点が入ったところで ＋1 を押してください。"; font-size: 13px; opacity: 0.7; }
+.edit-events li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; background: rgba(255, 255, 255, 0.08); font-size: 13px; font-weight: 700; }
+.edit-events .ev-dot { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 50%; border: 1px solid #fff; vertical-align: -1px; }
+.edit-events button { border: 0; border-radius: 999px; background: rgba(255, 255, 255, 0.16); color: #fff; font: inherit; font-size: 12px; font-weight: 800; padding: 4px 10px; cursor: pointer; }
+.editor-hint { color: rgba(255, 255, 255, 0.7); }
+.export-overlay { position: fixed; inset: auto 0 0 0; z-index: 9; display: grid; gap: 8px; justify-items: center; padding: 20px 16px calc(24px + env(safe-area-inset-bottom)); background: rgba(10, 18, 13, 0.96); text-align: center; }
+.export-title { font-size: 18px; font-weight: 800; }
+.export-prog { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.export-overlay .hint { color: rgba(255, 255, 255, 0.75); }
