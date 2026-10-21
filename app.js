@@ -33,7 +33,8 @@ const state = {
   colorThem: saved.colorThem || saqsen.oppColor || "#ffffff",
   us: Number(saved.us) || 0,
   them: Number(saved.them) || 0,
-  goalFx: saved.goalFx !== false // ＋1 のとき「GOAL!」のエフェクトを動画に入れるか
+  goalFx: saved.goalFx === true, // ＋1 のとき「GOAL!」のエフェクトを動画に入れるか（ふだんは出さない）
+  swapped: saved.swapped === true // 左右を入れかえる（相手を左に）
 };
 const fromSaqsen = !saved.teamUs && Boolean(saqsen.team || saqsen.opponent);
 
@@ -60,8 +61,24 @@ $("resetScore").addEventListener("click", () => {
   })
 );
 
+// ---- 左右の入れかえ（はじめの画面のチームの並び・得点板・撮る画面の ＋1） ----
+function showSides() {
+  document.querySelector(".teams").classList.toggle("is-swapped", state.swapped);
+  $("studio").classList.toggle("is-swapped", state.swapped);
+}
+$("swapSides").addEventListener("click", () => {
+  state.swapped = !state.swapped;
+  save();
+  showSides();
+  drawPreview();
+});
+showSides();
+
 // ---- GOAL のエフェクトを出すか・試す ----
-const showGoalFxSetting = () => document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
+const showGoalFxSetting = () => {
+  document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
+  $("fxMeta").textContent = state.goalFx ? "エフェクトあり" : "";
+};
 document.querySelectorAll("[data-goal-fx]").forEach((b) =>
   b.addEventListener("click", () => {
     state.goalFx = b.dataset.goalFx === "on";
@@ -70,6 +87,8 @@ document.querySelectorAll("[data-goal-fx]").forEach((b) =>
   })
 );
 showGoalFxSetting();
+// たたんだ欄を開いたら、プレビューを描き直す（たたんでいる間は大きさが測れないため）
+$("previewFold").addEventListener("toggle", () => $("previewFold").open && drawPreview());
 $("tryGoal").addEventListener("click", () => {
   goalFx = { side: "us", at: performance.now() };
   drawPreview();
@@ -290,10 +309,13 @@ function drawScoreboard(w, h, ctx = screenCtx) {
   const boxH = 64 * s;
   const font = (size, weight = 800) => `${weight} ${size}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
   // チーム名がないときは、名前の代わりにチームの色の丸
-  const nameUs = state.teamUs.trim();
-  const nameThem = state.teamThem.trim();
+  // 左右（入れかえたときは相手が左）。下の「Us」は左、「Them」は右のこと
+  const left = state.swapped ? { name: state.teamThem, color: state.colorThem, score: state.them } : { name: state.teamUs, color: state.colorUs, score: state.us };
+  const right = state.swapped ? { name: state.teamUs, color: state.colorUs, score: state.us } : { name: state.teamThem, color: state.colorThem, score: state.them };
+  const nameUs = left.name.trim();
+  const nameThem = right.name.trim();
   const dot = 26 * s;
-  const score = `${state.us} - ${state.them}`;
+  const score = `${left.score} - ${right.score}`;
   ctx.font = font(26 * s);
   const nameUsW = nameUs ? ctx.measureText(nameUs).width : dot;
   const nameThemW = nameThem ? ctx.measureText(nameThem).width : dot;
@@ -310,9 +332,9 @@ function drawScoreboard(w, h, ctx = screenCtx) {
   ctx.roundRect(x, y, boxW, boxH, 14 * s);
   ctx.fill();
   // チームの色の帯（左右の端）
-  ctx.fillStyle = state.colorUs;
+  ctx.fillStyle = left.color;
   ctx.fillRect(x + gap * 0.6, y + 12 * s, chip, boxH - 24 * s);
-  ctx.fillStyle = state.colorThem;
+  ctx.fillStyle = right.color;
   ctx.fillRect(x + boxW - gap * 0.6 - chip, y + 12 * s, chip, boxH - 24 * s);
   ctx.fillStyle = "#ffffff";
   ctx.textBaseline = "middle";
@@ -333,13 +355,13 @@ function drawScoreboard(w, h, ctx = screenCtx) {
     ctx.strokeStyle = "#ffffff";
     ctx.stroke();
   };
-  nameOrDot(nameUs, state.colorUs, cx);
+  nameOrDot(nameUs, left.color, cx);
   cx += nameUsW + gap * 1.5;
   ctx.font = font(40 * s);
   ctx.fillStyle = "#ffffff";
   ctx.fillText(score, cx, y + boxH / 2 + 2 * s);
   cx += scoreW + gap * 1.5;
-  nameOrDot(nameThem, state.colorThem, cx);
+  nameOrDot(nameThem, right.color, cx);
   ctx.restore();
 }
 

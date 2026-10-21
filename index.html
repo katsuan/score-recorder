@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610202358">
+<link rel="stylesheet" href="style.css?v=202610210341">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -44,6 +44,8 @@
         <button class="team-action" type="button">保存</button>
       </div>
     </div>
+    <!-- 左右を入れかえる（後半にコートが変わったときなど。得点板・撮る画面の ＋1 の左右も入れかわる） -->
+    <button id="swapSides" class="swap" type="button" aria-label="自チームと相手の左右を入れかえる" title="左右を入れかえる">⇄</button>
     <div class="team-col" data-side="them">
       <label for="teamThem">相手</label>
       <input id="teamThem" maxlength="12" placeholder="相手">
@@ -55,25 +57,23 @@
     </div>
   </div>
   <p id="fromSaqsen" class="hint" hidden>さくせん盤のチーム名・色を使っています。</p>
-  <!-- 得点板のプレビュー：撮る前に、動画に入る得点板（チーム名・色・スコア、GOAL のエフェクト）を見ておける。
-       チームとエフェクトの設定のあいだに置き、プレビューだとわかるよう見出しと「プレビュー」の札をつける -->
-  <div class="preview-box">
-    <span class="split-label">👀 プレビュー（動画にはこう入ります）</span>
+  <!-- 得点板のプレビューと GOAL のエフェクト：たたんだ欄（開くと、動画に入る得点板を見ておける。エフェクトはふだん出さない） -->
+  <details id="previewFold" class="fold">
+    <summary>👀 プレビュー・GOAL のエフェクト <span id="fxMeta" class="meta"></span></summary>
     <div class="preview-frame">
       <canvas id="preview" class="preview" width="1280" height="720" aria-label="得点板のプレビュー"></canvas>
       <span class="preview-tag">プレビュー</span>
     </div>
-    <p class="now-score">いまのスコア <b id="setupScore">0 - 0</b> <button id="resetScore" class="link" type="button">0 - 0 にする</button></p>
-  </div>
-  <!-- GOAL のエフェクト：＋1 を押したとき、動画に「GOAL!」の帯を2秒ほど入れる -->
-  <div class="split">
-    <span class="split-label">GOAL のエフェクト（＋1 を押したとき）</span>
-    <div class="seg" role="radiogroup" aria-label="GOAL のエフェクト">
-      <button class="chip" type="button" role="radio" data-goal-fx="on">出す</button>
-      <button class="chip" type="button" role="radio" data-goal-fx="off">出さない</button>
-      <button id="tryGoal" class="chip" type="button">▶ 試す</button>
+    <div class="split">
+      <span class="split-label">GOAL のエフェクト（＋1 を押したとき、動画に「GOAL!」の帯を2秒ほど）</span>
+      <div class="seg" role="radiogroup" aria-label="GOAL のエフェクト">
+        <button class="chip" type="button" role="radio" data-goal-fx="off">出さない</button>
+        <button class="chip" type="button" role="radio" data-goal-fx="on">出す</button>
+        <button id="tryGoal" class="chip" type="button">▶ 試す</button>
+      </div>
     </div>
-  </div>
+  </details>
+  <p class="now-score">いまのスコア <b id="setupScore">0 - 0</b> <button id="resetScore" class="link" type="button">0 - 0 にする</button></p>
   <button id="openCamera" class="btn" type="button">📹 カメラを開く</button>
   <p id="setupError" class="error" hidden></p>
   <p class="hint">動画はこの端末にだけ保存します（サーバーには送りません）。録画中は画面を消したり、別のアプリに切りかえたりしないでください。</p>
@@ -130,7 +130,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610202358"></script>
+<script src="app.js?v=202610210341"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
