@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211437">
+<link rel="stylesheet" href="style.css?v=202610211441">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -129,7 +129,7 @@
     <button class="plus" type="button" data-score="them" data-delta="1" aria-label="右のチームに1点" data-side-aria="them:に1点">＋1</button>
     <button class="minus" type="button" data-score="them" data-delta="-1" aria-label="右のチームの1点を取り消す" data-side-aria="them:の1点を取り消す">−1</button>
   </div>
-  <!-- 録画中だけ：⭐ ナイスプレー（おしい・いいプレーなど）。点は変えずに、その時間を得点ハイライトに入れる -->
+  <!-- ⭐ ナイスプレー（おしい・いいプレーなど。録画前から出しておき、効くのは録画中）。点は変えずに、その時間を得点ハイライトに入れる -->
   <button id="markLive" class="mark-btn" type="button" aria-label="ナイスプレー（ハイライトに入れる）">⭐ ナイス</button>
   <!-- 録画ボタン：まんなかのときは下のまんなか（＋1／−1 はその左右）。左よせ・右よせのときは、親指から遠い反対側のはしへ（押しまちがい防止） -->
   <div class="bar">
@@ -238,7 +238,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211437"></script>
+<script src="app.js?v=202610211441"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

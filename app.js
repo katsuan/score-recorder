@@ -540,9 +540,17 @@ function changeScore(key, delta, button) {
   }
 }
 document.querySelectorAll("[data-score]").forEach((b) => b.addEventListener("click", () => changeScore(b.dataset.score, Number(b.dataset.delta), b)));
-// ⭐ ナイスプレー（録画中だけ）：点は変えずに、その時間を得点ハイライトに入れる
+// ⭐ ナイスプレー（効くのは録画中だけ）：点は変えずに、その時間を得点ハイライトに入れる
+let markHintTimer = 0;
 $("markLive").addEventListener("click", () => {
-  if (!recording || recKind !== "shot") return;
+  if (!recording || recKind !== "shot") {
+    // 録画前：何も残さず、少しのあいだ「録画中に押してね」と出す
+    const b = $("markLive");
+    b.textContent = "録画中に押してね";
+    clearTimeout(markHintTimer);
+    markHintTimer = setTimeout(() => (b.textContent = "⭐ ナイス"), 1500);
+    return;
+  }
   liveGoals.push({ take, t: (Date.now() - startedAt) / 1000, key: null, mark: true });
   navigator.vibrate?.(20);
   const b = $("markLive");

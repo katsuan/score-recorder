@@ -250,9 +250,9 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .export-range button[aria-checked="true"] { background: #fff; color: #1a1a1a; }
 .export-range button:disabled { opacity: 0.4; cursor: default; }
 
-/* ⭐ ナイスプレー：録画中だけ出す。まんなかのときは録画ボタンの上、寄せたときは縦2段の ＋1 の上 */
+/* ⭐ ナイスプレー：録画前から出す（効くのは録画中）。まんなかのときは録画ボタンの上、寄せたときは縦2段の ＋1 の上 */
 .mark-btn { position: absolute; left: 50%; bottom: calc(var(--side-bottom) + 98px); transform: translateX(-50%); height: 40px; padding: 0 14px; border: 2px solid #ffd54a; border-radius: 999px; background: rgba(0, 0, 0, 0.55); color: #ffe082; font: inherit; font-size: 14px; font-weight: 800; white-space: nowrap; cursor: pointer; }
-.studio:not(.is-recording) .mark-btn { display: none; }
+.studio:not(.is-recording) .mark-btn { opacity: 0.6; } /* 録画前も出しておく（押すと「録画中に押してね」） */
 .studio.hand-left .mark-btn { left: var(--stack-pad); transform: none; bottom: calc(var(--side-bottom) + 184px); }
 .studio.hand-right .mark-btn { left: auto; right: var(--stack-pad); transform: none; bottom: calc(var(--side-bottom) + 184px); }
 .mark-btn.is-hit { animation: hit 0.45s ease-out; }
