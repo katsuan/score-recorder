@@ -540,7 +540,7 @@ function changeScore(key, delta, button) {
   }
 }
 document.querySelectorAll("[data-score]").forEach((b) => b.addEventListener("click", () => changeScore(b.dataset.score, Number(b.dataset.delta), b)));
-// ⭐ 見どころ（録画中だけ）：点は変えずに、その時間を得点ハイライトに入れる
+// ⭐ ナイスプレー（録画中だけ）：点は変えずに、その時間を得点ハイライトに入れる
 $("markLive").addEventListener("click", () => {
   if (!recording || recKind !== "shot") return;
   liveGoals.push({ take, t: (Date.now() - startedAt) / 1000, key: null, mark: true });
@@ -1028,7 +1028,7 @@ function exportSegments() {
   if (exportRange === "all") return [[0, d]];
   const segs = [];
   editEvents
-    .filter((ev) => ev.delta > 0 || ev.mark) // 得点と ⭐ 見どころ
+    .filter((ev) => ev.delta > 0 || ev.mark) // 得点と ⭐ ナイスプレー
     .forEach((ev) => {
       const a = Math.max(0, ev.t - GOAL_BEFORE);
       const b = Math.min(d, ev.t + GOAL_AFTER);
@@ -1125,7 +1125,7 @@ function renderEditEvents() {
       const text = document.createElement("span");
       const dot = Object.assign(document.createElement("i"), { className: "ev-dot" });
       dot.style.background = color;
-      text.append(dot, ev.mark ? "⭐ 見どころ" : `${name} ${ev.delta > 0 ? "＋1" : "−1"} → ${l} - ${r}`);
+      text.append(dot, ev.mark ? "⭐ ナイスプレー" : `${name} ${ev.delta > 0 ? "＋1" : "−1"} → ${l} - ${r}`);
       const del = Object.assign(document.createElement("button"), { type: "button", textContent: "✕" });
       del.setAttribute("aria-label", "この得点を消す");
       del.addEventListener("click", () => {
