@@ -558,6 +558,8 @@ function showElapsed() {
 
 // 止めたら：見返し・保存・共有（何本かあるときは1本ずつ、またはまとめて）
 function showSaved() {
+  $("sharedNote").hidden = true;
+  $("restartSave").classList.add("ghost");
   const d = new Date(startedAt);
   const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}`;
   clips.forEach((c, i) => {
@@ -619,14 +621,30 @@ function showClip(i) {
 async function shareFiles(files) {
   try {
     await navigator.share({ files });
+    markShared();
   } catch {
     // やめたときは何もしない
   }
 }
+// 共有がすんだら：「✓ 共有できました」と、「0 - 0 から撮りなおす」を目立たせる（次の試合へ）
+function markShared() {
+  $("sharedNote").hidden = false;
+  $("restartSave").classList.remove("ghost");
+}
 $("shareAll").addEventListener("click", () => shareFiles(pickedIndexes().map((i) => clips[i].file)));
-$("closeSave").addEventListener("click", () => {
+const closeSaveSheet = () => {
   $("saveSheet").hidden = true;
   $("playback").pause();
+};
+// スコアそのままで、撮る画面にもどる（後半など）
+$("closeSave").addEventListener("click", closeSaveSheet);
+// 0 - 0 にして、撮る画面にもどる（次の試合など）。録った動画は、次に録画をはじめるまでこの画面に残る
+$("restartSave").addEventListener("click", () => {
+  state.us = 0;
+  state.them = 0;
+  save();
+  showSetupScore();
+  closeSaveSheet();
 });
 $("record").addEventListener("click", () => (recording ? stopRecording() : startRecording()));
 $("openCamera").addEventListener("click", openCamera);

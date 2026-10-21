@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610210940">
+<link rel="stylesheet" href="style.css?v=202610210944">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -150,11 +150,17 @@
     <!-- 録った動画（5分ごとに分けたときは何本か）。押すと上で見返せる -->
     <div id="clipList" class="clip-list"></div>
     <button id="shareAll" class="btn" type="button" hidden>📤 まとめて保存・共有</button>
-    <button id="closeSave" class="link" type="button">閉じる（撮影にもどる）</button>
+    <p id="sharedNote" class="shared-note" hidden>✓ 共有できました</p>
+    <!-- 次を撮る：0 - 0 から撮りなおす（次の試合など）か、スコアそのままで続きを撮る（後半など）。
+         共有がすんだら「0 - 0 から」を目立たせる -->
+    <div class="next-shot">
+      <button id="restartSave" class="btn ghost" type="button">⟲ 0 - 0 から撮りなおす</button>
+      <button id="closeSave" class="btn ghost" type="button">▶ スコアそのままで続きを撮る</button>
+    </div>
   </div>
 </div>
 
-<script src="app.js?v=202610210940"></script>
+<script src="app.js?v=202610210944"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
