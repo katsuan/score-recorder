@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211408">
+<link rel="stylesheet" href="style.css?v=202610211415">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -168,8 +168,12 @@
     <button id="editPlay" class="play-btn" type="button" aria-label="再生">▶</button>
     <input id="editSeek" class="edit-seek" type="range" min="0" max="1000" value="0" aria-label="動画の位置">
     <span id="editTime" class="edit-time">0:00 / 0:00</span>
-    <!-- 速さ（1× → 2× → 4×）。得点の場面を探すとき速く流せる。書き出しはいつも 1× -->
-    <button id="editRate" class="rate-btn" type="button" aria-label="再生の速さ：1倍（押すと切りかえ）">1×</button>
+  </div>
+  <!-- 10秒もどる・進む（速く流して得点を通りすぎたとき）と、速さ（0.5×〜4× を少しずつ。書き出しはいつも 1×） -->
+  <div class="editor-controls2">
+    <button class="jump-btn" type="button" data-jump="-10" aria-label="10秒もどる">↺ 10秒</button>
+    <label class="rate-field"><span class="sr">再生の速さ</span><input id="editRate" type="range" min="0.5" max="4" step="0.25" value="1"><b id="editRateLabel">1×</b></label>
+    <button class="jump-btn" type="button" data-jump="10" aria-label="10秒進む">10秒 ↻</button>
   </div>
   <!-- 点が入ったところで ＋1（左右は得点板と同じ並び。ボタンはチームの色）。まちがえたら −1 か、下の一覧の ✕ -->
   <div id="editSides" class="edit-score"></div>
@@ -226,7 +230,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211408"></script>
+<script src="app.js?v=202610211415"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

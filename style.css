@@ -211,7 +211,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .editor-stage { position: sticky; top: 0; z-index: 2; display: grid; place-items: center; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 6px 12px #0f1a14; }
 .edit-screen { display: block; width: 100%; max-height: 50vh; object-fit: contain; }
 .src-video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; } /* 絵は canvas に描くので、元の動画は見せない */
-.editor-controls { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 10px; }
+.editor-controls { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
 .play-btn { width: 44px; height: 44px; border: 0; border-radius: 50%; background: #fff; color: #1a1a1a; font-size: 18px; cursor: pointer; }
 .edit-seek { width: 100%; accent-color: #5cc27a; }
 .edit-time { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -236,7 +236,12 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .export-title { font-size: 18px; font-weight: 800; }
 .export-prog { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .export-overlay .hint { color: rgba(255, 255, 255, 0.75); }
-.rate-btn { min-width: 44px; height: 32px; border: 2px solid rgba(255, 255, 255, 0.6); border-radius: 999px; background: none; color: #fff; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.editor-controls2 { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.jump-btn { min-height: 36px; padding: 0 12px; border: 2px solid rgba(255, 255, 255, 0.6); border-radius: 999px; background: none; color: #fff; font: inherit; font-size: 13px; font-weight: 800; white-space: nowrap; cursor: pointer; }
+.jump-btn:active { transform: scale(0.96); }
+.rate-field { display: grid; grid-template-columns: minmax(0, 1fr) 3.2em; align-items: center; gap: 6px; }
+.rate-field input { width: 100%; min-height: 0; padding: 0; border: 0; background: none; accent-color: #ffd54a; }
+.rate-field b { color: #fff; font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; }
 .export-range { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(255, 255, 255, 0.08); }
 .export-range button { min-height: 38px; border: 0; border-radius: 10px; background: none; color: rgba(255, 255, 255, 0.75); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
 .export-range button[aria-checked="true"] { background: #fff; color: #1a1a1a; }

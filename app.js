@@ -890,7 +890,8 @@ function openEditor(file) {
   exportRange = "all";
   editRate = 1;
   editVideo.playbackRate = 1;
-  $("editRate").textContent = "1×";
+  $("editRate").value = "1";
+  showRate();
   editBase = { us: state.us, them: state.them };
   editLastT = 0;
   goalFx = null;
@@ -983,13 +984,21 @@ editVideo.addEventListener("loadedmetadata", () => {
   editVideo.currentTime = 1e101;
 });
 $("editPlay").addEventListener("click", () => (editVideo.paused ? editVideo.play().catch(() => {}) : editVideo.pause()));
-// 速さ：1× → 2× → 4× → 1×（点の場面を探すとき速く流す）
-$("editRate").addEventListener("click", () => {
-  editRate = { 1: 2, 2: 4, 4: 1 }[editRate];
+// 速さ：0.5×〜4× を少しずつ（点の場面を探すとき速く、見きわめるとき遅く）
+const showRate = () => ($("editRateLabel").textContent = `${editRate}×`);
+$("editRate").addEventListener("input", (e) => {
+  editRate = Number(e.target.value);
   editVideo.playbackRate = editRate;
-  $("editRate").textContent = `${editRate}×`;
-  $("editRate").setAttribute("aria-label", `再生の速さ：${editRate}倍（押すと切りかえ）`);
+  showRate();
 });
+// 10秒もどる・進む（速く流して得点を通りすぎたとき）。動かしただけでは GOAL を出さない
+document.querySelectorAll("[data-jump]").forEach((b) =>
+  b.addEventListener("click", () => {
+    const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
+    editVideo.currentTime = Math.max(0, Math.min(d || Infinity, editVideo.currentTime + Number(b.dataset.jump)));
+    editLastT = editVideo.currentTime;
+  })
+);
 // 書き出す範囲
 document.querySelectorAll("[data-range]").forEach((b) =>
   b.addEventListener("click", () => {
