@@ -537,7 +537,11 @@ const SEGMENT_MS = (Number(new URLSearchParams(location.search).get("segment")) 
 let recorder = null;
 let recording = false;
 let chunks = [];
-let clips = []; // 録り終えた動画 [{ file, url, from, to }]（from・to は録りはじめからの秒）
+// 録り終えた動画 [{ blob, type, from, to, take, takeAt, file, url, saved }]。from・to はその回の録りはじめからの秒。
+// 「スコアそのままで続きを撮る」で録りなおしても前の動画は消さず、続けて足していく（take が何回目の録画か）。
+// 消すのは「0 - 0 から撮りなおす」のときだけ（保存していない動画があれば確かめる）
+let clips = [];
+let take = 0;
 let startedAt = 0;
 let clipStartedAt = 0;
 let tick = 0;
@@ -563,10 +567,10 @@ function startClip() {
     const type = rec.mimeType || parts[0]?.type || "video/webm";
     const blob = new Blob(parts, { type });
     const to = Math.round((Date.now() - startedAt) / 1000);
-    if (blob.size) clips.push({ blob, type, from, to });
+    if (blob.size) clips.push({ blob, type, from, to, take, takeAt: startedAt, saved: false });
     // 録画を止めて、すべての1本が止まりきったら保存のシート（止まる順がずれても、録った順に並べる）
     if (!recording && !activeRecs.size) {
-      clips.sort((a, b) => a.from - b.from);
+      clips.sort((a, b) => a.take - b.take || a.from - b.from);
       showSaved();
     }
   });
@@ -594,8 +598,7 @@ function startRecording() {
   recordStream = screen.captureStream(30);
   cameraStream.getAudioTracks().forEach((t) => recordStream.addTrack(t));
   mimeType = pickMimeType();
-  clips.forEach((c) => c.url && URL.revokeObjectURL(c.url));
-  clips = [];
+  take += 1; // 前の動画は消さない（続きを撮るとき）
   pick = "all";
   recording = true;
   startedAt = Date.now();
@@ -625,7 +628,8 @@ const clock = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "
 // 録画中の時間。5分を超えて分けはじめたら「（2本目）」
 function showElapsed() {
   const sec = Math.floor((Date.now() - startedAt) / 1000);
-  const note = clips.length ? `（${clips.length + 1}本目）` : "";
+  const done = takeClips().length;
+  const note = done ? `（${done + 1}本目）` : "";
   $("elapsed").textContent = `${clock(sec)}${note}`;
 }
 
@@ -633,19 +637,20 @@ function showElapsed() {
 function showSaved() {
   $("sharedNote").hidden = true;
   $("restartSave").classList.add("ghost");
-  const d = new Date(startedAt);
-  const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}`;
-  clips.forEach((c, i) => {
+  // 今回の録画の動画に名前をつける（前の回の動画は、もう名前がついている）
+  const now = takeClips();
+  now.forEach((c, i) => {
+    const d = new Date(c.takeAt);
+    const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}`;
     const ext = c.type.includes("mp4") ? "mp4" : "webm";
-    const name = clips.length > 1 ? `score-${stamp}-${i + 1}.${ext}` : `score-${stamp}.${ext}`;
+    const name = now.length > 1 ? `score-${stamp}-${i + 1}.${ext}` : `score-${stamp}.${ext}`;
     c.file = new File([c.blob], name, { type: c.type });
     c.url = URL.createObjectURL(c.blob);
   });
   showSaveGuide();
-  // 5分を超えていたら（2本以上）、どれを残すか選ぶ：全部・最初の5分・最後の5分
-  $("pickClips").hidden = clips.length < 2;
+  // 今回の録画が5分を超えていたら（2本以上）、どれを残すか選ぶ：全部・最初の5分・最後の5分
+  $("pickClips").hidden = now.length < 2;
   renderClips();
-  if (clips.length) showClip(clips.length - 1);
   $("saveSheet").hidden = false;
 }
 
@@ -663,7 +668,15 @@ function showSaveGuide() {
 
 // state の「どれを残すか」に合う動画（clips の番号）
 let pick = "all";
-const pickedIndexes = () => (pick === "first" ? [0] : pick === "last" ? [clips.length - 1] : clips.map((_, i) => i)).filter((i) => clips[i]);
+// 今回の録画（いちばん新しい回）の動画
+const takeClips = () => clips.filter((c) => c.take === take);
+// 出す動画（clips の番号）：前の回の動画は全部、今回の録画は「どれを残すか」に合うもの
+const pickedIndexes = () => {
+  const now = clips.map((c, i) => (c.take === take ? i : -1)).filter((i) => i >= 0);
+  const earlier = clips.map((c, i) => (c.take !== take ? i : -1)).filter((i) => i >= 0);
+  const chosen = pick === "first" ? now.slice(0, 1) : pick === "last" ? now.slice(-1) : now;
+  return [...earlier, ...chosen];
+};
 
 function renderClips() {
   document.querySelectorAll("[data-pick]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.pick === pick)));
@@ -674,21 +687,29 @@ function renderClips() {
       const c = clips[i];
       const row = document.createElement("div");
       row.className = "clip";
-      const play = Object.assign(document.createElement("button"), { type: "button", className: "clip-play", textContent: `${clips.length > 1 ? `${i + 1}本目　` : ""}${clock(c.from)}〜${clock(c.to)}（${(c.blob.size / 1024 / 1024).toFixed(1)}MB）` });
+      const sameTake = clips.filter((x) => x.take === c.take);
+      const label = `${take > 1 || c.take !== take ? `${takeNumber(c.take)}回目　` : ""}${sameTake.length > 1 ? `${sameTake.indexOf(c) + 1}本目　` : ""}${clock(c.from)}〜${clock(c.to)}（${(c.blob.size / 1024 / 1024).toFixed(1)}MB）${c.saved ? "　✓" : ""}`;
+      const play = Object.assign(document.createElement("button"), { type: "button", className: "clip-play", textContent: label });
       play.addEventListener("click", () => showClip(i));
       const share = Object.assign(document.createElement("button"), { type: "button", className: "clip-btn", textContent: "📤 保存・共有" });
       share.hidden = !navigator.canShare?.({ files: [c.file] });
-      share.addEventListener("click", () => shareFiles([c.file]));
+      share.addEventListener("click", () => shareFiles([c]));
       const down = Object.assign(document.createElement("a"), { className: "clip-btn", href: c.url, download: c.file.name, textContent: "⬇️" });
       down.setAttribute("aria-label", `${c.file.name} をダウンロード`);
+      down.addEventListener("click", () => markSaved([c]));
       row.dataset.index = String(i);
       row.append(play, share, down);
       return row;
     })
   );
   const files = shown.map((i) => clips[i].file);
+  const now = takeClips();
+  const earlier = clips.length - now.length;
   $("shareAll").hidden = files.length < 2 || !navigator.canShare?.({ files });
-  $("saveInfo").textContent = clips.length > 1 ? `5分を超えたので、${clips.length}本（1本 5分まで）に分けて録りました。LINE でそのまま送れます。` : clips.length ? "" : "録れませんでした。もう一度お試しください。";
+  $("saveInfo").textContent = [
+    now.length > 1 ? `5分を超えたので、${now.length}本（1本 5分まで）に分けて録りました。LINE でそのまま送れます。` : now.length ? "" : "録れませんでした。もう一度お試しください。",
+    earlier ? `前に録った動画（${earlier}本）も下に残っています。` : ""
+  ].filter(Boolean).join("");
   if (shown.length) showClip(shown[shown.length - 1]);
 }
 document.querySelectorAll("[data-pick]").forEach((b) =>
@@ -704,28 +725,41 @@ function showClip(i) {
 }
 
 // 共有は動画だけ（題名や文字をつけると、LINE などで別のメッセージとして届くことがあるため）
-async function shareFiles(files) {
+async function shareFiles(list) {
   try {
-    await navigator.share({ files });
+    await navigator.share({ files: list.map((c) => c.file) });
+    markSaved(list);
     markShared();
   } catch {
     // やめたときは何もしない
   }
 }
+// 保存・共有した動画に印（✓）。0 - 0 にするとき、まだ保存していない動画があるか確かめるのに使う
+function markSaved(list) {
+  list.forEach((c) => (c.saved = true));
+  renderClips();
+}
+// 何回目の録画か（0 - 0 にしてからの数え方）
+const takeNumber = (t) => [...new Set(clips.map((c) => c.take))].sort((a, b) => a - b).indexOf(t) + 1;
+
 // 共有がすんだら：「✓ 共有できました」と、「0 - 0 から撮りなおす」を目立たせる（次の試合へ）
 function markShared() {
   $("sharedNote").hidden = false;
   $("restartSave").classList.remove("ghost");
 }
-$("shareAll").addEventListener("click", () => shareFiles(pickedIndexes().map((i) => clips[i].file)));
+$("shareAll").addEventListener("click", () => shareFiles(pickedIndexes().map((i) => clips[i])));
 const closeSaveSheet = () => {
   $("saveSheet").hidden = true;
   $("playback").pause();
 };
 // スコアそのままで、撮る画面にもどる（後半など）
 $("closeSave").addEventListener("click", closeSaveSheet);
-// 0 - 0 にして、撮る画面にもどる（次の試合など）。録った動画は、次に録画をはじめるまでこの画面に残る
+// 0 - 0 にして、撮る画面にもどる（次の試合など）。ここで、いままでの動画を消す（保存していないものがあれば確かめる）
 $("restartSave").addEventListener("click", () => {
+  const unsaved = clips.filter((c) => !c.saved).length;
+  if (unsaved && !confirm(`まだ保存・共有していない動画が ${unsaved}本 あります。0 - 0 にすると、いままでの動画は消えます。よいですか？`)) return;
+  clips.forEach((c) => c.url && URL.revokeObjectURL(c.url));
+  clips = [];
   state.us = 0;
   state.them = 0;
   save();
