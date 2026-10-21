@@ -204,7 +204,8 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .mode-tabs button[aria-selected="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
 
 /* あとから付ける：動画に得点の時間を入れる画面 */
-.editor { position: fixed; inset: 0; z-index: 8; overflow-y: auto; display: grid; align-content: start; gap: 12px; padding: calc(12px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); background: #0f1a14; color: #fff; }
+/* grid-auto-rows: max-content：行がふえても、動画の段が縮まないように（縮まずに画面ごと動かす） */
+.editor { position: fixed; inset: 0; z-index: 8; overflow-y: auto; display: grid; grid-auto-rows: max-content; align-content: start; gap: 12px; padding: calc(12px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom)); background: #0f1a14; color: #fff; }
 .editor-bar { display: flex; align-items: center; gap: 10px; }
 .editor-title { font-weight: 800; }
 /* 動画は上に固定（得点の一覧がのびて下へ動かしても、動画が画面の外へ出ていかないように） */
@@ -255,3 +256,12 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .mark-btn.is-hit { animation: hit 0.45s ease-out; }
 .mark-wide { min-height: 40px; border: 2px dashed rgba(255, 213, 74, 0.8); border-radius: 12px; background: rgba(255, 213, 74, 0.12); color: #ffe082; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
 .mark-wide:active { transform: scale(0.98); }
+
+/* 横の画面（高さが低い）では、左に動画（高さいっぱい・上に固定）、右に ＋1・一覧・書き出し */
+@media (orientation: landscape) and (max-height: 560px) {
+  .editor { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); column-gap: 14px; padding-left: calc(12px + env(safe-area-inset-left)); padding-right: calc(12px + env(safe-area-inset-right)); }
+  .editor > * { grid-column: 2; }
+  .editor-stage { grid-column: 1; grid-row: 1 / span 20; align-self: start; }
+  .edit-screen { max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); }
+  .edit-events { max-height: 40vh; }
+}
