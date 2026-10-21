@@ -30,7 +30,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* 左右を入れかえたとき：相手が左、自チームが右 */
 .teams.is-swapped .team-col[data-side="us"] { order: 3; }
 .teams.is-swapped .team-col[data-side="them"] { order: 1; }
-.mid { display: grid; grid-template-rows: auto 44px 44px; gap: 6px; justify-items: center; align-items: center; }
+.mid { display: grid; grid-template-rows: auto 44px 44px; align-content: start; gap: 6px; justify-items: center; align-items: center; }
 .mid::before { content: ""; height: 14px; } /* ラベルの高さぶん下げて、スコアをチーム名の高さに */
 .mid-score { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .swap { width: 36px; height: 36px; border: 2px solid var(--border); border-radius: 50%; background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
@@ -64,7 +64,15 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .btn { display: grid; place-items: center; min-height: 52px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--accent); color: #fff; font: inherit; font-size: 17px; font-weight: 800; text-decoration: none; cursor: pointer; }
 .btn.ghost { background: #fff; color: var(--ink); border: 2px solid var(--border); }
-.score-reset { margin-top: -4px; text-align: center; font-size: 13px; }
+.mid-score { cursor: pointer; border-radius: 8px; padding: 0 4px; }
+.mid-score:hover, .mid-score:focus-visible { background: rgba(0, 0, 0, 0.05); outline: none; }
+/* スコアを変えるとき：各チームの下に − 点 ＋ */
+.score-step { display: none; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; gap: 4px; }
+.teams.is-editing .score-step { display: grid; }
+.score-step b { text-align: center; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.score-step button { height: 40px; border: 2px solid var(--border); border-radius: 10px; background: #fff; color: var(--ink); font: inherit; font-size: 18px; font-weight: 800; cursor: pointer; }
+.score-step button:active { transform: scale(0.94); }
+.score-edit { margin-top: -4px; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
 .hint { font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
 .error { color: #c2410c; font-size: 13px; font-weight: 700; }
 .link { border: 0; background: none; color: var(--ink-soft); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; }

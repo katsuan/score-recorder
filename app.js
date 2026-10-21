@@ -47,9 +47,28 @@ $("fromSaqsen").hidden = !fromSaqsen;
 // いまのスコア（左右の並びに合わせる）。点があるときだけ「0 - 0 にする」を出す
 function showSetupScore() {
   $("setupScore").textContent = state.swapped ? `${state.them} - ${state.us}` : `${state.us} - ${state.them}`;
-  $("scoreReset").hidden = state.us === 0 && state.them === 0;
+  document.querySelectorAll("[data-score-of]").forEach((b) => (b.textContent = state[b.dataset.scoreOf]));
+  $("resetScore").hidden = state.us === 0 && state.them === 0;
 }
 showSetupScore();
+// スコアを変える（途中から撮るとき）：各チームの下に − ＋ を出す／しまう。まんなかのスコアを押しても同じ
+function toggleScoreEdit() {
+  const on = document.querySelector(".teams").classList.toggle("is-editing");
+  $("editScore").textContent = on ? "✓ できた" : "✏️ スコアを変える（途中から撮るとき）";
+  $("editScore").setAttribute("aria-expanded", on);
+}
+$("editScore").addEventListener("click", toggleScoreEdit);
+$("setupScore").addEventListener("click", toggleScoreEdit);
+$("setupScore").addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggleScoreEdit()));
+document.querySelectorAll("[data-step]").forEach((b) =>
+  b.addEventListener("click", () => {
+    const k = b.dataset.step;
+    state[k] = Math.max(0, Math.min(99, state[k] + Number(b.dataset.delta)));
+    save();
+    showSetupScore();
+    drawPreview();
+  })
+);
 // 次の試合の前に：スコアを 0 - 0 に
 $("resetScore").addEventListener("click", () => {
   state.us = 0;

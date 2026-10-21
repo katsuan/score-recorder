@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610210344">
+<link rel="stylesheet" href="style.css?v=202610210345">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -43,11 +43,16 @@
         <label class="team-pick" hidden><span class="sr">保存したチームから選ぶ</span><select></select></label>
         <button class="team-action" type="button">保存</button>
       </div>
+      <div class="score-step" aria-label="自チームの点">
+        <button type="button" data-step="us" data-delta="-1" aria-label="自チームの点を1へらす">−</button>
+        <b data-score-of="us">0</b>
+        <button type="button" data-step="us" data-delta="1" aria-label="自チームの点を1ふやす">＋</button>
+      </div>
     </div>
     <!-- まんなか：いまのスコア（チーム名の高さ。並びは左右に合わせる）と、左右を入れかえるボタン
          （後半にコートが変わったときなど。得点板・撮る画面の ＋1 の左右も入れかわる） -->
     <div class="mid">
-      <b id="setupScore" class="mid-score" aria-label="いまのスコア">0 - 0</b>
+      <b id="setupScore" class="mid-score" role="button" tabindex="0" aria-label="いまのスコア（押すと変えられる）">0 - 0</b>
       <button id="swapSides" class="swap" type="button" aria-label="自チームと相手の左右を入れかえる" title="左右を入れかえる">⇄</button>
     </div>
     <div class="team-col" data-side="them">
@@ -58,10 +63,19 @@
         <label class="team-pick" hidden><span class="sr">保存したチームから選ぶ</span><select></select></label>
         <button class="team-action" type="button">保存</button>
       </div>
+      <div class="score-step" aria-label="相手の点">
+        <button type="button" data-step="them" data-delta="-1" aria-label="相手の点を1へらす">−</button>
+        <b data-score-of="them">0</b>
+        <button type="button" data-step="them" data-delta="1" aria-label="相手の点を1ふやす">＋</button>
+      </div>
     </div>
   </div>
-  <!-- 点が入っているときだけ：次の試合の前に 0 - 0 にもどす -->
-  <p id="scoreReset" class="score-reset" hidden><button id="resetScore" class="link" type="button">スコアを 0 - 0 にする</button></p>
+  <!-- スコアを変える：試合の途中から撮るときに、いまの点を入れておく（各チームの下に − ＋ が出る）。
+       0 - 0 にするは、点があるときだけ（次の試合の前に） -->
+  <p class="score-edit">
+    <button id="editScore" class="link" type="button" aria-expanded="false">✏️ スコアを変える（途中から撮るとき）</button>
+    <button id="resetScore" class="link" type="button" hidden>0 - 0 にする</button>
+  </p>
   <p id="fromSaqsen" class="hint" hidden>さくせん盤のチーム名・色を使っています。</p>
   <!-- 得点板のプレビューと GOAL のエフェクト：たたんだ欄（開くと、動画に入る得点板を見ておける。エフェクトはふだん出さない） -->
   <details id="previewFold" class="fold">
@@ -135,7 +149,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610210344"></script>
+<script src="app.js?v=202610210345"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
