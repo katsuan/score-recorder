@@ -184,16 +184,11 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .clip-play { border: 0; background: none; color: var(--ink); font: inherit; font-size: 13px; font-weight: 800; text-align: left; cursor: pointer; }
 .clip-btn { display: grid; place-items: center; min-height: 36px; padding: 0 10px; border: 2px solid var(--border); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; font-size: 12px; font-weight: 800; text-decoration: none; cursor: pointer; }
 
-/* ＋1／−1 を押したとき：まんなかの少し上に、いまのスコアを大きく一瞬（GOAL のエフェクトの帯とかさならない高さ） */
-.score-pop { position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%); opacity: 0; pointer-events: none; white-space: nowrap; color: #fff; font-size: 64px; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7); }
-.score-pop .is-hit { color: #ffd54a; }
-.score-pop.is-minus .is-hit { color: #ff8a80; }
-.score-pop.is-show { animation: score-pop 1.1s ease-out; }
-@keyframes score-pop {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-  15% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
-  70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+/* ＋1／−1 を押したとき：押したボタンが一瞬光る（押せたことが分かるように。ボタンは動画に入らない） */
+.side button.is-hit { animation: hit 0.45s ease-out; }
+@keyframes hit {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.9); transform: scale(1.12); }
+  100% { box-shadow: 0 0 0 18px rgba(255, 255, 255, 0); transform: scale(1); }
 }
 /* 録画中は画面のふちを赤く（撮れているか、ひと目で分かるように。録画には入らない） */
 .studio.is-recording::after { content: ""; position: absolute; inset: 0; border: 5px solid #e5484d; pointer-events: none; animation: rec-edge 2s ease-in-out infinite; }

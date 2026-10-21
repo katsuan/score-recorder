@@ -508,28 +508,22 @@ function drawGoalFx(w, h, c = screenCtx) {
 }
 
 // ---- 得点の ＋・−（録画中でも押せる。0 より下にはしない）。＋1 のときは GOAL のエフェクト ----
-// 点を変える（＋1・−1）。押せたことが分かるように、まんなかに大きくスコアを出す。Android は軽く震える（iPhone のブラウザは震えない）。
+// 点を変える（＋1・−1）。押したボタンが一瞬光る（画面のまんなかには何も出さない。動画に入るのか迷わせないため。
+// いまの点は、動画に入る左上の得点板で見える）。Android は軽く震える（iPhone のブラウザは震えない）。
 // 押しまちがいは、そのチームの −1 で直す（画面がごちゃつかないよう「取り消す」ボタンは出さない）
-function changeScore(key, delta) {
+function changeScore(key, delta, button) {
   state[key] = Math.max(0, state[key] + delta);
   if (delta > 0 && state.goalFx) goalFx = { side: key, at: performance.now() };
   if (delta < 0) goalFx = null; // 取り消したら消す
   save();
   navigator.vibrate?.(delta > 0 ? 30 : [15, 50, 15]);
-  popScore(key, delta);
+  if (button) {
+    button.classList.remove("is-hit");
+    void button.offsetWidth; // 続けて押しても、はじめから光らせなおす
+    button.classList.add("is-hit");
+  }
 }
-// まんなかに「2 - 1」を大きく一瞬。変わった側の数字だけ色をつける（＋は黄、− は赤）。並びは得点板と同じ左右
-function popScore(key, delta) {
-  const [l, r] = state.swapped ? ["them", "us"] : ["us", "them"];
-  const num = (k) => Object.assign(document.createElement("span"), { textContent: state[k], className: k === key ? "is-hit" : "" });
-  const pop = $("scorePop");
-  pop.replaceChildren(num(l), " - ", num(r));
-  pop.classList.toggle("is-minus", delta < 0);
-  pop.classList.remove("is-show");
-  void pop.offsetWidth; // 続けて押しても、はじめから出しなおす
-  pop.classList.add("is-show");
-}
-document.querySelectorAll("[data-score]").forEach((b) => b.addEventListener("click", () => changeScore(b.dataset.score, Number(b.dataset.delta))));
+document.querySelectorAll("[data-score]").forEach((b) => b.addEventListener("click", () => changeScore(b.dataset.score, Number(b.dataset.delta), b)));
 
 // ---- 録画 ----
 // LINE で送れる動画は 5分まで。いつも5分ごとに MediaRecorder を新しくして、1本ずつの動画（clips）にする

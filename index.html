@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211327">
+<link rel="stylesheet" href="style.css?v=202610211328">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -118,8 +118,6 @@
     <button class="plus" type="button" data-score="them" data-delta="1" aria-label="右のチームに1点" data-side-aria="them:に1点">＋1</button>
     <button class="minus" type="button" data-score="them" data-delta="-1" aria-label="右のチームの1点を取り消す" data-side-aria="them:の1点を取り消す">−1</button>
   </div>
-  <!-- ＋1／−1 を押したとき：いまのスコアを、まんなかに大きく一瞬（押せたか、見なくても分かるように。録画には入らない） -->
-  <div id="scorePop" class="score-pop" aria-live="polite"></div>
   <!-- 録画ボタン：まんなかのときは下のまんなか（＋1／−1 はその左右）。左よせ・右よせのときは、親指から遠い反対側のはしへ（押しまちがい防止） -->
   <div class="bar">
     <button id="record" class="record" type="button" aria-label="録画をはじめる"><span></span></button>
@@ -177,7 +175,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211327"></script>
+<script src="app.js?v=202610211328"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
