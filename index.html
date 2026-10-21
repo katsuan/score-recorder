@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211314">
+<link rel="stylesheet" href="style.css?v=202610211316">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -36,41 +36,42 @@
   </div>
   <p class="copy">とった点まで、とっておこう</p>
   <p class="lead">試合を撮りながら、得点板（チーム名とスコア）を動画にそのまま入れて残します。<br>スマホは<b>横向き</b>で使います。</p>
-  <!-- チーム：得点板と同じく、左が自チーム・右が相手。名前・色・▼（保存したチームから選ぶ）・保存／消す。
-       保存したチームは自チーム・相手で同じ一覧（よく当たる相手も保存できる） -->
+  <!-- チーム：得点板と同じく、左のチーム・右のチーム（自分のチームの試合とはかぎらないので「自チーム・相手」とは呼ばない。
+       ⇄ で入れかえると、ラベルも並びに合わせて変わる）。名前・色・▼（保存したチームから選ぶ）・保存／消す。
+       保存したチームは左右で同じ一覧（よく撮るチームを保存できる） -->
   <div class="teams">
     <div class="team-col" data-side="us">
-      <label for="teamUs">自チーム</label>
-      <input id="teamUs" maxlength="12" placeholder="自チーム">
+      <label for="teamUs" data-side-label="us">左のチーム</label>
+      <input id="teamUs" maxlength="12" placeholder="チーム名" data-side-name="us">
       <div class="team-row">
-        <input id="colorUs" type="color" aria-label="自チームの色">
+        <input id="colorUs" type="color" aria-label="左のチームの色" data-side-aria="us:の色">
         <label class="team-pick" hidden><span class="sr">保存したチームから選ぶ</span><select></select></label>
         <button class="team-action" type="button">保存</button>
       </div>
-      <div class="score-step" aria-label="自チームの点">
-        <button type="button" data-step="us" data-delta="-1" aria-label="自チームの点を1へらす">−</button>
+      <div class="score-step" aria-label="左のチームの点" data-side-aria="us:の点">
+        <button type="button" data-step="us" data-delta="-1" aria-label="左のチームの点を1へらす" data-side-aria="us:の点を1へらす">−</button>
         <b data-score-of="us">0</b>
-        <button type="button" data-step="us" data-delta="1" aria-label="自チームの点を1ふやす">＋</button>
+        <button type="button" data-step="us" data-delta="1" aria-label="左のチームの点を1ふやす" data-side-aria="us:の点を1ふやす">＋</button>
       </div>
     </div>
     <!-- まんなか：いまのスコア（チーム名の高さ。並びは左右に合わせる）と、左右を入れかえるボタン
          （後半にコートが変わったときなど。得点板・撮る画面の ＋1 の左右も入れかわる） -->
     <div class="mid">
       <b id="setupScore" class="mid-score" role="button" tabindex="0" aria-label="いまのスコア（押すと変えられる）">0 - 0</b>
-      <button id="swapSides" class="swap" type="button" aria-label="自チームと相手の左右を入れかえる" title="左右を入れかえる">⇄</button>
+      <button id="swapSides" class="swap" type="button" aria-label="左右のチームを入れかえる" title="左右を入れかえる">⇄</button>
     </div>
     <div class="team-col" data-side="them">
-      <label for="teamThem">相手</label>
-      <input id="teamThem" maxlength="12" placeholder="相手">
+      <label for="teamThem" data-side-label="them">右のチーム</label>
+      <input id="teamThem" maxlength="12" placeholder="チーム名" data-side-name="them">
       <div class="team-row">
-        <input id="colorThem" type="color" aria-label="相手の色">
+        <input id="colorThem" type="color" aria-label="右のチームの色" data-side-aria="them:の色">
         <label class="team-pick" hidden><span class="sr">保存したチームから選ぶ</span><select></select></label>
         <button class="team-action" type="button">保存</button>
       </div>
-      <div class="score-step" aria-label="相手の点">
-        <button type="button" data-step="them" data-delta="-1" aria-label="相手の点を1へらす">−</button>
+      <div class="score-step" aria-label="右のチームの点" data-side-aria="them:の点">
+        <button type="button" data-step="them" data-delta="-1" aria-label="右のチームの点を1へらす" data-side-aria="them:の点を1へらす">−</button>
         <b data-score-of="them">0</b>
-        <button type="button" data-step="them" data-delta="1" aria-label="相手の点を1ふやす">＋</button>
+        <button type="button" data-step="them" data-delta="1" aria-label="右のチームの点を1ふやす" data-side-aria="them:の点を1ふやす">＋</button>
       </div>
     </div>
   </div>
@@ -108,14 +109,14 @@
 <section id="studio" class="studio" hidden>
   <canvas id="screen" class="screen"></canvas>
   <video id="camera" playsinline muted autoplay hidden></video>
-  <!-- 得点：左が自チーム、右が相手。大きな ＋、小さな − -->
+  <!-- 得点：左のチーム・右のチーム（⇄ で入れかえたら、それに合わせる）。大きな ＋、小さな − -->
   <div class="side is-us">
-    <button class="plus" type="button" data-score="us" data-delta="1" aria-label="自チームに1点">＋1</button>
-    <button class="minus" type="button" data-score="us" data-delta="-1" aria-label="自チームの1点を取り消す">−1</button>
+    <button class="plus" type="button" data-score="us" data-delta="1" aria-label="左のチームに1点" data-side-aria="us:に1点">＋1</button>
+    <button class="minus" type="button" data-score="us" data-delta="-1" aria-label="左のチームの1点を取り消す" data-side-aria="us:の1点を取り消す">−1</button>
   </div>
   <div class="side is-them">
-    <button class="plus" type="button" data-score="them" data-delta="1" aria-label="相手に1点">＋1</button>
-    <button class="minus" type="button" data-score="them" data-delta="-1" aria-label="相手の1点を取り消す">−1</button>
+    <button class="plus" type="button" data-score="them" data-delta="1" aria-label="右のチームに1点" data-side-aria="them:に1点">＋1</button>
+    <button class="minus" type="button" data-score="them" data-delta="-1" aria-label="右のチームの1点を取り消す" data-side-aria="them:の1点を取り消す">−1</button>
   </div>
   <!-- ＋1／−1 を押したとき：いまのスコアを、まんなかに大きく一瞬（押せたか、見なくても分かるように。録画には入らない） -->
   <div id="scorePop" class="score-pop" aria-live="polite"></div>
@@ -172,7 +173,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211314"></script>
+<script src="app.js?v=202610211316"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

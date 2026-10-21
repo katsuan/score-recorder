@@ -34,7 +34,7 @@ const state = {
   us: Number(saved.us) || 0,
   them: Number(saved.them) || 0,
   goalFx: saved.goalFx === true, // ＋1 のとき「GOAL!」のエフェクトを動画に入れるか（ふだんは出さない）
-  swapped: saved.swapped === true, // 左右を入れかえる（相手を左に）
+  swapped: saved.swapped === true, // 左右を入れかえる（us を右に）。us・them は中の呼び名で、自分のチームとはかぎらない
   edge: saved.edge === true // ＋1／−1 を画面のはしに置く（ふだんは録画ボタンの左右＝まんなか）
 };
 const fromSaqsen = !saved.teamUs && Boolean(saqsen.team || saqsen.opponent);
@@ -98,9 +98,16 @@ $("layoutToggle").addEventListener("click", () => {
 showLayout();
 
 // ---- 左右の入れかえ（はじめの画面のチームの並び・得点板・撮る画面の ＋1） ----
+// いま左にいるか右にいるかで呼ぶ（自分のチームの試合とはかぎらないので「自チーム・相手」とは呼ばない）
+const sideName = (key) => ((key === "us") !== state.swapped ? "左のチーム" : "右のチーム");
 function showSides() {
   document.querySelector(".teams").classList.toggle("is-swapped", state.swapped);
   $("studio").classList.toggle("is-swapped", state.swapped);
+  document.querySelectorAll("[data-side-label]").forEach((el) => (el.textContent = sideName(el.dataset.sideLabel)));
+  document.querySelectorAll("[data-side-aria]").forEach((el) => {
+    const [key, rest] = el.dataset.sideAria.split(":");
+    el.setAttribute("aria-label", sideName(key) + rest);
+  });
   showSetupScore();
 }
 $("swapSides").addEventListener("click", () => {
@@ -186,7 +193,7 @@ const saveTeams = () => {
 const SIDES = { us: { name: "teamUs", color: "colorUs" }, them: { name: "teamThem", color: "colorThem" } };
 const sameTeam = (t, name, color) => t.name === name && t.color.toLowerCase() === String(color).toLowerCase();
 
-// さくせん盤で入れたチーム（自チーム・相手の名前と色）。▼ で選べるように。保存したチームと同じ名前・色のものは出さない
+// さくせん盤で入れたチーム（さくせん盤の自チーム・相手の名前と色）。▼ で選べるように。保存したチームと同じ名前・色のものは出さない
 function saqsenTeams() {
   const now = load(SAQSEN_KEY);
   return [
@@ -360,14 +367,14 @@ $("turnOff").addEventListener("click", () => setTurn(null));
 // 画面の回転がオンで、ほんとうに横向きになったら、倒して撮るのはやめる（ふつうの横向きで撮る）
 window.matchMedia("(orientation: landscape)").addEventListener("change", (e) => e.matches && setTurn(null));
 
-// 得点板：左上に濃い札。[自チームの色] 自チーム 2 - 1 相手 [相手の色]。大きさは映像の高さに合わせる
+// 得点板：左上に濃い札。[左のチームの色] 左のチーム 2 - 1 右のチーム [右のチームの色]。大きさは映像の高さに合わせる
 function drawScoreboard(w, h, ctx = screenCtx) {
   const s = Math.min(w, h) / 720; // 720p で 1
   const pad = 20 * s;
   const boxH = 64 * s;
   const font = (size, weight = 800) => `${weight} ${size}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
   // チーム名がないときは、名前の代わりにチームの色の丸
-  // 左右（入れかえたときは相手が左）。下の「Us」は左、「Them」は右のこと
+  // 左右（入れかえたときは them が左）。下の「Us」は左、「Them」は右のこと
   const left = state.swapped ? { name: state.teamThem, color: state.colorThem, score: state.them } : { name: state.teamUs, color: state.colorUs, score: state.us };
   const right = state.swapped ? { name: state.teamUs, color: state.colorUs, score: state.us } : { name: state.teamThem, color: state.colorThem, score: state.them };
   const nameUs = left.name.trim();
@@ -499,7 +506,7 @@ function changeScore(key, delta) {
   undoKey = delta > 0 ? key : null;
   $("undo").hidden = !undoKey;
   if (undoKey) {
-    const name = (key === "us" ? state.teamUs : state.teamThem).trim() || (key === "us" ? "自チーム" : "相手");
+    const name = (key === "us" ? state.teamUs : state.teamThem).trim() || sideName(key);
     $("undo").textContent = `↶ 取り消す（${name}の1点）`;
     undoTimer = setTimeout(() => {
       $("undo").hidden = true;
