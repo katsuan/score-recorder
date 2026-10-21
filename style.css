@@ -87,27 +87,44 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .side.is-us, .studio.is-swapped .side.is-them { left: auto; right: calc(100% - var(--anchor) + var(--side-gap)); }
 .side.is-them, .studio.is-swapped .side.is-us { right: auto; left: calc(var(--anchor) + var(--side-gap)); }
 .studio { --side-gap: 64px; }
-/* 片手で使えるように、＋1・録画・取り消すのまとまりごと左よせ／右よせにできる（右上で切りかえ。録画中もできる）。
-   --anchor はまとまりの真ん中。まとまりの半分の幅（＋1 まで 64px ＋ ＋1 の 76px）と、はしの余白・ノッチのぶんだけ内側 */
-.studio { --anchor: 50%; --hand-pad: calc(160px + max(env(safe-area-inset-left), env(safe-area-inset-right))); }
-.studio.is-turned { --hand-pad: calc(170px + max(env(safe-area-inset-top), env(safe-area-inset-bottom))); }
-.studio.hand-left { --anchor: var(--hand-pad); }
-.studio.hand-right { --anchor: calc(100% - var(--hand-pad)); }
-/* 寄せたときは、親指ひとつで届くよう ＋1 を録画ボタンに少し近づける */
-.studio.hand-left, .studio.hand-right { --side-gap: 50px; --hand-pad: calc(146px + max(env(safe-area-inset-left), env(safe-area-inset-right))); }
-.studio.is-turned.hand-left, .studio.is-turned.hand-right { --hand-pad: calc(156px + max(env(safe-area-inset-top), env(safe-area-inset-bottom))); }
+/* 片手で使えるように、左よせ・右よせ（右上で切りかえ。録画中もできる）。
+   寄せたときは ＋1 を縦に2段（上が得点板の左のチーム、下が右のチーム。どちらかはボタンの色＝チームの色で見分ける）。
+   −1 は ＋1 の内側。録画ボタンは反対側のはしへ（下の .bar） */
+.studio { --anchor: 50%; --side-bottom: calc(16px + env(safe-area-inset-bottom)); --stack-pad: calc(20px + max(env(safe-area-inset-left), env(safe-area-inset-right))); }
+.studio.is-turned { --side-bottom: 24px; --stack-pad: calc(32px + max(env(safe-area-inset-top), env(safe-area-inset-bottom))); }
+.side { bottom: var(--side-bottom); }
+.studio.hand-left .side, .studio.hand-right .side { grid-auto-flow: column; align-items: center; }
+.studio.hand-left .side.is-us, .studio.hand-left .side.is-them { right: auto; left: var(--stack-pad); }
+.studio.hand-right .side.is-us, .studio.hand-right .side.is-them { left: auto; right: var(--stack-pad); }
+.studio.hand-right .side .minus { order: -1; }
+.studio.hand-left:not(.is-swapped) .side.is-us, .studio.hand-right:not(.is-swapped) .side.is-us,
+.studio.hand-left.is-swapped .side.is-them, .studio.hand-right.is-swapped .side.is-them { bottom: calc(var(--side-bottom) + 92px); }
 .side button { border: 0; border-radius: 999px; font: inherit; font-weight: 800; color: #fff; cursor: pointer; }
-.side .plus { width: 76px; height: 76px; background: rgba(0, 0, 0, 0.45); border: 3px solid rgba(255, 255, 255, 0.85); font-size: 22px; }
-.side .minus { width: 52px; height: 32px; background: rgba(0, 0, 0, 0.35); font-size: 14px; }
+/* ＋1 はチームの色のボタン（色は app.js の showTeamColors。字は色の明るさで白か黒） */
+.side .plus { width: 76px; height: 76px; background: var(--team, rgba(0, 0, 0, 0.45)); color: var(--team-ink, #fff); border: 3px solid rgba(255, 255, 255, 0.9); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45); font-size: 22px; }
+.side .minus { width: 52px; height: 32px; background: rgba(0, 0, 0, 0.45); border: 2px solid var(--team, transparent); font-size: 14px; }
 .side button:active { transform: scale(0.94); }
-.bar { position: absolute; left: var(--anchor); bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); }
+.bar { position: absolute; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); }
+/* 左よせ・右よせのときは、録画ボタンを反対側のはしへ（＋1 を押す親指が当たらないように） */
+.studio { --rec-pad: calc(24px + max(env(safe-area-inset-left), env(safe-area-inset-right))); }
+.studio.is-turned { --rec-pad: calc(36px + max(env(safe-area-inset-top), env(safe-area-inset-bottom))); }
+.studio.hand-left .bar { left: auto; right: var(--rec-pad); transform: none; }
+.studio.hand-right .bar { left: var(--rec-pad); transform: none; }
 .tools { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: calc(14px + env(safe-area-inset-right)); display: flex; gap: 8px; }
 .studio.is-recording .tools > :not(.hand-pick) { visibility: hidden; } /* 場所はそのまま（左よせ・右よせが動かないように） */
 .hand-pick { display: flex; padding: 2px; border-radius: 999px; background: rgba(0, 0, 0, 0.5); }
 .hand-pick button { padding: 6px 10px; border: 0; border-radius: 999px; background: none; color: rgba(255, 255, 255, 0.75); font: inherit; font-size: 12px; font-weight: 800; white-space: nowrap; cursor: pointer; }
 .hand-pick button[aria-checked="true"] { background: #fff; color: #1a1a1a; }
 .small { padding: 8px 14px; border: 0; border-radius: 999px; background: rgba(0, 0, 0, 0.5); color: #fff; font: inherit; font-size: 13px; font-weight: 800; white-space: nowrap; cursor: pointer; }
-.record { display: grid; place-items: center; width: 68px; height: 68px; border: 4px solid #fff; border-radius: 50%; background: rgba(0, 0, 0, 0.3); cursor: pointer; }
+.record { position: relative; display: grid; place-items: center; width: 68px; height: 68px; border: 4px solid #fff; border-radius: 50%; background: rgba(0, 0, 0, 0.3); cursor: pointer; -webkit-touch-callout: none; }
+/* 長押しで止めるあいだ、ボタンのまわりに赤い輪がたまっていく */
+@property --hold { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+.record::before { content: ""; position: absolute; inset: -14px; border-radius: 50%; background: conic-gradient(#ff3b30 var(--hold), rgba(255, 255, 255, 0.35) 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px)); mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px)); opacity: 0; pointer-events: none; }
+.record.is-holding::before { opacity: 1; animation: hold-fill 0.8s linear forwards; }
+@keyframes hold-fill { to { --hold: 100%; } }
+.record-hint { position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%); padding: 3px 10px; border-radius: 999px; background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 11px; font-weight: 800; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.studio.is-recording .record-hint { opacity: 0.7; }
+.record-hint.is-flash { opacity: 1 !important; background: #e5484d; }
 .record span { width: 46px; height: 46px; border-radius: 50%; background: #e5484d; transition: all 0.2s; }
 .record.is-on span { width: 26px; height: 26px; border-radius: 6px; }
 .elapsed { position: absolute; left: 50%; top: calc(16px + env(safe-area-inset-top)); transform: translateX(-50%); padding: 4px 12px; border-radius: 999px; background: rgba(0, 0, 0, 0.45); white-space: nowrap; color: #fff; font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
@@ -138,7 +155,6 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .studio.is-turned.is-left { left: 100vw; transform: rotate(90deg); }
 .studio.is-turned.is-right { left: 0; top: 100vh; top: 100dvh; transform: rotate(-90deg); }
 /* 倒したときは、ノッチや角の丸みが左右のはしに来るので、＋1 を中ほどへ寄せる */
-.studio.is-turned .side { bottom: 24px; }
 .studio.is-turned .bar { bottom: 18px; }
 /* 倒したときの「戻る」「縦にもどす」は、スマホの上のはし（縦に持ったときの上）の側へ。
    左に倒す → 上のはしは横画面の左、右に倒す → 右。左のときは、左上の得点板の下に置く */
@@ -184,6 +200,9 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .undo { position: absolute; left: var(--anchor); bottom: calc(150px + env(safe-area-inset-bottom)); transform: translateX(-50%); padding: 10px 18px; border: 0; border-radius: 999px; background: #fff; color: #1a1a1a; font: inherit; font-size: 15px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); cursor: pointer; }
 .undo:active { transform: translateX(-50%) scale(0.96); }
 .studio.is-turned .undo { bottom: 156px; }
+/* 寄せたときの「取り消す」は、縦の2段の上 */
+.studio.hand-left .undo { left: var(--stack-pad); transform: none; bottom: calc(var(--side-bottom) + 186px); }
+.studio.hand-right .undo { left: auto; right: var(--stack-pad); transform: none; bottom: calc(var(--side-bottom) + 186px); }
 /* 録画中は画面のふちを赤く（撮れているか、ひと目で分かるように。録画には入らない） */
 .studio.is-recording::after { content: ""; position: absolute; inset: 0; border: 5px solid #e5484d; pointer-events: none; animation: rec-edge 2s ease-in-out infinite; }
 @keyframes rec-edge { 50% { border-color: rgba(229, 72, 77, 0.45); } }

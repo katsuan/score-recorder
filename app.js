@@ -103,7 +103,21 @@ showHand();
 // ---- 左右の入れかえ（はじめの画面のチームの並び・得点板・撮る画面の ＋1） ----
 // いま左にいるか右にいるかで呼ぶ（自分のチームの試合とはかぎらないので「自チーム・相手」とは呼ばない）
 const sideName = (key) => ((key === "us") !== state.swapped ? "左のチーム" : "右のチーム");
+// ＋1／−1 のボタンをチームの色に。字は色の明るさで白か黒（白いユニフォームなら黒い字）
+const inkFor = (hex) => {
+  const n = parseInt(String(hex).replace("#", ""), 16) || 0;
+  const lum = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+  return lum > 0.62 ? "#1a1a1a" : "#ffffff";
+};
+function showTeamColors() {
+  document.querySelectorAll(".side").forEach((el) => {
+    const color = el.classList.contains("is-us") ? state.colorUs : state.colorThem;
+    el.style.setProperty("--team", color);
+    el.style.setProperty("--team-ink", inkFor(color));
+  });
+}
 function showSides() {
+  showTeamColors();
   document.querySelector(".teams").classList.toggle("is-swapped", state.swapped);
   $("studio").classList.toggle("is-swapped", state.swapped);
   document.querySelectorAll("[data-side-label]").forEach((el) => (el.textContent = sideName(el.dataset.sideLabel)));
@@ -282,6 +296,7 @@ let wakeLock = null;
 
 async function openCamera() {
   $("setupError").hidden = true;
+  showTeamColors(); // はじめの画面で変えた色を、＋1 のボタンにも
   const video_ = { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } };
   try {
     // 音も一緒に録る。マイクが使えないときは映像だけ
@@ -608,7 +623,7 @@ function startRecording() {
   startClip();
   $("record").classList.add("is-on");
   $("studio").classList.add("is-recording");
-  $("record").setAttribute("aria-label", "録画を止める");
+  $("record").setAttribute("aria-label", "録画を止める（長押し）");
   tick = setInterval(showElapsed, 500);
   showElapsed();
 }
@@ -769,7 +784,38 @@ $("restartSave").addEventListener("click", () => {
   showSetupScore();
   closeSaveSheet();
 });
-$("record").addEventListener("click", () => (recording ? stopRecording() : startRecording()));
+// 録画ボタン：はじめるのはタップ、止めるのは長押し（0.8秒。押しまちがいで止まらないように。押しているあいだ赤い輪がたまる）。
+// 録画中に短く押したときは「長押しで止める」を目立たせる。キーボード（Enter・Space）では、そのまま止められる
+const HOLD_MS = 800;
+let holdTimer = 0;
+let skipClickUntil = 0;
+const recordBtn = $("record");
+const endHold = () => {
+  clearTimeout(holdTimer);
+  recordBtn.classList.remove("is-holding");
+};
+recordBtn.addEventListener("pointerdown", () => {
+  if (!recording) return;
+  recordBtn.classList.add("is-holding");
+  holdTimer = setTimeout(() => {
+    endHold();
+    skipClickUntil = Date.now() + 700; // 指をはなしたときの click で、また録画がはじまらないように
+    navigator.vibrate?.(40);
+    stopRecording();
+  }, HOLD_MS);
+});
+["pointerup", "pointerleave", "pointercancel"].forEach((type) => recordBtn.addEventListener(type, endHold));
+recordBtn.addEventListener("contextmenu", (e) => e.preventDefault()); // 長押しのメニューを出さない
+recordBtn.addEventListener("click", (e) => {
+  if (Date.now() < skipClickUntil) return;
+  if (!recording) return startRecording();
+  if (e.detail === 0) return stopRecording(); // キーボード
+  const hint = $("recordHint");
+  hint.classList.remove("is-flash");
+  void hint.offsetWidth;
+  hint.classList.add("is-flash");
+  setTimeout(() => hint.classList.remove("is-flash"), 1500);
+});
 $("openCamera").addEventListener("click", openCamera);
 $("back").addEventListener("click", closeCamera);
 document.addEventListener("visibilitychange", () => {

@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211320">
+<link rel="stylesheet" href="style.css?v=202610211324">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -122,9 +122,11 @@
   <div id="scorePop" class="score-pop" aria-live="polite"></div>
   <!-- ＋1 のすぐあと5秒だけ：押しまちがいを大きなボタンで取り消せる（小さな −1 を探さなくていい） -->
   <button id="undo" class="undo" type="button" hidden>↶ 取り消す</button>
-  <!-- 下のまんなか：録画ボタン（いちばん使う）。＋1／−1 はこのボタンの左右（まんなかからの距離で置く） -->
+  <!-- 録画ボタン：まんなかのときは下のまんなか（＋1／−1 はその左右）。左よせ・右よせのときは、親指から遠い反対側のはしへ（押しまちがい防止） -->
   <div class="bar">
     <button id="record" class="record" type="button" aria-label="録画をはじめる"><span></span></button>
+    <!-- 録画中：止めるのは長押し（押しまちがいで止まらないように）。そのことを小さく出す -->
+    <span id="recordHint" class="record-hint">長押しで止める</span>
   </div>
   <!-- 上のまんなか：録画中の時間（カメラのアプリと同じ場所。ボタンと重ならない） -->
   <span id="elapsed" class="elapsed"></span>
@@ -177,7 +179,7 @@
   </div>
 </div>
 
-<script src="app.js?v=202610211320"></script>
+<script src="app.js?v=202610211324"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
