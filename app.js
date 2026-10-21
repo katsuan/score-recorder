@@ -618,7 +618,7 @@ function startRecording() {
   }
   // カメラが使えていないとき（許可していない・ほかのアプリが使っている）は録画しない
   if (!cameraStream) {
-    alert("カメラが使えません。「← 戻る」から、もう一度「カメラを開く」を押して、カメラとマイクを許可してください。");
+    alert("カメラが使えません。🏠 から、もう一度「カメラを開く」を押して、カメラとマイクを許可してください。");
     return;
   }
   beginRecording(screen, cameraStream.getAudioTracks());
