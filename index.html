@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211329">
+<link rel="stylesheet" href="style.css?v=202610211331">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -99,6 +99,8 @@
     </div>
   </details>
   <button id="openCamera" class="btn" type="button">📹 カメラを開く</button>
+  <!-- 録った動画があるときだけ：保存の画面をもう一度開く（はじめの画面にもどっても、0 - 0 から撮りなおすまで残っている） -->
+  <button id="openSaved" class="btn ghost" type="button" hidden></button>
   <p id="setupError" class="error" hidden></p>
   <p class="hint">動画はこの端末にだけ保存します（サーバーには送りません）。録画中は画面を消したり、別のアプリに切りかえたりしないでください。</p>
   <!-- 「📤 ろくがを紹介する」と仲間のアイコン列：おくるんで紹介カードを送る窓口（line-share/shared/tool-share.js。中身は line-share/data/hub-links.json） -->
@@ -167,16 +169,21 @@
     <div id="clipList" class="clip-list"></div>
     <button id="shareAll" class="btn" type="button" hidden>📤 まとめて保存・共有</button>
     <p id="sharedNote" class="shared-note" hidden>✓ 共有できました</p>
-    <!-- 次を撮る：0 - 0 から撮りなおす（次の試合など）か、スコアそのままで続きを撮る（後半など）。
+    <!-- 次はどうする？：3つから選ぶ。それぞれ、押すとどうなるかを1行で。
+         続きを撮る（同じチーム・スコアそのまま）／同じチームで 0 - 0 から（次の試合。動画はここで消す）／はじめの画面へ（チームを変える）。
          共有がすんだら「0 - 0 から」を目立たせる -->
-    <div class="next-shot">
-      <button id="restartSave" class="btn ghost" type="button">⟲ 0 - 0 から撮りなおす</button>
-      <button id="closeSave" class="btn ghost" type="button">▶ スコアそのままで続きを撮る</button>
+    <div id="nextShot" class="next-shot" role="group" aria-labelledby="nextTitle">
+      <p id="nextTitle" class="next-title">次はどうする？</p>
+      <button id="closeSave" class="next-btn" type="button"><b>▶ 続きを撮る</b><span id="nextKeep">いまのスコアのまま（後半など）</span></button>
+      <button id="restartSave" class="next-btn" type="button"><b>⟲ 同じチームで 0 - 0 から</b><span>次の試合（いままでの動画は消えます）</span></button>
+      <button id="toSetup" class="next-btn" type="button"><b>🏠 はじめの画面へ</b><span>チーム・色を変える（動画は残ります）</span></button>
     </div>
+    <!-- はじめの画面の「🎞 録った動画」から開いたときは、閉じるだけ -->
+    <button id="closeSheetOnly" class="btn ghost" type="button" hidden>閉じる</button>
   </div>
 </div>
 
-<script src="app.js?v=202610211329"></script>
+<script src="app.js?v=202610211331"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

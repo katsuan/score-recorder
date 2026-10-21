@@ -323,6 +323,7 @@ function closeCamera() {
   wakeLock = null;
   $("studio").hidden = true;
   $("setup").hidden = false;
+  showOpenSaved(); // 録った動画があれば「🎞 録った動画」を出す
   showSetupScore();
   drawPreview();
 }
@@ -632,8 +633,13 @@ function showElapsed() {
 
 // 止めたら：見返し・保存・共有（何本かあるときは1本ずつ、またはまとめて）
 function showSaved() {
+  $("nextShot").hidden = false;
+  $("closeSheetOnly").hidden = true;
   $("sharedNote").hidden = true;
-  $("restartSave").classList.add("ghost");
+  $("restartSave").classList.remove("is-suggest");
+  // 「続きを撮る」に、いまのスコアを（左右の並びで）
+  const [l, r] = state.swapped ? [state.them, state.us] : [state.us, state.them];
+  $("nextKeep").textContent = `いまの ${l} - ${r} のまま（後半など）`;
   // 今回の録画の動画に名前をつける（前の回の動画は、もう名前がついている）
   const now = takeClips();
   now.forEach((c, i) => {
@@ -742,21 +748,45 @@ const takeNumber = (t) => [...new Set(clips.map((c) => c.take))].sort((a, b) => 
 // 共有がすんだら：「✓ 共有できました」と、「0 - 0 から撮りなおす」を目立たせる（次の試合へ）
 function markShared() {
   $("sharedNote").hidden = false;
-  $("restartSave").classList.remove("ghost");
+  $("restartSave").classList.add("is-suggest");
 }
 $("shareAll").addEventListener("click", () => shareFiles(pickedIndexes().map((i) => clips[i])));
 const closeSaveSheet = () => {
   $("saveSheet").hidden = true;
   $("playback").pause();
 };
-// スコアそのままで、撮る画面にもどる（後半など）
+// 続きを撮る：同じチーム・スコアそのままで、撮る画面にもどる（後半など）
 $("closeSave").addEventListener("click", closeSaveSheet);
+// はじめの画面へ（チーム・色を変える）。カメラを止める。動画は消さない（0 - 0 から撮りなおすまで残る）
+$("toSetup").addEventListener("click", () => {
+  closeSaveSheet();
+  closeCamera();
+  showOpenSaved();
+});
+// はじめの画面の「🎞 録った動画（◯本）」：録った動画があるときだけ出し、押すと保存の画面（閉じるだけ）
+function showOpenSaved() {
+  $("openSaved").hidden = !clips.length;
+  $("openSaved").textContent = `🎞 録った動画（${clips.length}本）`;
+}
+$("openSaved").addEventListener("click", () => {
+  $("nextShot").hidden = true;
+  $("closeSheetOnly").hidden = false;
+  $("sharedNote").hidden = true;
+  showSaveGuide();
+  renderClips();
+  $("saveSheet").hidden = false;
+});
+$("closeSheetOnly").addEventListener("click", () => {
+  closeSaveSheet();
+  showOpenSaved();
+});
 // 0 - 0 にして、撮る画面にもどる（次の試合など）。ここで、いままでの動画を消す（保存していないものがあれば確かめる）
 $("restartSave").addEventListener("click", () => {
   const unsaved = clips.filter((c) => !c.saved).length;
   if (unsaved && !confirm(`まだ保存・共有していない動画が ${unsaved}本 あります。0 - 0 にすると、いままでの動画は消えます。よいですか？`)) return;
   clips.forEach((c) => c.url && URL.revokeObjectURL(c.url));
   clips = [];
+  showOpenSaved();
   state.us = 0;
   state.them = 0;
   save();
