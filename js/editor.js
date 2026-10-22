@@ -122,6 +122,7 @@ function scoreAt(t) {
 // 毎コマ：動画の絵 ＋ その時間の得点板 ＋（点が入った時間を通ったら）GOAL のエフェクト
 let rendering = false; // 書き出し中（撮った動画に（得点板をつける）・得点ハイライト）
 let renderOverlay = true; // 得点板・GOAL を描くか（得点ハイライトは、動画にもう入っているので描かない）
+let renderBoard = true; // 得点板を描くか（⚡ ハイライトで「得点板：入れない」のときは描かない。GOAL の演出は描く）
 function drawEditFrame() {
   if ($("editor").hidden && !rendering) return;
   const vw = editVideo.videoWidth;
@@ -147,7 +148,7 @@ function drawEditFrame() {
     }
     editLastT = t;
     editCtx.drawImage(editVideo, 0, 0, vw, vh);
-    drawScoreboard(vw, vh, editCtx);
+    if (renderBoard || !rendering) drawScoreboard(vw, vh, editCtx); // 書き出し中で「得点板：入れない」のときだけ描かない
     drawGoalFx(vw, vh, editCtx);
     drawPieceTransition(vw, vh, t);
   }
@@ -232,8 +233,12 @@ function showExportRange() {
     if (b.dataset.range === "goals") b.disabled = !hasGoals;
   });
   document.querySelector("#editor [data-transition-row]").hidden = exportRange !== "goals";
+  $("hlBoardRow").hidden = exportRange !== "goals";
+  document.querySelectorAll("[data-hl-board]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.hlBoard === "on") === state.hlBoard)));
   const total = exportSegments().reduce((sum, [a, b]) => sum + (b - a), 0);
-  $("editExport").textContent = total ? `📼 得点板つきで書き出す（約 ${clock(Math.ceil(total))}）` : "📼 得点板つきで書き出す";
+  // ⚡ ハイライトで「得点板：入れない」のときは「ハイライトを書き出す」
+  const label = exportRange === "goals" && !state.hlBoard ? "📼 ハイライトを書き出す" : "📼 得点板つきで書き出す";
+  $("editExport").textContent = total ? `${label}（約 ${clock(Math.ceil(total))}）` : label;
 }
 ["loadedmetadata", "durationchange"].forEach((type) => editVideo.addEventListener(type, showExportRange));
 $("editSeek").addEventListener("input", (e) => {
@@ -374,3 +379,16 @@ const seekTo = (t) =>
     editVideo.addEventListener("seeked", resolve, { once: true });
     editVideo.currentTime = t;
   });
+
+// ⚡ ハイライトに得点板を入れるか（入れる／入れない。端末に覚える）
+function showHlBoard() {
+  document.querySelectorAll("[data-hl-board]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.hlBoard === "on") === state.hlBoard)));
+}
+document.querySelectorAll("[data-hl-board]").forEach((b) =>
+  b.addEventListener("click", () => {
+    state.hlBoard = b.dataset.hlBoard === "on";
+    save();
+    showHlBoard();
+    showExportRange();
+  })
+);

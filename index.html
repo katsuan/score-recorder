@@ -26,7 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、ろくがの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610221240">
+<link rel="stylesheet" href="style.css?v=202610221256">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -234,6 +234,11 @@
   </div>
   <!-- ⚡ ハイライトのつなぎ目の柄（⚡ ハイライトを選んだときだけ）。ボタンは draw.js の TRANSITIONS から作る（setup.js） -->
   <div class="transition-row" data-transition-row hidden><span>つなぎ目</span><div class="transition-chips" role="radiogroup" aria-label="ハイライトのつなぎ目"></div></div>
+  <!-- ⚡ ハイライトに得点板を入れるか（入れないときは GOAL の演出・⭐ の場面・つなぎ目だけ）。撮りながら録った動画には得点板がもう入っているので、ここだけ -->
+  <div class="transition-row" id="hlBoardRow" hidden><span>得点板</span><div class="transition-chips" role="radiogroup" aria-label="ハイライトに得点板を入れるか">
+    <button class="chip" type="button" role="radio" data-hl-board="on">入れる</button>
+    <button class="chip" type="button" role="radio" data-hl-board="off">入れない</button>
+  </div></div>
   <button id="editExport" class="ls-button is-primary is-block" type="button">📼 得点板つきで書き出す</button>
   <p class="hint editor-hint">点が入ったところで ＋1。書き出すあいだは、この画面のままで。</p>
   </div>
@@ -298,14 +303,14 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610221240"></script>
-<script src="js/draw.js?v=202610221240"></script>
-<script src="js/setup.js?v=202610221240"></script>
-<script src="js/studio.js?v=202610221240"></script>
-<script src="js/record.js?v=202610221240"></script>
-<script src="js/editor.js?v=202610221240"></script>
-<script src="js/render.js?v=202610221240"></script>
-<script src="js/main.js?v=202610221240"></script>
+<script src="js/core.js?v=202610221256"></script>
+<script src="js/draw.js?v=202610221256"></script>
+<script src="js/setup.js?v=202610221256"></script>
+<script src="js/studio.js?v=202610221256"></script>
+<script src="js/record.js?v=202610221256"></script>
+<script src="js/editor.js?v=202610221256"></script>
+<script src="js/render.js?v=202610221256"></script>
+<script src="js/main.js?v=202610221256"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
