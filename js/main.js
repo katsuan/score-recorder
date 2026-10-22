@@ -6,6 +6,7 @@ showHand();
 showSides();
 showGoalFxSetting();
 showFxLabel();
+renderTransitionChoices();
 renderColorChips();
 // プレビューは、字（M PLUS Rounded）を読みこんだあとにも描き直す
 drawPreview();

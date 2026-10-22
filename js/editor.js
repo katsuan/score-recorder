@@ -89,6 +89,7 @@ function drawEditFrame() {
     const t = editVideo.currentTime;
     if (!renderOverlay) {
       editCtx.drawImage(editVideo, 0, 0, vw, vh);
+      drawPieceTransition(vw, vh, t);
       requestAnimationFrame(drawEditFrame);
       return;
     }
@@ -103,8 +104,20 @@ function drawEditFrame() {
     editCtx.drawImage(editVideo, 0, 0, vw, vh);
     drawScoreboard(vw, vh, editCtx);
     drawGoalFx(vw, vh, editCtx);
+    drawPieceTransition(vw, vh, t);
   }
   requestAnimationFrame(drawEditFrame);
+}
+
+// ⚡ ハイライトの書き出し中：つなぎ目の前後に柄（draw.js の drawTransition）。
+// piecePlan は render.js の renderPieces が、いま流している部分ごとに入れる（{ index, count, a, b }。つなぎ目がないときは null）
+let piecePlan = null;
+function drawPieceTransition(w, h, t) {
+  if (!rendering || !piecePlan) return;
+  const { index, count, a, b } = piecePlan;
+  const half = Math.min(TRANSITION_SEC / 2, (b - a) / 2);
+  if (index > 0 && t < a + half) drawTransition(w, h, editCtx, 0.5 + ((t - a) / half) * 0.5); // 抜けていく
+  else if (index < count - 1 && t > b - half) drawTransition(w, h, editCtx, ((t - (b - half)) / half) * 0.5); // 入ってくる
 }
 
 // 再生・止める・動画の位置
@@ -173,6 +186,7 @@ function showExportRange() {
     b.setAttribute("aria-checked", String(b.dataset.range === exportRange));
     if (b.dataset.range === "goals") b.disabled = !hasGoals;
   });
+  document.querySelector("#editor [data-transition-row]").hidden = exportRange !== "goals";
   const total = exportSegments().reduce((sum, [a, b]) => sum + (b - a), 0);
   $("editExport").textContent = total ? `📼 得点板つきで書き出す（約 ${clock(Math.ceil(total))}）` : "📼 得点板つきで書き出す";
 }

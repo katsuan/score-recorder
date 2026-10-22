@@ -26,7 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、ろくがの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610221208">
+<link rel="stylesheet" href="style.css?v=202610221212">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -230,6 +230,8 @@
     <button type="button" role="radio" data-range="all" aria-checked="true">全部</button>
     <button type="button" role="radio" data-range="goals" aria-checked="false">⚡ ハイライト</button>
   </div>
+  <!-- ⚡ ハイライトのつなぎ目の柄（⚡ ハイライトを選んだときだけ）。ボタンは draw.js の TRANSITIONS から作る（setup.js） -->
+  <div class="transition-row" data-transition-row hidden><span>つなぎ目</span><div class="transition-chips" role="radiogroup" aria-label="ハイライトのつなぎ目"></div></div>
   <button id="editExport" class="ls-button is-primary is-block" type="button">📼 得点板つきで書き出す</button>
   <p class="hint editor-hint">点が入ったところで ＋1。書き出すあいだは、この画面のままで。</p>
   </div>
@@ -267,6 +269,7 @@
       <button id="shareAll" class="ls-button is-primary is-block" type="button" hidden>📤 まとめて保存・共有</button>
       <p id="sharedNote" class="shared-note" hidden>✓ 共有できました</p>
       <!-- 得点ハイライト：撮っているあいだに ＋1 を押した時間の前後（10秒前〜6秒後）だけをつないで1本に（得点板はもう入っている） -->
+      <div class="transition-row is-light" data-transition-row data-for="makeHighlight" hidden><span>つなぎ目</span><div class="transition-chips" role="radiogroup" aria-label="ハイライトのつなぎ目"></div></div>
       <button id="makeHighlight" class="ls-button is-block" type="button" hidden>⚡ 得点ハイライトを作る</button>
       <!-- 次はどうする？：3つから選ぶ。それぞれ、押すとどうなるかを1行で。
            続きを撮る（同じチーム・スコアそのまま）／同じチームで 0 - 0 から（次の試合）／はじめの画面へ（チームを変える）。
@@ -285,14 +288,14 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610221208"></script>
-<script src="js/draw.js?v=202610221208"></script>
-<script src="js/setup.js?v=202610221208"></script>
-<script src="js/studio.js?v=202610221208"></script>
-<script src="js/record.js?v=202610221208"></script>
-<script src="js/editor.js?v=202610221208"></script>
-<script src="js/render.js?v=202610221208"></script>
-<script src="js/main.js?v=202610221208"></script>
+<script src="js/core.js?v=202610221212"></script>
+<script src="js/draw.js?v=202610221212"></script>
+<script src="js/setup.js?v=202610221212"></script>
+<script src="js/studio.js?v=202610221212"></script>
+<script src="js/record.js?v=202610221212"></script>
+<script src="js/editor.js?v=202610221212"></script>
+<script src="js/render.js?v=202610221212"></script>
+<script src="js/main.js?v=202610221212"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

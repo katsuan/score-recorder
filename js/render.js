@@ -25,8 +25,10 @@ async function renderPieces(pieces, { overlay, kind, title }) {
   const total = pieces.reduce((sum, p) => sum + (p.b - p.a), 0);
   let done = 0;
   let started = false;
-  for (const { src, a, b } of pieces) {
+  for (const [index, { src, a, b }] of pieces.entries()) {
     if (!exporting) break;
+    // つなぎ目の柄：切り出した部分が2つ以上のときだけ（editor.js の drawPieceTransition）
+    piecePlan = pieces.length > 1 ? { index, count: pieces.length, a, b } : null;
     if (editVideo.src !== src) {
       editVideo.src = src;
       await new Promise((r) => editVideo.addEventListener("loadeddata", r, { once: true }));
@@ -90,6 +92,7 @@ function highlightPieces() {
 function showHighlightButton() {
   const total = highlightPieces().reduce((sum, p) => sum + (p.b - p.a), 0);
   $("makeHighlight").hidden = !total;
+  document.querySelector('[data-transition-row][data-for="makeHighlight"]').hidden = !total;
   if (total) $("makeHighlight").textContent = `⚡ 得点ハイライトを作る（約 ${clock(Math.ceil(total))}）`;
 }
 $("makeHighlight").addEventListener("click", () => {
@@ -101,6 +104,7 @@ $("makeHighlight").addEventListener("click", () => {
 });
 
 function finishExport() {
+  piecePlan = null;
   if (!exporting) return;
   exporting = false;
   rendering = false;

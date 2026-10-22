@@ -87,6 +87,8 @@ const state = {
   // 前は「はじめは出さない」で OFF が覚えられているので、fxV（この決まりの版）が 2 でなければ、いちどだけ ON にする
   goalFx: saved.fxV === 2 ? saved.goalFx !== false : true,
   fxV: 2,
+  // ⚡ ハイライトのつなぎ目の柄（draw.js の TRANSITIONS の id）。はじめは RoQga
+  transition: typeof saved.transition === "string" ? saved.transition : "roqga",
   fxIcon: typeof saved.fxIcon === "string" ? saved.fxIcon : "⚽", // エフェクトのアイコン（"" はなし）。サッカー以外でも
   fxCustom: typeof saved.fxCustom === "string" ? saved.fxCustom : "", // カスタムのアイコン（好きな絵文字・文字。2文字まで）
   fxText: typeof saved.fxText === "string" ? saved.fxText : "", // エフェクトの文字（空なら GOAL!）

@@ -312,3 +312,12 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .edit-side .name-input { flex: 1 1 auto; width: 100%; min-width: 0; min-height: 34px; padding: 2px 6px; border: 0; border-bottom: 1.5px dashed rgba(255, 255, 255, 0.5); border-radius: 0; background: transparent; color: #fff; font: inherit; font-size: 16px; font-weight: 800; text-align: center; }
 .edit-side .name-input::placeholder { color: rgba(255, 255, 255, 0.55); }
 .edit-side .name-input:focus { outline: none; border-bottom-color: #fff; }
+
+/* ⚡ ハイライトのつなぎ目の柄を選ぶ（撮った動画には濃い地、保存の画面は白い地） */
+.transition-row { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; }
+.transition-row > span { flex: 0 0 auto; opacity: 0.85; }
+.transition-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.transition-chips .chip { min-height: 34px; padding: 0 14px; }
+.transition-row:not(.is-light) .transition-chips .chip { border-color: rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.08); color: #fff; }
+.transition-row:not(.is-light) .transition-chips .chip[aria-checked="true"] { border-color: #fff; background: #fff; color: #1a1a1a; }
+.transition-chips .chip:disabled { opacity: 0.45; }

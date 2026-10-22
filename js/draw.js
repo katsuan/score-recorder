@@ -127,3 +127,50 @@ function drawGoalFx(w, h, c = screenCtx) {
   c.fillText(`${name ? `${name}　` : ""}${left} - ${right}`, w / 2, h / 2 + 62 * s);
   c.restore();
 }
+
+// ---- ⚡ ハイライトのつなぎ目（トランジション）：切り出した部分のつなぎ目に、0.8 秒の柄を重ねる ----
+// 前の部分の終わり 0.4 秒で柄が入ってきて画面をおおい、次の部分のはじめ 0.4 秒で抜けていく（動画の長さは変わらない）。
+// 柄の一覧。premium: true は有料プランの柄（いまはまだない）。柄を足す・差しかえるときは、ここに1行と描き方（draw）を足す。
+// アプリ版（q-roqga-ios の TransitionRenderer）も同じ柄・同じ動きにそろえる
+const TRANSITION_SEC = 0.8;
+const TRANSITIONS = [
+  { id: "roqga", label: "RoQga", premium: false, draw: drawRoqgaWipe },
+  { id: "none", label: "なし", premium: false, draw: null }
+];
+const transitionOf = (id) => TRANSITIONS.find((tr) => tr.id === id && !tr.premium) || TRANSITIONS[0];
+
+const transitionMark = new Image();
+transitionMark.src = "icon-512.png"; // ろくがのアイコン（柄のまん中に置く）
+
+// p：0（入りはじめ）→ 0.5（画面をおおう＝つなぎ目）→ 1（抜けきる）
+function drawTransition(w, h, c, p) {
+  const tr = transitionOf(state.transition);
+  if (!tr.draw || p <= 0 || p >= 1) return;
+  tr.draw(w, h, c, p);
+}
+
+// RoQga：ろくがの緑の面が右から入り、左へ抜ける。まん中にアイコンと「RoQga」
+function drawRoqgaWipe(w, h, c, p) {
+  const easeOut = (x) => 1 - (1 - x) ** 3;
+  const easeIn = (x) => x ** 3;
+  const x = p < 0.5 ? w * (1 - easeOut(p / 0.5)) : -w * easeIn((p - 0.5) / 0.5);
+  const s = Math.min(w, h);
+  c.save();
+  c.fillStyle = "#2e8b4a";
+  c.fillRect(x, 0, w, h);
+  // ふちの白い線（動いている向きの側）
+  c.fillStyle = "rgba(255, 255, 255, 0.9)";
+  c.fillRect(p < 0.5 ? x : x + w - s * 0.012, 0, s * 0.012, h);
+  // まん中：アイコンと RoQga
+  const icon = s * 0.2;
+  c.font = `800 ${s * 0.13}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
+  c.textBaseline = "middle";
+  const text = "RoQga";
+  const tw = c.measureText(text).width;
+  const gap = s * 0.04;
+  const left = x + (w - (icon + gap + tw)) / 2;
+  if (transitionMark.complete && transitionMark.naturalWidth) c.drawImage(transitionMark, left, h / 2 - icon / 2, icon, icon);
+  c.fillStyle = "#ffffff";
+  c.fillText(text, left + icon + gap, h / 2 + s * 0.005);
+  c.restore();
+}

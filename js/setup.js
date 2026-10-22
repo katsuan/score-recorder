@@ -224,3 +224,23 @@ document.querySelectorAll("[data-mode]").forEach((tab) =>
     document.querySelectorAll("[data-mode-only]").forEach((el) => (el.hidden = el.dataset.modeOnly !== mode));
   })
 );
+
+// ---- ⚡ ハイライトのつなぎ目の柄を選ぶボタン（draw.js の TRANSITIONS から作る。有料の柄は 🔒 で、まだ選べない） ----
+function renderTransitionChoices() {
+  document.querySelectorAll("[data-transition-row] .transition-chips").forEach((box) => {
+    box.replaceChildren(
+      ...TRANSITIONS.map((tr) => {
+        const b = Object.assign(document.createElement("button"), { type: "button", className: "chip", textContent: tr.premium ? `🔒 ${tr.label}` : tr.label });
+        b.setAttribute("role", "radio");
+        b.setAttribute("aria-checked", String(transitionOf(state.transition).id === tr.id));
+        b.disabled = tr.premium;
+        b.addEventListener("click", () => {
+          state.transition = tr.id;
+          save();
+          renderTransitionChoices();
+        });
+        return b;
+      })
+    );
+  });
+}
