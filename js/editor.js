@@ -209,36 +209,48 @@ document.querySelectorAll("[data-jump]").forEach((b) =>
     editLastT = editVideo.currentTime;
   })
 );
-// 書き出す範囲
-document.querySelectorAll("[data-range]").forEach((b) =>
+// 何を書き出す？：全部（exportRange "all"）／⚡ ハイライト（"goals"・得点板つき）／🎬 演出だけ（"goals"・state.hlBoard false）
+const chosenExport = () => (exportRange === "all" ? "all" : state.hlBoard ? "hl" : "fx");
+document.querySelectorAll("[data-export-mode]").forEach((b) =>
   b.addEventListener("click", () => {
     if (b.disabled) return;
-    exportRange = b.dataset.range;
+    const mode = b.dataset.exportMode;
+    exportRange = mode === "all" ? "all" : "goals";
+    if (mode !== "all") {
+      state.hlBoard = mode === "hl"; // 演出だけ＝得点板なし（次から同じ選び方に）
+      save();
+    }
     showExportRange();
   })
 );
 // 書き出すところ：[はじめの秒, 終わりの秒] のならび。全部か、⚡ ハイライト（得点・⭐ の前後。近いものはひとつにつなぐ）
-function exportSegments() {
+function exportSegments(range = exportRange) {
   const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
   if (!d) return [];
-  if (exportRange === "all") return [[0, d]];
+  if (range === "all") return [[0, d]];
   return highlightSpans(editEvents.filter((ev) => ev.delta > 0 || ev.mark).map((ev) => ev.t), d); // 得点と ⭐ ナイスプレー
 }
-// 範囲の切りかえと、書き出すボタンにかかる時間の目安（書き出しは流した時間だけかかる）
+const EXPORT_LABELS = { all: "📼 全部を書き出す", hl: "⚡ ハイライトを書き出す", fx: "🎬 演出だけのハイライトを書き出す" };
+// 選んでいるもの・それぞれの長さの目安・つなぎ目（ハイライトのときだけ）・書き出すボタンの文言
 function showExportRange() {
   const hasGoals = editEvents.some((ev) => ev.delta > 0 || ev.mark);
   if (!hasGoals && exportRange === "goals") exportRange = "all";
-  document.querySelectorAll("[data-range]").forEach((b) => {
-    b.setAttribute("aria-checked", String(b.dataset.range === exportRange));
-    if (b.dataset.range === "goals") b.disabled = !hasGoals;
+  const len = (range) => exportSegments(range).reduce((sum, [a, b]) => sum + (b - a), 0);
+  const lens = { all: len("all"), hl: len("goals"), fx: len("goals") };
+  const mode = chosenExport();
+  document.querySelectorAll("[data-export-mode]").forEach((b) => {
+    const m = b.dataset.exportMode;
+    b.setAttribute("aria-checked", String(m === mode));
+    b.disabled = m !== "all" && !hasGoals;
   });
-  document.querySelector("#editor [data-transition-row]").hidden = exportRange !== "goals";
-  $("hlBoardRow").hidden = exportRange !== "goals";
-  document.querySelectorAll("[data-hl-board]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.hlBoard === "on") === state.hlBoard)));
-  const total = exportSegments().reduce((sum, [a, b]) => sum + (b - a), 0);
-  // ⚡ ハイライトで「得点板：入れない」のときは「ハイライトを書き出す」
-  const label = exportRange === "goals" && !state.hlBoard ? "📼 ハイライトを書き出す" : "📼 得点板つきで書き出す";
-  $("editExport").textContent = total ? `${label}（約 ${clock(Math.ceil(total))}）` : label;
+  document.querySelectorAll("[data-em-len]").forEach((el) => {
+    const t = lens[el.dataset.emLen];
+    el.textContent = t ? `約 ${clock(Math.ceil(t))}` : "";
+  });
+  $("exportModeHint").hidden = hasGoals;
+  // つなぎ目：ハイライト・演出だけで、つなぐところが2つ以上のときだけ
+  document.querySelector("#editor [data-transition-row]").hidden = mode === "all" || exportSegments("goals").length < 2;
+  $("editExport").textContent = lens[mode] ? `${EXPORT_LABELS[mode]}（約 ${clock(Math.ceil(lens[mode]))}）` : EXPORT_LABELS[mode];
 }
 ["loadedmetadata", "durationchange"].forEach((type) => editVideo.addEventListener(type, showExportRange));
 $("editSeek").addEventListener("input", (e) => {
@@ -379,16 +391,3 @@ const seekTo = (t) =>
     editVideo.addEventListener("seeked", resolve, { once: true });
     editVideo.currentTime = t;
   });
-
-// ⚡ ハイライトに得点板を入れるか（入れる／入れない。端末に覚える）
-function showHlBoard() {
-  document.querySelectorAll("[data-hl-board]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.hlBoard === "on") === state.hlBoard)));
-}
-document.querySelectorAll("[data-hl-board]").forEach((b) =>
-  b.addEventListener("click", () => {
-    state.hlBoard = b.dataset.hlBoard === "on";
-    save();
-    showHlBoard();
-    showExportRange();
-  })
-);

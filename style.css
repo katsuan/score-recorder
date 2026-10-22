@@ -346,3 +346,16 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* 撮った動画に：キーボードが出ているあいだ（チーム名などを入れるとき）は、動画を小さくして入力欄が隠れないように */
 .editor.is-typing .editor-stage { max-height: 18vh; max-height: 18dvh; }
 .editor.is-typing { padding-top: 8px; }
+
+/* 何を書き出す？：できあがりで選ぶ3つ（アイコン・名前と説明・長さの目安） */
+.export-mode-title { margin: 4px 0 -4px; font-size: 14px; font-weight: 800; }
+.export-modes { display: grid; gap: 6px; }
+.export-modes button { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 8px; min-height: 54px; padding: 8px 12px; border: 2px solid rgba(255, 255, 255, 0.18); border-radius: 14px; background: rgba(255, 255, 255, 0.06); color: #fff; font: inherit; text-align: left; cursor: pointer; }
+.export-modes button[aria-checked="true"] { border-color: #5cc27a; background: rgba(92, 194, 122, 0.18); }
+.export-modes button:disabled { opacity: 0.4; cursor: default; }
+.em-icon { font-size: 22px; text-align: center; }
+.em-text { display: grid; gap: 1px; min-width: 0; }
+.em-text b { font-size: 15px; }
+.em-text small { overflow: hidden; color: rgba(255, 255, 255, 0.7); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.export-modes em { color: rgba(255, 255, 255, 0.85); font-size: 12px; font-style: normal; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.export-mode-hint { margin: -2px 0 0; color: rgba(255, 255, 255, 0.65); font-size: 12px; }
