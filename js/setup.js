@@ -131,7 +131,15 @@ document.querySelectorAll("[data-goal-fx]").forEach((b) =>
 // エフェクトのアイコン・文字（サッカー以外でも）。変えたら、試しに出して見せる
 const showFxLabel = () => {
   document.querySelectorAll("[data-fx-icon]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.fxIcon === state.fxIcon)));
+  $("fxCustom").value = state.fxCustom;
+  $("fxCustom").classList.toggle("is-on", state.fxCustom !== "" && state.fxIcon === state.fxCustom);
   $("fxText").value = state.fxText;
+};
+// 2文字まで（絵文字は1つで1文字に数える）
+const firstChars = (text, n) => {
+  const t = text.trim();
+  if (window.Intl?.Segmenter) return [...new Intl.Segmenter("ja", { granularity: "grapheme" }).segment(t)].slice(0, n).map((x) => x.segment).join("");
+  return Array.from(t).slice(0, n).join("");
 };
 const tryFx = () => {
   goalFx = { side: "us", at: performance.now() };
@@ -145,6 +153,23 @@ document.querySelectorAll("[data-fx-icon]").forEach((b) =>
     tryFx();
   })
 );
+// カスタム：入れたらそれを使う。押しただけでも、前に入れたものを選ぶ。消したら ⚽ にもどす
+$("fxCustom").addEventListener("input", () => {
+  const v = firstChars($("fxCustom").value, 2);
+  if ($("fxCustom").value !== v) $("fxCustom").value = v;
+  state.fxCustom = v;
+  state.fxIcon = v || "⚽";
+  save();
+  showFxLabel();
+  if (v) tryFx();
+});
+$("fxCustom").addEventListener("focus", () => {
+  if (!state.fxCustom) return;
+  state.fxIcon = state.fxCustom;
+  save();
+  showFxLabel();
+  tryFx();
+});
 $("fxText").addEventListener("input", () => {
   state.fxText = $("fxText").value;
   save();

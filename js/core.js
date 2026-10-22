@@ -88,6 +88,7 @@ const state = {
   goalFx: saved.fxV === 2 ? saved.goalFx !== false : true,
   fxV: 2,
   fxIcon: typeof saved.fxIcon === "string" ? saved.fxIcon : "⚽", // エフェクトのアイコン（"" はなし）。サッカー以外でも
+  fxCustom: typeof saved.fxCustom === "string" ? saved.fxCustom : "", // カスタムのアイコン（好きな絵文字・文字。2文字まで）
   fxText: typeof saved.fxText === "string" ? saved.fxText : "", // エフェクトの文字（空なら GOAL!）
   swapped: saved.swapped === true, // 左右を入れかえる（us を右に）。us・them は中の呼び名で、自分のチームとはかぎらない
   hand: ["left", "right"].includes(saved.hand) ? saved.hand : "center", // ＋1・録画のまとまりの位置（片手で持つ側に寄せる）

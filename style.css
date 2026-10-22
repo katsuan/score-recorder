@@ -176,7 +176,10 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .split-label { font-size: 13px; font-weight: 800; color: var(--ink-soft); }
 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
 .chip { min-height: 40px; padding: 0 6px; border: 2px solid var(--border); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
-.fx-icons { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; }
+.fx-icons { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 3px; }
+.fx-icons .fx-custom { width: 100%; min-height: 40px; padding: 0; text-align: center; font-size: 16px; /* 16px 未満だと iPhone で画面が寄る */ }
+.fx-icons .fx-custom::placeholder { color: var(--ink-soft); }
+.fx-icons .fx-custom.is-on { border-color: var(--accent); background: #e6f4ea; }
 .fx-icons .chip { padding: 0; font-size: 18px; }
 .fx-icons .chip[data-fx-icon=""] { font-size: 11px; }
 .chip[aria-checked="true"] { border-color: var(--accent); background: #e6f4ea; color: #1f6b38; }

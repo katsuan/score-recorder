@@ -24,7 +24,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610220106">
+<link rel="stylesheet" href="style.css?v=202610220108">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -106,6 +106,8 @@
         <button class="chip" type="button" role="radio" data-fx-icon="🏉">🏉</button>
         <button class="chip" type="button" role="radio" data-fx-icon="🎾">🎾</button>
         <button class="chip" type="button" role="radio" data-fx-icon="🏸">🏸</button>
+        <!-- カスタム：好きな絵文字・文字（2文字まで） -->
+        <input id="fxCustom" class="chip fx-custom" maxlength="16" placeholder="＋" autocomplete="off" enterkeyhint="done" aria-label="カスタムのアイコン（好きな絵文字・文字）">
         <button class="chip" type="button" role="radio" data-fx-icon="">なし</button>
       </div>
     </div>
@@ -271,14 +273,14 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610220106"></script>
-<script src="js/draw.js?v=202610220106"></script>
-<script src="js/setup.js?v=202610220106"></script>
-<script src="js/studio.js?v=202610220106"></script>
-<script src="js/record.js?v=202610220106"></script>
-<script src="js/editor.js?v=202610220106"></script>
-<script src="js/render.js?v=202610220106"></script>
-<script src="js/main.js?v=202610220106"></script>
+<script src="js/core.js?v=202610220108"></script>
+<script src="js/draw.js?v=202610220108"></script>
+<script src="js/setup.js?v=202610220108"></script>
+<script src="js/studio.js?v=202610220108"></script>
+<script src="js/record.js?v=202610220108"></script>
+<script src="js/editor.js?v=202610220108"></script>
+<script src="js/render.js?v=202610220108"></script>
+<script src="js/main.js?v=202610220108"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
