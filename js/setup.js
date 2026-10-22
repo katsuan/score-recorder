@@ -120,6 +120,7 @@ $("swapSides").addEventListener("click", () => {
 const showGoalFxSetting = () => {
   document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
   $("fxMeta").textContent = state.goalFx ? "ON" : ""; // GOAL のエフェクトを出すときだけ、たたんだ見出しに小さく
+  showEditFxMeta();
 };
 document.querySelectorAll("[data-goal-fx]").forEach((b) =>
   b.addEventListener("click", () => {
@@ -134,6 +135,11 @@ const showFxLabel = () => {
   $("fxCustom").value = state.fxCustom;
   $("fxCustom").classList.toggle("is-on", state.fxCustom !== "" && state.fxIcon === state.fxCustom);
   $("fxText").value = state.fxText;
+  showEditFxMeta();
+};
+// 「撮った動画に」の「🎉 得点のエフェクト」の見出しの右：いまの字（⚽ GOAL!）か「出さない」
+const showEditFxMeta = () => {
+  $("editFxMeta").textContent = state.goalFx ? fxLabel() : "出さない";
 };
 // 2文字まで（絵文字は1つで1文字に数える）
 const firstChars = (text, n) => {

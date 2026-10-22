@@ -42,6 +42,7 @@ function openEditor(file) {
   goalFx = null;
   renderEditScore();
   renderEditEvents();
+  $("editFxBody").append($("fxControls")); // エフェクトの設定を、この画面の「🎉 得点のエフェクト」へ
   $("setup").hidden = true;
   $("editor").hidden = false;
   requestAnimationFrame(drawEditFrame);
@@ -51,6 +52,7 @@ function closeEditor() {
   if (exporting) return;
   if (editEvents.length && !confirm("入れた得点の時間は消えます。戻りますか？")) return;
   editVideo.pause();
+  $("previewFold").querySelector(".ls-fold-body").append($("fxControls")); // エフェクトの設定を、はじめの画面へもどす
   $("editor").hidden = true;
   $("setup").hidden = false;
   // 得点板に出していた点を、はじめのスコアにもどす
@@ -208,7 +210,25 @@ function renderEditScore() {
         side.style.setProperty("--team-ink", inkFor(swatch.value));
         renderEditEvents();
       });
-      label.append(swatch, Object.assign(document.createElement("span"), { className: "name", textContent: name }));
+      // チーム名：動画を見ながら、あとから入れられる（はじめの画面の欄・得点板・一覧・さくせん盤との共有にすぐ入る）
+      const teamKey = key === "us" ? "teamUs" : "teamThem";
+      const nameInput = Object.assign(document.createElement("input"), {
+        className: "name-input",
+        value: state[teamKey],
+        placeholder: sideName(key),
+        maxLength: 12,
+        autocomplete: "off",
+        enterKeyHint: "done"
+      });
+      nameInput.setAttribute("aria-label", `${sideName(key)}の名前`);
+      nameInput.addEventListener("input", () => {
+        state[teamKey] = nameInput.value.trim();
+        $(teamKey).value = nameInput.value; // はじめの画面の欄にも
+        save();
+        shareTeams();
+        renderEditEvents();
+      });
+      label.append(swatch, nameInput);
       const plus = Object.assign(document.createElement("button"), { type: "button", className: "plus", textContent: "＋1" });
       plus.setAttribute("aria-label", `${name}に1点（いまの時間）`);
       plus.addEventListener("click", () => addEditEvent(key, 1));

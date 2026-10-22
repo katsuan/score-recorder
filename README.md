@@ -86,3 +86,7 @@ python3 -m http.server 8799
 ```
 
 カメラは https か localhost でしか使えない。
+
+## アプリ版（iPhone）
+
+アプリ版は `~/GitHub/q-roqga-ios`（まだ公開していない）。使い心地はそろえる方針で、ちがうところはアプリ版の `docs/web-vs-app.md` にまとめている。どちらかを変えたら、そろえるか、そこに書き足す。

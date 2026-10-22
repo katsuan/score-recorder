@@ -295,3 +295,20 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .side-name { display: none; position: absolute; bottom: calc(100% + 2px); left: 0; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; font-size: 12px; font-weight: 800; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); pointer-events: none; }
 .studio.hand-left .side-name, .studio.hand-right .side-name { display: block; }
 .studio.hand-right .side-name { left: auto; right: 0; text-align: right; }
+
+/* 撮った動画に：🎉 得点のエフェクト（たたんだ欄。中身ははじめの画面の設定を移して使うので、白い枠に入れる） */
+.edit-fx { padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.08); }
+.edit-fx > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 800; list-style: none; }
+.edit-fx > summary::-webkit-details-marker { display: none; }
+.edit-fx > summary::after { content: "▾"; opacity: 0.7; }
+.edit-fx[open] > summary::after { content: "▴"; }
+.edit-fx .meta { margin-left: auto; overflow: hidden; font-size: 12px; font-weight: 700; opacity: 0.75; text-overflow: ellipsis; white-space: nowrap; }
+.edit-fx-body { display: grid; gap: 10px; margin-top: 8px; padding: 12px; border-radius: 12px; background: #fff; color: var(--ls-text, #1d2a22); }
+.edit-fx-body:empty { display: none; }
+.fx-controls { display: grid; gap: 10px; }
+
+/* 撮った動画に：チーム名をあとから入れる欄（色の丸の横）。16px より小さいと iPhone で画面が寄るので 16px */
+.edit-side .name-row { width: 100%; justify-content: center; }
+.edit-side .name-input { flex: 1 1 auto; width: 100%; min-width: 0; min-height: 34px; padding: 2px 6px; border: 0; border-bottom: 1.5px dashed rgba(255, 255, 255, 0.5); border-radius: 0; background: transparent; color: #fff; font: inherit; font-size: 16px; font-weight: 800; text-align: center; }
+.edit-side .name-input::placeholder { color: rgba(255, 255, 255, 0.55); }
+.edit-side .name-input:focus { outline: none; border-bottom-color: #fff; }
