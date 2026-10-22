@@ -321,3 +321,24 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .transition-row:not(.is-light) .transition-chips .chip { border-color: rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.08); color: #fff; }
 .transition-row:not(.is-light) .transition-chips .chip[aria-checked="true"] { border-color: #fff; background: #fff; color: #1a1a1a; }
 .transition-chips .chip:disabled { opacity: 0.45; }
+
+/* 書き出し中：書き出しているところ・しま模様のバー・画面のままで・プチ情報 */
+.export-peek { width: min(100%, 320px); height: auto; border-radius: 10px; background: #000; }
+.export-bar { position: relative; width: min(100%, 420px); height: 10px; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, 0.14); }
+.export-bar i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; background: repeating-linear-gradient(-45deg, #5cc27a 0 10px, #47a865 10px 20px); background-size: 28px 28px; animation: export-stripes 0.8s linear infinite; transition: width 0.3s ease; }
+@keyframes export-stripes { to { background-position: 28px 0; } }
+.export-stay { display: grid; justify-items: center; gap: 2px; margin: 4px 0 0; }
+.export-stay b { font-size: 15px; }
+.export-stay small { max-width: 30em; color: rgba(255, 255, 255, 0.7); font-size: 12px; line-height: 1.5; }
+.stay-icon { font-size: 26px; animation: stay-pulse 1.6s ease-in-out infinite; }
+@keyframes stay-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.7; } }
+.export-away { max-width: 30em; margin: 0; padding: 8px 12px; border-radius: 10px; background: rgba(255, 196, 0, 0.16); color: #ffe08a; font-size: 13px; font-weight: 700; line-height: 1.5; }
+.export-tip { min-height: 3em; max-width: 30em; margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 13px; line-height: 1.5; }
+.export-tip.is-in { animation: tip-in 0.5s ease-out; }
+@keyframes tip-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .export-bar i, .stay-icon, .export-tip.is-in { animation: none; }
+}
+
+/* 書き出し中のシート：下の操作が透けないように不透明に。上の角を丸めて、動画の下にかぶさる形 */
+.export-overlay { background: #0a120d; color: #fff; border-radius: 20px 20px 0 0; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5); }

@@ -139,8 +139,8 @@ const TRANSITIONS = [
 ];
 const transitionOf = (id) => TRANSITIONS.find((tr) => tr.id === id && !tr.premium) || TRANSITIONS[0];
 
-const transitionMark = new Image();
-transitionMark.src = "icon-512.png"; // ろくがのアイコン（柄のまん中に置く）
+const transitionLogo = new Image();
+transitionLogo.src = "logo.svg"; // 横長のロゴ（柄のまん中に置く）
 
 // p：0（入りはじめ）→ 0.5（画面をおおう＝つなぎ目）→ 1（抜けきる）
 function drawTransition(w, h, c, p) {
@@ -149,28 +149,87 @@ function drawTransition(w, h, c, p) {
   tr.draw(w, h, c, p);
 }
 
-// RoQga：ろくがの緑の面が右から入り、左へ抜ける。まん中にアイコンと「RoQga」
-function drawRoqgaWipe(w, h, c, p) {
+// RoQga：濃い緑のピッチの面（左右の辺が斜め）が右から入り、つなぎ目で画面をおおって、左へ抜ける。
+// 面の中は芝刈りのしま模様と、うっすらハーフウェーラインとセンターサークル。斜めの辺に白と赤の線。まん中に横長のロゴ。
+// アプリ版（q-roqga-ios の TransitionRenderer）も同じ寸法・同じ動き
+const wipeSlant = (h) => h * 0.22; // 斜めの辺の、上と下のずれ
+// 面の横の位置（面の左上が x）：入るときはだんだん遅く、抜けるときはだんだん速く
+function wipeOffset(p, w, h) {
+  const slant = wipeSlant(h);
   const easeOut = (x) => 1 - (1 - x) ** 3;
   const easeIn = (x) => x ** 3;
-  const x = p < 0.5 ? w * (1 - easeOut(p / 0.5)) : -w * easeIn((p - 0.5) / 0.5);
+  return p < 0.5 ? w + (-slant - w) * easeOut(p / 0.5) : -slant - (w + slant) * easeIn((p - 0.5) / 0.5);
+}
+let wipePanel = null; // 面の絵（大きさごとに 1 回だけ描く）
+function roqgaPanel(w, h) {
+  if (wipePanel && wipePanel.w === w && wipePanel.h === h && wipePanel.logo === transitionLogo.complete) return wipePanel.canvas;
+  const slant = wipeSlant(h);
+  const W = w + slant * 2;
   const s = Math.min(w, h);
+  const cv = document.createElement("canvas");
+  cv.width = Math.ceil(W);
+  cv.height = h;
+  const c = cv.getContext("2d");
+  // 平行四辺形（左の辺：上が右・下が左。右の辺も同じ向き）
+  const shape = () => {
+    c.beginPath();
+    c.moveTo(slant, 0);
+    c.lineTo(W, 0);
+    c.lineTo(W - slant, h);
+    c.lineTo(0, h);
+    c.closePath();
+  };
   c.save();
-  c.fillStyle = "#2e8b4a";
-  c.fillRect(x, 0, w, h);
-  // ふちの白い線（動いている向きの側）
-  c.fillStyle = "rgba(255, 255, 255, 0.9)";
-  c.fillRect(p < 0.5 ? x : x + w - s * 0.012, 0, s * 0.012, h);
-  // まん中：アイコンと RoQga
-  const icon = s * 0.2;
-  c.font = `800 ${s * 0.13}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
-  c.textBaseline = "middle";
-  const text = "RoQga";
-  const tw = c.measureText(text).width;
-  const gap = s * 0.04;
-  const left = x + (w - (icon + gap + tw)) / 2;
-  if (transitionMark.complete && transitionMark.naturalWidth) c.drawImage(transitionMark, left, h / 2 - icon / 2, icon, icon);
-  c.fillStyle = "#ffffff";
-  c.fillText(text, left + icon + gap, h / 2 + s * 0.005);
+  shape();
+  c.clip();
+  const g = c.createLinearGradient(0, 0, W, h);
+  g.addColorStop(0, "#1f6b38");
+  g.addColorStop(1, "#14542e");
+  c.fillStyle = g;
+  c.fillRect(0, 0, W, h);
+  // 芝刈りのしま模様
+  c.fillStyle = "rgba(255, 255, 255, 0.05)";
+  const band = h * 0.18;
+  for (let x = 0; x < W; x += band * 2) c.fillRect(x, 0, band, h);
+  // ハーフウェーラインとセンターサークル（うっすら）
+  c.strokeStyle = "rgba(255, 255, 255, 0.14)";
+  c.lineWidth = s * 0.006;
+  c.beginPath();
+  c.moveTo(W / 2, 0);
+  c.lineTo(W / 2, h);
+  c.stroke();
+  c.beginPath();
+  c.arc(W / 2, h / 2, h * 0.3, 0, Math.PI * 2);
+  c.stroke();
   c.restore();
+  // 斜めの辺：外側に白、少し内側に赤（Q の録画の点の色）
+  const edge = (x0, inward) => {
+    [["#ffffff", 0, s * 0.016], ["#e53935", s * 0.03, s * 0.01]].forEach(([color, gap, width]) => {
+      const d = (gap + width / 2) * inward;
+      c.strokeStyle = color;
+      c.lineWidth = width;
+      c.beginPath();
+      c.moveTo(x0 + slant + d, 0);
+      c.lineTo(x0 + d, h);
+      c.stroke();
+    });
+  };
+  edge(0, 1); // 左の辺（入ってくるときの先）
+  edge(W - slant, -1); // 右の辺（抜けていくときの後ろ）
+  // まん中に横長のロゴ（影つき）
+  if (transitionLogo.complete && transitionLogo.naturalWidth) {
+    const lh = s * 0.26;
+    const lw = (lh * transitionLogo.naturalWidth) / transitionLogo.naturalHeight;
+    c.save();
+    c.shadowColor = "rgba(0, 0, 0, 0.35)";
+    c.shadowBlur = s * 0.03;
+    c.shadowOffsetY = s * 0.008;
+    c.drawImage(transitionLogo, W / 2 - lw / 2, h / 2 - lh / 2, lw, lh);
+    c.restore();
+  }
+  wipePanel = { w, h, logo: transitionLogo.complete, canvas: cv };
+  return cv;
+}
+function drawRoqgaWipe(w, h, c, p) {
+  c.drawImage(roqgaPanel(w, h), wipeOffset(p, w, h), 0);
 }

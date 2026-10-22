@@ -19,6 +19,7 @@ async function renderPieces(pieces, { overlay, kind, title }) {
   rendering = true;
   renderOverlay = overlay;
   $("exportTitle").textContent = title;
+  startExportWait();
   $("exportOverlay").hidden = false;
   if ($("editor").hidden) requestAnimationFrame(drawEditFrame); // 撮った動画にの画面では、もう描きつづけている
   await keepScreenOn();
@@ -46,7 +47,10 @@ async function renderPieces(pieces, { overlay, kind, title }) {
     await new Promise((resolve) => {
       const iv = setInterval(() => {
         const t = editVideo.currentTime;
-        $("exportProg").textContent = `${clock(Math.floor(done + Math.max(0, t - a)))} / ${clock(Math.ceil(total))}`;
+        const now = done + Math.max(0, t - a);
+        $("exportProg").textContent = `${clock(Math.floor(now))} / ${clock(Math.ceil(total))}　のこり 約 ${clock(Math.max(0, Math.ceil(total - now)))}`;
+        $("exportBar").style.width = `${Math.min(100, (now / total) * 100)}%`;
+        drawExportPeek();
         if (!exporting || t >= b - 0.05 || editVideo.ended) {
           clearInterval(iv);
           resolve();
@@ -103,8 +107,63 @@ $("makeHighlight").addEventListener("click", () => {
   renderPieces(pieces, { overlay: false, kind: "highlight", title: "⚡ ハイライトを作っています…" });
 });
 
+// ---- 書き出し中の画面：動き（しま模様のバー・書き出しているところ）とプチ情報、画面を離れないように ----
+const EXPORT_TIPS = [
+  "⚡ ハイライトは、得点と ⭐ ナイスの 10秒前〜6秒後をつなぎます",
+  "🎉 得点のエフェクトは、アイコンと文字を変えられます（サッカー以外でも）",
+  "📤 5分をこえると、LINE で送れるよう 5分ずつに分けます",
+  "🔒 動画はこの端末の中だけで使います。どこにも送りません",
+  "⚽ チーム名と色は、さくせん盤と共通です",
+  "🎞 撮っておいた動画にも、あとから得点板をつけられます",
+  "↺ 速く流して点を通りすぎたら「10秒」でもどれます",
+  "⇄ 後半にコートが変わったら、左右を入れかえられます",
+  "🎬 ハイライトのつなぎ目には RoQga の柄が入ります（「なし」にもできます）"
+];
+let tipTimer = 0;
+let tipIndex = Math.floor(Math.random() * EXPORT_TIPS.length);
+let awayWhileExporting = false;
+function showTip() {
+  const el = $("exportTip");
+  el.classList.remove("is-in");
+  void el.offsetWidth; // 入れかわるたびに、ふわっと出す
+  el.textContent = `💡 ${EXPORT_TIPS[tipIndex % EXPORT_TIPS.length]}`;
+  el.classList.add("is-in");
+  tipIndex++;
+}
+function startExportWait() {
+  awayWhileExporting = false;
+  $("exportAway").hidden = true;
+  $("exportBar").style.width = "0%";
+  $("exportProg").textContent = "";
+  // 保存の画面から作るときは、撮った動画にの画面（動画）が見えないので、書き出しているところを小さく映す
+  $("exportPeek").hidden = !$("editor").hidden;
+  showTip();
+  clearInterval(tipTimer);
+  tipTimer = setInterval(showTip, 6000);
+}
+function drawExportPeek() {
+  const peek = $("exportPeek");
+  if (peek.hidden || !editScreen.width) return;
+  const h = Math.round((peek.width * editScreen.height) / editScreen.width);
+  if (peek.height !== h) peek.height = h;
+  peek.getContext("2d").drawImage(editScreen, 0, 0, peek.width, h);
+}
+// 書き出し中に画面を離れたら、もどったときに知らせる
+document.addEventListener("visibilitychange", () => {
+  if (!exporting) return;
+  if (document.visibilityState === "hidden") awayWhileExporting = true;
+  else if (awayWhileExporting) $("exportAway").hidden = false;
+});
+// 書き出し中にページを閉じる・更新しようとしたら、ブラウザの確かめる画面を出す
+window.addEventListener("beforeunload", (e) => {
+  if (!exporting) return;
+  e.preventDefault();
+  e.returnValue = "";
+});
+
 function finishExport() {
   piecePlan = null;
+  clearInterval(tipTimer);
   if (!exporting) return;
   exporting = false;
   rendering = false;
