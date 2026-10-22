@@ -147,6 +147,8 @@ document.querySelectorAll("[data-board]").forEach((b) =>
 const showGoalFxSetting = () => {
   document.querySelectorAll("[data-board]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.board === "on") === state.board)));
   document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
+  // エフェクトを出さないときは、アイコン・文字の設定も出さない
+  $("fxLabelRow").hidden = !state.goalFx;
   // たたんだ見出しに小さく：得点板を出さないときは「得点板なし」、GOAL のエフェクトを出すときは「ON」
   $("fxMeta").textContent = [state.board ? "" : "得点板なし", state.goalFx ? "演出ON" : ""].filter(Boolean).join("・");
   showEditFxMeta();
@@ -164,8 +166,17 @@ const showFxLabel = () => {
   $("fxCustom").value = state.fxCustom;
   $("fxCustom").classList.toggle("is-on", state.fxCustom !== "" && state.fxIcon === state.fxCustom);
   $("fxText").value = state.fxText;
+  $("fxIconNow").textContent = state.fxIcon || "なし";
+  $("fxIconBtn").classList.toggle("is-none", !state.fxIcon);
+  $("fxIconBtn").setAttribute("aria-label", `アイコンを選ぶ（いま：${state.fxIcon || "なし"}）`);
   showEditFxMeta();
 };
+// アイコンを押すと、選べるアイコンを横に並べて出す（もう一度押すとたたむ）
+const openFxPicker = (open) => {
+  $("fxIconPicker").hidden = !open;
+  $("fxIconBtn").setAttribute("aria-expanded", String(open));
+};
+$("fxIconBtn").addEventListener("click", () => openFxPicker($("fxIconPicker").hidden));
 // 「撮った動画に」の「🎉 得点のエフェクト」の見出しの右：いまの字（⚽ GOAL!）か「出さない」
 const showEditFxMeta = () => {
   $("editFxMeta").textContent = [state.board ? "" : "得点板なし", state.goalFx ? fxLabel() : "演出なし"].filter(Boolean).join("・");
@@ -186,6 +197,7 @@ document.querySelectorAll("[data-fx-icon]").forEach((b) =>
     state.fxIcon = b.dataset.fxIcon;
     save();
     showFxLabel();
+    openFxPicker(false); // 選んだらたたむ（カスタムは打っている間は開いたまま）
     tryFx();
   })
 );
