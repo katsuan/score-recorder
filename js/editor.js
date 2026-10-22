@@ -167,12 +167,19 @@ function paintEditFrame(t = editVideo.currentTime) {
 // これまでは画面の描き直し（60回／秒）で描いて 30コマ／秒で録っていたので、同じコマが2回入ったり1コマ抜けたりした。
 // requestVideoFrameCallback（動画のコマが出たとき）と、canvas の録画を「描いたときだけ1コマ」（captureStream(0)＋requestFrame）にする。
 // どちらかが使えない古いブラウザでは、これまでどおり（frameSync は false）。
-// いまは試しているところなので、URL に ?framesync=1 を付けて開いたときだけ使う（iPhone の Safari で確かめてから、ふだんも使う）
+// Mac の Chromium で、60コマ／秒の動画が 26コマ前後のばらばらな間隔 → ほぼ 60コマのままになった（2026-10-22）。
+// Safari（iPhone・Mac）はまだ確かめていないので、URL に ?framesync=1 を付けたときだけ。?framesync=0 ならどのブラウザでも元のやり方
 let frameSync = false;
 let lastSyncFrameAt = 0; // 動画のコマの合図が最後に来た時刻（来ないときは drawEditFrame で描いて録る）
-const FRAME_SYNC_TRIAL = new URLSearchParams(location.search).has("framesync");
+const FRAME_SYNC_PARAM = new URLSearchParams(location.search).get("framesync"); // "1"・"0"・null
+// Safari と、iPhone・iPad のブラウザ（Chrome なども中身は Safari と同じ WebKit）
+const IS_SAFARI =
+  /^((?!chrome|chromium|crios|edg|android|fxios).)*safari/i.test(navigator.userAgent) ||
+  /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPad（パソコン向けの表示）
+const FRAME_SYNC_ON = FRAME_SYNC_PARAM === "1" || (FRAME_SYNC_PARAM !== "0" && !IS_SAFARI);
 const canSyncFrames = () =>
-  FRAME_SYNC_TRIAL &&
+  FRAME_SYNC_ON &&
   typeof HTMLVideoElement !== "undefined" &&
   typeof HTMLVideoElement.prototype.requestVideoFrameCallback === "function" &&
   typeof window.CanvasCaptureMediaStreamTrack === "function" &&
