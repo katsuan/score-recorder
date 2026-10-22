@@ -26,7 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、ろくがの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610221230">
+<link rel="stylesheet" href="style.css?v=202610221235">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -126,6 +126,8 @@
   <button id="openCamera" class="ls-button is-primary is-block" type="button" data-mode-only="shoot">📹 カメラを開く</button>
   <!-- 撮った動画に（得点板をつける）：端末の動画を選ぶ（動画はこの端末の中だけで使う） -->
   <button id="pickVideo" class="ls-button is-primary is-block" type="button" data-mode-only="later" hidden>🎞 動画を選ぶ</button>
+  <!-- 撮った動画にの画面から「← 戻る」でもどっても、選んだ動画と入れた点は残す。ここから続きにもどれる（editor.js の showResume） -->
+  <button id="resumeEdit" class="ls-button is-block" type="button" hidden>🎞 さっきの動画にもどる</button>
   <input id="videoFile" type="file" accept="video/*" hidden>
   <!-- 録った動画があるときだけ：保存の画面をもう一度開く（はじめの画面にもどっても、0 - 0 から撮りなおすまで残っている） -->
   <button id="openSaved" class="ls-button is-block" type="button" hidden></button>
@@ -296,14 +298,14 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610221230"></script>
-<script src="js/draw.js?v=202610221230"></script>
-<script src="js/setup.js?v=202610221230"></script>
-<script src="js/studio.js?v=202610221230"></script>
-<script src="js/record.js?v=202610221230"></script>
-<script src="js/editor.js?v=202610221230"></script>
-<script src="js/render.js?v=202610221230"></script>
-<script src="js/main.js?v=202610221230"></script>
+<script src="js/core.js?v=202610221235"></script>
+<script src="js/draw.js?v=202610221235"></script>
+<script src="js/setup.js?v=202610221235"></script>
+<script src="js/studio.js?v=202610221235"></script>
+<script src="js/record.js?v=202610221235"></script>
+<script src="js/editor.js?v=202610221235"></script>
+<script src="js/render.js?v=202610221235"></script>
+<script src="js/main.js?v=202610221235"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

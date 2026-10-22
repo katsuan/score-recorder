@@ -342,3 +342,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 
 /* 書き出し中のシート：下の操作が透けないように不透明に。上の角を丸めて、動画の下にかぶさる形 */
 .export-overlay { background: #0a120d; color: #fff; border-radius: 20px 20px 0 0; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5); }
+
+/* 撮った動画に：キーボードが出ているあいだ（チーム名などを入れるとき）は、動画を小さくして入力欄が隠れないように */
+.editor.is-typing .editor-stage { max-height: 18vh; max-height: 18dvh; }
+.editor.is-typing { padding-top: 8px; }

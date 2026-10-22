@@ -27,6 +27,8 @@ $("videoFile").addEventListener("change", (e) => {
 });
 
 function openEditor(file) {
+  // さっきの動画に点を入れていたら、別の動画にする前に確かめる（さっきの点は消える）
+  if (editUrl && editEvents.length && !confirm(`さっきの動画に入れた得点（${editEvents.length}件）は消えます。別の動画にしますか？`)) return;
   if (editUrl) URL.revokeObjectURL(editUrl);
   editUrl = URL.createObjectURL(file);
   editVideo.src = editUrl;
@@ -42,15 +44,23 @@ function openEditor(file) {
   goalFx = null;
   renderEditScore();
   renderEditEvents();
+  showEditor();
+}
+
+// 撮った動画にの画面を出す（はじめて開くときも、さっきの動画にもどるときも）
+function showEditor() {
+  renderEditScore(); // チーム名・色は、はじめの画面で変えているかもしれない
+  renderEditEvents();
   $("editFxBody").append($("fxControls")); // エフェクトの設定を、この画面の「🎉 得点のエフェクト」へ
   $("setup").hidden = true;
   $("editor").hidden = false;
   requestAnimationFrame(drawEditFrame);
 }
 
+// 「← 戻る」：選んだ動画と入れた点は消さずに残す（まちがえて押しても、はじめの画面の「🎞 さっきの動画にもどる」で続きから）
 function closeEditor() {
   if (exporting) return;
-  if (editEvents.length && !confirm("入れた得点の時間は消えます。戻りますか？")) return;
+  document.activeElement?.blur?.();
   editVideo.pause();
   $("previewFold").querySelector(".ls-fold-body").append($("fxControls")); // エフェクトの設定を、はじめの画面へもどす
   $("editor").hidden = true;
@@ -61,9 +71,44 @@ function closeEditor() {
   save();
   showSetupScore();
   showOpenSaved();
+  showResume();
   drawPreview();
 }
 $("editBack").addEventListener("click", closeEditor);
+
+// はじめの画面の「🎞 さっきの動画にもどる」：撮った動画にのタブで、さっきの動画があるときだけ
+function showResume() {
+  const later = document.querySelector('[data-mode="later"]')?.getAttribute("aria-selected") === "true";
+  $("resumeEdit").hidden = !(editUrl && later);
+  $("resumeEdit").textContent = editEvents.length ? `🎞 さっきの動画にもどる（得点 ${editEvents.length}件）` : "🎞 さっきの動画にもどる";
+}
+$("resumeEdit").addEventListener("click", showEditor);
+
+// ---- キーボードが出たとき（チーム名・エフェクトの文字を入れるとき）：画面の高さを見えているところに合わせ、動画を小さくする ----
+// iPhone はキーボードが出ると見える高さが縮むが、この画面（position: fixed・高さ 100dvh）はそのままで、ずれて崩れるため
+const editorEl = $("editor");
+function fitEditorToViewport() {
+  const vv = window.visualViewport;
+  if (!vv || editorEl.hidden) return;
+  const typing = editorEl.classList.contains("is-typing");
+  editorEl.style.height = typing ? `${vv.height}px` : "";
+  editorEl.style.top = typing ? `${vv.offsetTop}px` : "";
+}
+editorEl.addEventListener("focusin", (e) => {
+  if (!e.target.matches("input:not([type=range]):not([type=color])")) return;
+  editorEl.classList.add("is-typing");
+  fitEditorToViewport();
+  setTimeout(() => e.target.scrollIntoView({ block: "center", behavior: "smooth" }), 300); // キーボードが出きってから
+});
+editorEl.addEventListener("focusout", () => {
+  setTimeout(() => {
+    if (editorEl.contains(document.activeElement) && document.activeElement.matches("input:not([type=range]):not([type=color])")) return;
+    editorEl.classList.remove("is-typing");
+    fitEditorToViewport();
+  }, 100);
+});
+window.visualViewport?.addEventListener("resize", fitEditorToViewport);
+window.visualViewport?.addEventListener("scroll", fitEditorToViewport);
 
 // その時間までの点
 function scoreAt(t) {
