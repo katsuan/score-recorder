@@ -26,7 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、ろくがの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610221409">
+<link rel="stylesheet" href="style.css?v=202610221411">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -108,12 +108,12 @@
         <button id="tryGoal" class="chip" type="button">▶ 試す</button>
       </div>
     </div>
-    <!-- エフェクトのアイコンと文字（サッカー以外でも。文字が空なら GOAL!）。1行に [いまのアイコン ▾][文字]。
+    <!-- エフェクトのアイコンと文字（サッカー以外でも。文字が空なら GOAL!）。1行に [いまのアイコン][文字]。
          アイコンを押すと、下に選べるアイコンが横に並ぶ（カスタム・なしも） -->
     <div id="fxLabelRow" class="split">
       <span class="split-label">アイコンと文字</span>
       <div class="fx-line">
-        <button id="fxIconBtn" class="chip fx-icon-btn" type="button" aria-expanded="false" aria-controls="fxIconPicker"><span id="fxIconNow">⚽</span><i aria-hidden="true">▾</i></button>
+        <button id="fxIconBtn" class="chip fx-icon-btn" type="button" aria-expanded="false" aria-controls="fxIconPicker"><span id="fxIconNow">⚽</span></button>
         <input id="fxText" class="ls-input" maxlength="12" placeholder="GOAL!" autocomplete="off" enterkeyhint="done" aria-label="エフェクトの文字（空なら GOAL!）">
       </div>
       <div id="fxIconPicker" class="fx-icons" role="radiogroup" aria-label="エフェクトのアイコン" hidden>
@@ -311,14 +311,14 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610221409"></script>
-<script src="js/draw.js?v=202610221409"></script>
-<script src="js/setup.js?v=202610221409"></script>
-<script src="js/studio.js?v=202610221409"></script>
-<script src="js/record.js?v=202610221409"></script>
-<script src="js/editor.js?v=202610221409"></script>
-<script src="js/render.js?v=202610221409"></script>
-<script src="js/main.js?v=202610221409"></script>
+<script src="js/core.js?v=202610221411"></script>
+<script src="js/draw.js?v=202610221411"></script>
+<script src="js/setup.js?v=202610221411"></script>
+<script src="js/studio.js?v=202610221411"></script>
+<script src="js/record.js?v=202610221411"></script>
+<script src="js/editor.js?v=202610221411"></script>
+<script src="js/render.js?v=202610221411"></script>
+<script src="js/main.js?v=202610221411"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
