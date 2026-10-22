@@ -4,6 +4,8 @@
 
 公開URL: https://katsuan.github.io/score-recorder/
 
+
+はじめの画面の部品（見出しの行・使い方のタブ・チーム名の入力欄・プレビューの開閉・ボタン）は、おくるんの Q キット（`https://katsuan.github.io/line-share/shared/ui.css`。使い方はおくるんの README）。色と字は `style.css` の `:root`（`--ls-accent` など。ろくがの緑）。チームの色の丸いボタン・エフェクトの小さなチップ・撮る画面・保存の画面は、ろくがにしかない見た目なので `style.css` のまま。
 ## 使い方は2つ（はじめの画面の上のタブ）
 
 チーム名・色・プレビュー・スコアは2つで共通。

@@ -5,6 +5,19 @@
   --ink-soft: #5c6b62;
   --border: #dbe7df;
   --font: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+
+  /* Q キット（はじめの画面の見出し・タブ・入力欄・開閉・ボタン）の色と字を、ろくがの緑と丸ゴシックに */
+  --ls-accent: #2e8b4a;
+  --ls-accent-strong: #26743d;
+  --ls-accent-soft: #e6f4ea;
+  --ls-accent-ink: #1f6b38;
+  --ls-bg: #f4f7f5;
+  --ls-text: var(--ink);
+  --ls-subtext: var(--ink-soft);
+  --ls-line: var(--border);
+  --ls-line-strong: #c9d4cd;
+  --ls-font: var(--font);
+  --ls-tabs-bg: #e6eee8;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,11 +32,9 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 
 /* はじめの画面 */
 .setup { display: grid; gap: 14px; max-width: 520px; margin: 0 auto; padding: 20px 16px 40px; }
-.setup h1 { display: flex; align-items: center; gap: 8px; font-size: 22px; }
-.brand-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.setup h1 .logo { border-radius: 7px; }
-.wordmark { display: block; width: auto; height: 28px; } /* アイコン＋名前の行と同じ高さ */
-.copy { margin-top: -10px; font-size: 13px; font-weight: 700; color: var(--accent); }
+/* 見出しの行は Q キット（ls-brand）。アイコンの角だけ丸く、ひとことは緑 */
+.ls-brand-icon { width: 28px; height: 28px; border-radius: 7px; }
+.ls-brand-copy { margin-top: -10px; color: var(--accent); font-size: 13px; }
 .lead { line-height: 1.7; }
 /* チームは左右に（左のチーム・右のチーム。得点板と同じ並び） */
 .teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; }
@@ -39,13 +50,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .swap:active { transform: scale(0.94); }
 /* 撮る画面の ＋1 も左右を入れかえる */
 /* たたんだ欄（プレビュー・GOAL のエフェクト） */
-.fold { display: grid; gap: 10px; padding: 10px 12px; border: 2px solid var(--border); border-radius: 14px; background: #fff; }
-.fold summary { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 800; cursor: pointer; list-style: none; }
-.fold summary::-webkit-details-marker { display: none; }
-.fold summary::after { content: "›"; color: var(--ink-soft); transition: transform 0.2s; }
-.fold[open] summary::after { transform: rotate(90deg); }
-.fold[open] { gap: 10px; }
-.fold[open] > :not(summary) { margin-top: 8px; }
+/* プレビューの開閉は Q キット（ls-fold）。見出しの右に、エフェクトが ON かどうか */
 .fold-title { flex: 1; min-width: 0; }
 .meta { white-space: nowrap; font-size: 11px; font-weight: 800; color: #fff; background: var(--accent); border-radius: 999px; padding: 1px 8px; }
 .meta:empty { display: none; }
@@ -67,8 +72,8 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .chip.color.is-custom input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; font-size: 16px; }
 .team-shared { margin-top: -6px; text-align: center; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-.btn { display: grid; place-items: center; min-height: 52px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--accent); color: #fff; font: inherit; font-size: 17px; font-weight: 800; text-decoration: none; cursor: pointer; }
-.btn.ghost { background: #fff; color: var(--ink); border: 2px solid var(--border); }
+/* ボタンは Q キット（ls-button）。押しやすいよう大きめ */
+.ls-button.is-block { min-height: 52px; font-size: 17px; font-weight: 800; }
 .mid-score { cursor: pointer; border-radius: 8px; padding: 0 4px; }
 .mid-score:hover, .mid-score:focus-visible { background: rgba(0, 0, 0, 0.05); outline: none; }
 /* スコアを変えるとき：各チームの下に − 点 ＋ */
@@ -206,9 +211,9 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .guide { padding: 8px 12px; border-radius: 10px; background: #eef7f0; color: var(--ink); font-size: 13px; font-weight: 700; line-height: 1.5; }
 
 /* 使い方のタブ：撮る／あとから付ける */
-.mode-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: #e6eee8; }
-.mode-tabs button { min-height: 40px; border: 0; border-radius: 10px; background: none; color: var(--ink-soft); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
-.mode-tabs button[aria-selected="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+/* 使い方のタブは Q キット（ls-tabs）。2つを等分に。はじめの画面の中なので、上にはりつけない */
+.mode-tabs { position: static; grid-template-columns: 1fr 1fr; margin: 0; }
+.mode-tabs .ls-tab { min-height: 40px; font-size: 14px; }
 
 /* あとから付ける：動画に得点の時間を入れる画面 */
 /* 画面の高さいっぱいに、上から「戻る」・動画（大きさは固定）・操作（この欄の中だけ動く）。行がふえても動画は縮まず、動かない */

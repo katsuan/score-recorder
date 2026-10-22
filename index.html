@@ -24,21 +24,23 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610220108">
+<!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、ろくがの色に -->
+<link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
+<link rel="stylesheet" href="style.css?v=202610221020">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
 <main id="setup" class="setup">
   <!-- 見出しは1行：アイコン＋名前（左）と、横長のロゴ（右。R の足が o のボールを蹴る。tools/logo_ro.py）。さくせん盤と同じ形 -->
-  <div class="brand-row">
-    <h1><img class="logo" src="icon.svg" alt="" width="28" height="28">ろくが</h1>
-    <img class="wordmark" src="logo.svg" alt="RoQga" height="28">
+  <div class="ls-brand">
+    <h1 class="ls-brand-name"><img class="ls-brand-icon" src="icon.svg" alt="" width="28" height="28">ろくが</h1>
+    <img class="ls-brand-logo" src="logo.svg" alt="RoQga" height="28">
   </div>
-  <p class="copy">撮った試合も、取った点も、とっておき</p>
+  <p class="ls-brand-copy">撮った試合も、取った点も、とっておき</p>
   <!-- 2つの使い方：いま撮る（カメラ）／撮っておいた動画に、あとから得点板を付ける。チーム・色・プレビューは共通 -->
-  <div class="mode-tabs" role="tablist" aria-label="使い方">
-    <button type="button" role="tab" data-mode="shoot" aria-selected="true">📹 撮る</button>
-    <button type="button" role="tab" data-mode="later" aria-selected="false">🎞 あとから付ける</button>
+  <div class="ls-tabs mode-tabs" role="tablist" aria-label="使い方">
+    <button class="ls-tab" type="button" role="tab" data-mode="shoot" aria-selected="true">📹 撮る</button>
+    <button class="ls-tab" type="button" role="tab" data-mode="later" aria-selected="false">🎞 あとから付ける</button>
   </div>
   <p class="lead" data-mode-only="shoot">スマホを<b>横</b>にして、得点板つきで撮ります。</p>
   <p class="lead" data-mode-only="later" hidden>撮った動画に、あとから得点板を入れます。</p>
@@ -48,7 +50,7 @@
   <div class="teams">
     <div class="team-col" data-side="us">
       <label for="teamUs" data-side-label="us">左のチーム</label>
-      <input id="teamUs" maxlength="12" placeholder="チーム名" data-side-name="us">
+      <input id="teamUs" class="ls-input" maxlength="12" placeholder="チーム名" data-side-name="us">
       <div class="chips colors" data-colors="us" role="group" aria-label="左のチームの色" data-side-aria="us:の色"></div>
       <div class="score-step" aria-label="左のチームの点" data-side-aria="us:の点">
         <button type="button" data-step="us" data-delta="-1" aria-label="左のチームの点を1へらす" data-side-aria="us:の点を1へらす">−</button>
@@ -64,7 +66,7 @@
     </div>
     <div class="team-col" data-side="them">
       <label for="teamThem" data-side-label="them">右のチーム</label>
-      <input id="teamThem" maxlength="12" placeholder="チーム名" data-side-name="them">
+      <input id="teamThem" class="ls-input" maxlength="12" placeholder="チーム名" data-side-name="them">
       <div class="chips colors" data-colors="them" role="group" aria-label="右のチームの色" data-side-aria="them:の色"></div>
       <div class="score-step" aria-label="右のチームの点" data-side-aria="them:の点">
         <button type="button" data-step="them" data-delta="-1" aria-label="右のチームの点を1へらす" data-side-aria="them:の点を1へらす">−</button>
@@ -81,8 +83,9 @@
   </p>
   <p class="hint team-shared">チーム名・色は、さくせん盤と共通です。</p>
   <!-- 得点板のプレビューと GOAL のエフェクト：たたんだ欄（開くと、動画に入る得点板を見ておける。エフェクトははじめから出す（「出さない」にもできる）） -->
-  <details id="previewFold" class="fold">
-    <summary><span class="fold-title">👀 プレビュー・得点のエフェクト</span><span id="fxMeta" class="meta"></span></summary>
+  <details id="previewFold" class="ls-fold">
+    <summary><span class="ls-fold-icon" aria-hidden="true">👀</span><span class="fold-title">プレビュー・得点のエフェクト</span><span id="fxMeta" class="meta"></span></summary>
+    <div class="ls-fold-body">
     <div class="preview-frame">
       <canvas id="preview" class="preview" width="1280" height="720" aria-label="得点板のプレビュー"></canvas>
       <span class="preview-tag">プレビュー</span>
@@ -113,15 +116,16 @@
     </div>
     <label class="split">
       <span class="split-label">文字</span>
-      <input id="fxText" maxlength="12" placeholder="GOAL!" autocomplete="off" enterkeyhint="done">
+      <input id="fxText" class="ls-input" maxlength="12" placeholder="GOAL!" autocomplete="off" enterkeyhint="done">
     </label>
+    </div>
   </details>
-  <button id="openCamera" class="btn" type="button" data-mode-only="shoot">📹 カメラを開く</button>
+  <button id="openCamera" class="ls-button is-primary is-block" type="button" data-mode-only="shoot">📹 カメラを開く</button>
   <!-- あとから付ける：端末の動画を選ぶ（動画はこの端末の中だけで使う） -->
-  <button id="pickVideo" class="btn" type="button" data-mode-only="later" hidden>🎞 動画を選ぶ</button>
+  <button id="pickVideo" class="ls-button is-primary is-block" type="button" data-mode-only="later" hidden>🎞 動画を選ぶ</button>
   <input id="videoFile" type="file" accept="video/*" hidden>
   <!-- 録った動画があるときだけ：保存の画面をもう一度開く（はじめの画面にもどっても、0 - 0 から撮りなおすまで残っている） -->
-  <button id="openSaved" class="btn ghost" type="button" hidden></button>
+  <button id="openSaved" class="ls-button is-block" type="button" hidden></button>
   <p id="setupError" class="error" hidden></p>
   <p class="hint" data-mode-only="shoot">動画はこの端末の中だけ。撮っているあいだは、ほかのアプリに切りかえないでください。</p>
   <p class="hint" data-mode-only="later" hidden>動画はこの端末の中だけ。書き出すあいだは、ほかのアプリに切りかえないでください。</p>
@@ -181,7 +185,7 @@
       <li><b>⭐ ナイス</b>：おしい場面・いいプレーをハイライトに</li>
       <li><b>右上の ●●●</b>：＋1 を左右に寄せる（片手で押しやすく）</li>
     </ul>
-    <button id="tipOk" class="btn" type="button">わかった</button>
+    <button id="tipOk" class="ls-button is-primary is-block" type="button">わかった</button>
   </div>
 </section>
 
@@ -218,7 +222,7 @@
     <button type="button" role="radio" data-range="all" aria-checked="true">全部</button>
     <button type="button" role="radio" data-range="goals" aria-checked="false">⚡ ハイライト</button>
   </div>
-  <button id="editExport" class="btn" type="button">📼 得点板つきで書き出す</button>
+  <button id="editExport" class="ls-button is-primary is-block" type="button">📼 得点板つきで書き出す</button>
   <p class="hint editor-hint">点が入ったところで ＋1。書き出すあいだは、この画面のままで。</p>
   </div>
 </section>
@@ -228,7 +232,7 @@
   <p id="exportTitle" class="export-title">書き出し中…</p>
   <p id="exportProg" class="export-prog"></p>
   <p class="hint">終わるまで、この画面のままにしてください。</p>
-  <button id="exportCancel" class="btn ghost" type="button">やめる</button>
+  <button id="exportCancel" class="ls-button is-block" type="button">やめる</button>
 </div>
 
 <!-- 録画を止めたあと：保存・共有 -->
@@ -252,10 +256,10 @@
       </div>
       <!-- 録った動画（5分ごとに分けたときは何本か）。押すと上で見返せる -->
       <div id="clipList" class="clip-list"></div>
-      <button id="shareAll" class="btn" type="button" hidden>📤 まとめて保存・共有</button>
+      <button id="shareAll" class="ls-button is-primary is-block" type="button" hidden>📤 まとめて保存・共有</button>
       <p id="sharedNote" class="shared-note" hidden>✓ 共有できました</p>
       <!-- 得点ハイライト：撮っているあいだに ＋1 を押した時間の前後（10秒前〜6秒後）だけをつないで1本に（得点板はもう入っている） -->
-      <button id="makeHighlight" class="btn ghost" type="button" hidden>⚡ 得点ハイライトを作る</button>
+      <button id="makeHighlight" class="ls-button is-block" type="button" hidden>⚡ 得点ハイライトを作る</button>
       <!-- 次はどうする？：3つから選ぶ。それぞれ、押すとどうなるかを1行で。
            続きを撮る（同じチーム・スコアそのまま）／同じチームで 0 - 0 から（次の試合）／はじめの画面へ（チームを変える）。
            どれを選んでも動画は消さない（消すのは動画の行の 🗑。ページを閉じる・更新すると、どのみち消える）。
@@ -267,20 +271,20 @@
         <button id="toSetup" class="next-btn" type="button"><b>🏠 はじめの画面へ</b><span>チーム・色を変える（動画は残ります）</span></button>
       </div>
       <!-- はじめの画面の「🎞 録った動画」から開いたときは、閉じるだけ -->
-      <button id="closeSheetOnly" class="btn ghost" type="button" hidden>閉じる</button>
+      <button id="closeSheetOnly" class="ls-button is-block" type="button" hidden>閉じる</button>
     </div>
   </div>
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610220108"></script>
-<script src="js/draw.js?v=202610220108"></script>
-<script src="js/setup.js?v=202610220108"></script>
-<script src="js/studio.js?v=202610220108"></script>
-<script src="js/record.js?v=202610220108"></script>
-<script src="js/editor.js?v=202610220108"></script>
-<script src="js/render.js?v=202610220108"></script>
-<script src="js/main.js?v=202610220108"></script>
+<script src="js/core.js?v=202610221020"></script>
+<script src="js/draw.js?v=202610221020"></script>
+<script src="js/setup.js?v=202610221020"></script>
+<script src="js/studio.js?v=202610221020"></script>
+<script src="js/record.js?v=202610221020"></script>
+<script src="js/editor.js?v=202610221020"></script>
+<script src="js/render.js?v=202610221020"></script>
+<script src="js/main.js?v=202610221020"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
