@@ -245,7 +245,11 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .editor-bar { display: flex; align-items: center; gap: 10px; }
 .editor-title { font-weight: 800; }
 /* 動画の枠：横はいっぱい、高さは動画の縦横比（--ar。動画を読んだら app.js で入れる）で決め、画面の半分まで。動画は枠の中にまるごと（はみ出さない） */
-.editor-stage { grid-area: stage; justify-self: center; width: 100%; max-height: 46vh; max-height: 46dvh; aspect-ratio: var(--ar, 16 / 9); border-radius: 12px; overflow: hidden; background: #000; }
+/* 高さの上限（--stage-h）に当たったときは、横幅も縦横比（--arn）から決める（横だけ広がって、左右に黒い帯が出ないように） */
+.editor-stage { --stage-h: 46vh; grid-area: stage; justify-self: center; width: min(100%, calc(var(--stage-h) * var(--arn, 1.7778))); max-height: var(--stage-h); aspect-ratio: var(--ar, 16 / 9); border-radius: 12px; overflow: hidden; background: #000; }
+@supports (height: 1dvh) { .editor-stage { --stage-h: 46dvh; } }
+/* タブレットなど幅の広い縦の画面：横に伸ばしすぎず、まんなかに 720px の列で */
+@media (min-width: 760px) { .editor { padding-left: max(16px, calc((100vw - 720px) / 2)); padding-right: max(16px, calc((100vw - 720px) / 2)); } }
 .edit-screen { display: block; width: 100%; height: 100%; object-fit: contain; }
 .src-video { position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; } /* 絵は canvas に描くので、元の動画は見せない。opacity 0 だと、重い動画でブラウザがコマを出さなくなり、コマごとの合図（requestVideoFrameCallback）も来ないので 0.01 */
 .editor-controls { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
@@ -297,7 +301,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* 横の画面（高さが低い）では、左に動画（高さいっぱい）、右に「戻る」と操作（右の欄の中だけ動く） */
 @media (orientation: landscape) and (max-height: 560px) {
   .editor { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "stage bar" "stage side"; column-gap: 14px; padding: calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 0 calc(12px + env(safe-area-inset-left)); }
-  .editor-stage { align-self: start; width: 100%; height: auto; max-height: calc(100dvh - 20px); }
+  .editor-stage { --stage-h: calc(100dvh - 20px); align-self: start; height: auto; }
 }
 
 /* ① 横向きにしての画面からも、はじめの画面へ */
@@ -372,7 +376,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .export-peek { border: 3px solid #e5484d; animation: rec-edge 2s ease-in-out infinite; }
 
 /* 撮った動画に：キーボードが出ているあいだ（チーム名などを入れるとき）は、動画を小さくして入力欄が隠れないように */
-.editor.is-typing .editor-stage { max-height: 18vh; max-height: 18dvh; }
+.editor.is-typing .editor-stage { --stage-h: 18dvh; }
 .editor.is-typing { padding-top: 8px; }
 
 /* 何を書き出す？：できあがりで選ぶ3つ（アイコン・名前と説明・長さの目安） */
@@ -402,3 +406,32 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
   :root[data-ls-dark="auto"] .chip.color { border-color: rgba(255, 255, 255, 0.3); }
   :root[data-ls-dark="auto"] .chip.color[aria-pressed="true"] { box-shadow: 0 0 0 2px #1b211d, 0 0 0 4px var(--accent); }
 }
+
+/* ---- PC など、横も高さもある画面 ----
+ * 撮った動画に：左に動画（高さいっぱいまで大きく）、右に操作の列（幅は固定。この列の中だけ動く）。
+ * 横に伸ばしすぎないよう、全体は 1600px まで。
+ * 保存のシート：左に見返し、右に保存・次の行き先。
+ */
+@media (min-width: 900px) and (min-height: 561px) {
+  .editor { grid-template-columns: minmax(0, 1fr) clamp(340px, 30vw, 420px); grid-template-rows: auto auto auto minmax(0, 1fr); grid-template-areas: "bar bar" "stage side" "transport side" ". side"; column-gap: 24px; row-gap: 12px; padding: 16px max(24px, calc((100vw - 1600px) / 2)) 0; }
+  .editor-side { grid-row: 2 / -1; }
+  /* 動画の下に再生の操作（約 130px）を置くぶん、動画の高さを残す */
+  .editor-stage { --stage-h: calc(100dvh - 230px); align-self: start; }
+  .editor-transport { grid-area: transport; justify-self: center; width: min(100%, calc(var(--stage-h) * var(--arn, 1.7778))); }
+  .editor-side { padding-right: 6px; scrollbar-width: thin; }
+
+  .sheet-card { width: min(1040px, 100%); grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); column-gap: 20px; padding: 20px; }
+  .playback { max-height: min(560px, calc(100dvh - 160px)); }
+  .sheet-side { max-height: calc(100dvh - 72px); overflow-y: auto; padding-right: 4px; scrollbar-width: thin; }
+}
+/* 再生の操作のまとまり（スマホでは操作の欄の中に、そのまま並ぶ） */
+.editor-transport { display: grid; gap: 12px; }
+/* ショートカットの案内は、マウスで使う画面だけ */
+.key-hint { display: none; flex-wrap: wrap; gap: 4px 14px; margin: -2px 0 0; color: rgba(255, 255, 255, 0.6); font-size: 12px; font-weight: 700; }
+@media (hover: hover) and (pointer: fine) { .key-hint { display: flex; } }
+.key-hint > span { white-space: nowrap; }
+:root.no-board .key-hint .with-board { display: none; }
+:root.no-board .key-hint .without-board { display: inline; }
+.key-hint kbd { display: inline-block; min-width: 1.6em; margin-right: 2px; padding: 0 4px; border: 1px solid rgba(255, 255, 255, 0.3); border-bottom-width: 2px; border-radius: 5px; background: rgba(255, 255, 255, 0.08); color: #fff; font: inherit; font-size: 11px; text-align: center; }
+/* キーで押したボタンも、押せたことが分かるように光らせる */
+.edit-side button.is-key, .mark-wide.is-key { animation: hit 0.45s ease-out; }

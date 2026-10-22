@@ -28,7 +28,7 @@
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、ろくがの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
 <script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610221446">
+<link rel="stylesheet" href="style.css?v=202610230110">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -218,6 +218,8 @@
   <video id="editVideo" class="src-video" playsinline preload="auto"></video>
   <!-- 操作：この欄の中だけ上下に動く（動画は動かない） -->
   <div class="editor-side">
+  <!-- 再生の操作（再生・位置・時間、10秒・速さ）。スマホでは操作の欄の中、PC では動画のすぐ下（editor.js の placeTransport） -->
+  <div id="editTransport" class="editor-transport">
   <div class="editor-controls">
     <button id="editPlay" class="play-btn" type="button" aria-label="再生">▶</button>
     <input id="editSeek" class="edit-seek" type="range" min="0" max="1000" value="0" aria-label="動画の位置">
@@ -228,6 +230,9 @@
     <button class="jump-btn" type="button" data-jump="-10" aria-label="10秒もどる">↺ 10秒</button>
     <label class="rate-field"><span class="sr">再生の速さ</span><input id="editRate" type="range" min="0.5" max="4" step="0.25" value="1"><b id="editRateLabel">1×</b></label>
     <button class="jump-btn" type="button" data-jump="10" aria-label="10秒進む">10秒 ↻</button>
+  </div>
+  <!-- PC のショートカット（マウスで使う画面だけ出す） -->
+  <p class="key-hint" aria-label="ショートカット"><span><kbd>Space</kbd> 再生・止める</span><span><kbd>←</kbd><kbd>→</kbd> 10秒（<kbd>Shift</kbd> で2秒）</span><span><kbd>↑</kbd><kbd>↓</kbd> 速さ</span><span class="with-board"><kbd>1</kbd><kbd>2</kbd> 左・右に＋1</span><span class="without-board"><kbd>1</kbd> GOAL</span><span><kbd>Shift</kbd>＋数字で −1</span><span><kbd>N</kbd> ⭐ ナイス</span></p>
   </div>
   <!-- 点が入ったところで ＋1（左右は得点板と同じ並び。ボタンはチームの色）。まちがえたら −1 か、下の一覧の ✕ -->
   <div id="editSides" class="edit-score"></div>
@@ -313,14 +318,14 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610221446"></script>
-<script src="js/draw.js?v=202610221446"></script>
-<script src="js/setup.js?v=202610221446"></script>
-<script src="js/studio.js?v=202610221446"></script>
-<script src="js/record.js?v=202610221446"></script>
-<script src="js/editor.js?v=202610221446"></script>
-<script src="js/render.js?v=202610221446"></script>
-<script src="js/main.js?v=202610221446"></script>
+<script src="js/core.js?v=202610230110"></script>
+<script src="js/draw.js?v=202610230110"></script>
+<script src="js/setup.js?v=202610230110"></script>
+<script src="js/studio.js?v=202610230110"></script>
+<script src="js/record.js?v=202610230110"></script>
+<script src="js/editor.js?v=202610230110"></script>
+<script src="js/render.js?v=202610230110"></script>
+<script src="js/main.js?v=202610230110"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

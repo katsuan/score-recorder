@@ -211,7 +211,9 @@ const showEditTime = () => {
 ["timeupdate", "loadedmetadata", "play", "pause", "seeked"].forEach((type) => editVideo.addEventListener(type, showEditTime));
 // 動画の縦横比を、動画の枠の大きさに使う（枠は縮まず、動画は枠の中にまるごと入る）
 editVideo.addEventListener("loadedmetadata", () => {
-  if (editVideo.videoWidth && editVideo.videoHeight) $("editor").style.setProperty("--ar", `${editVideo.videoWidth} / ${editVideo.videoHeight}`);
+  if (!editVideo.videoWidth || !editVideo.videoHeight) return;
+  $("editor").style.setProperty("--ar", `${editVideo.videoWidth} / ${editVideo.videoHeight}`);
+  $("editor").style.setProperty("--arn", String(editVideo.videoWidth / editVideo.videoHeight)); // 枠の高さに上限があるとき、横幅を縦横比から計算する（style.css）
 });
 // ブラウザで録った webm（Android のろくがの動画など）は長さが入っていない（Infinity）ことがある。
 // いちど最後まで飛ばすと長さが分かるので、分かったら最初にもどす
@@ -237,12 +239,57 @@ $("editRate").addEventListener("input", (e) => {
 });
 // 10秒もどる・進む（速く流して得点を通りすぎたとき）。動かしただけでは GOAL を出さない
 document.querySelectorAll("[data-jump]").forEach((b) =>
-  b.addEventListener("click", () => {
-    const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
-    editVideo.currentTime = Math.max(0, Math.min(d || Infinity, editVideo.currentTime + Number(b.dataset.jump)));
-    editLastT = editVideo.currentTime;
-  })
+  b.addEventListener("click", () => jumpBy(Number(b.dataset.jump)))
 );
+// PC：再生の操作（再生・位置・時間、10秒・速さ、ショートカットの案内）を動画のすぐ下へ。スマホ・タブレットでは操作の欄の中
+// （この条件は style.css の「PC など、横も高さもある画面」と同じ）
+const wideEditor = window.matchMedia("(min-width: 900px) and (min-height: 561px)");
+function placeTransport() {
+  const transport = $("editTransport");
+  if (wideEditor.matches) $("editor").querySelector(".editor-stage").after(transport);
+  else $("editor").querySelector(".editor-side").prepend(transport);
+}
+wideEditor.addEventListener("change", placeTransport);
+placeTransport();
+
+// PC のショートカット（文字を入れているとき・書き出し中は使わない）
+//   Space：再生・止める　← →：10秒（Shift で2秒）　↑ ↓：速さ
+//   1・2：左・右のチームに ＋1（得点板なしのときは 1 で GOAL）　Shift＋数字：−1　N：⭐ ナイス
+function jumpBy(sec) {
+  const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
+  editVideo.currentTime = Math.max(0, Math.min(d || Infinity, editVideo.currentTime + sec));
+  editLastT = editVideo.currentTime; // 動かしただけでは GOAL を出さない
+}
+function pressByKey(button) {
+  if (!button) return;
+  button.click();
+  button.classList.remove("is-key");
+  void button.offsetWidth; // 続けて押しても光るように
+  button.classList.add("is-key");
+}
+document.addEventListener("keydown", (e) => {
+  if (editorEl.hidden || exporting || e.metaKey || e.ctrlKey || e.altKey || e.repeat && /^Digit|^Numpad|KeyN/.test(e.code)) return;
+  if (e.target.closest?.("input:not([type=range]), textarea, select, [contenteditable]")) return;
+  const sides = $("editSides").querySelectorAll(".edit-side");
+  const num = { Digit1: 0, Numpad1: 0, Digit2: 1, Numpad2: 1 }[e.code];
+  if (e.key === " " || e.code === "Space") {
+    if (e.target.closest?.("button, summary")) return; // ボタンにフォーカスがあるときは、そのボタンを押す
+    $("editPlay").click();
+  } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    jumpBy((e.key === "ArrowLeft" ? -1 : 1) * (e.shiftKey ? 2 : 10));
+  } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+    const rate = $("editRate");
+    rate.value = String(Math.max(Number(rate.min), Math.min(Number(rate.max), Number(rate.value) + (e.key === "ArrowUp" ? 0.25 : -0.25))));
+    rate.dispatchEvent(new Event("input"));
+  } else if (num !== undefined && sides[num]) {
+    pressByKey(sides[num].querySelector(e.shiftKey ? ".minus" : ".plus"));
+  } else if (e.code === "KeyN") {
+    pressByKey($("editMark"));
+  } else return;
+  e.preventDefault();
+  if (e.target.matches?.("input[type=range]")) e.target.blur(); // バーにフォーカスが残って、矢印がバーを動かさないように
+});
+
 // 何を書き出す？：全部（exportRange "all"）／⚡ ハイライト（"goals"）。得点板を出すかは「🎉 得点板と演出」で
 const chosenExport = () => (exportRange === "all" ? "all" : "hl");
 document.querySelectorAll("[data-export-mode]").forEach((b) =>
