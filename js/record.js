@@ -80,9 +80,10 @@ function startRecording() {
 // 録画をはじめる（カメラの画面でも、撮った動画にの書き出しでも同じ）：canvas の絵と音を、5分ごとに分けて録る
 // kind：shot（カメラで撮る）・edit（撮った動画にの書き出し）・highlight（得点ハイライト）
 let recKind = "shot";
-function beginRecording(canvas, audioTracks, kind = "shot") {
+// manualFrames：canvas を「描いたときだけ1コマ」録る（書き出しで、動画のコマごとに requestFrame する。editor.js の startFrameSync）
+function beginRecording(canvas, audioTracks, kind = "shot", { manualFrames = false } = {}) {
   recKind = kind;
-  recordStream = canvas.captureStream(30);
+  recordStream = canvas.captureStream(manualFrames ? 0 : 30);
   audioTracks.forEach((t) => recordStream.addTrack(t));
   mimeType = pickMimeType();
   take += 1; // 前の動画は消さない（続きを撮るとき）

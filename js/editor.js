@@ -119,39 +119,65 @@ function scoreAt(t) {
   return score;
 }
 
-// 毎コマ：動画の絵 ＋ その時間の得点板 ＋（点が入った時間を通ったら）GOAL のエフェクト
 let rendering = false; // 書き出し中（撮った動画に（得点板をつける）・得点ハイライト）
 let renderOverlay = true; // 得点板・GOAL を描くか（得点ハイライトは、動画にもう入っているので描かない）
+
+// 毎コマ描く（撮った動画にの画面・書き出し）。書き出しで frameSync のときは、動画のコマごとに paintEditFrame を呼ぶ（下の startFrameSync）
 function drawEditFrame() {
   if ($("editor").hidden && !rendering) return;
+  if (!(rendering && frameSync)) paintEditFrame();
+  requestAnimationFrame(drawEditFrame);
+}
+
+// 1コマ描く：動画の絵 ＋ その時間の得点板 ＋（点が入った時間を通ったら）GOAL のエフェクト ＋ つなぎ目の柄。t は動画の時間
+function paintEditFrame(t = editVideo.currentTime) {
   const vw = editVideo.videoWidth;
   const vh = editVideo.videoHeight;
-  if (vw && vh) {
-    if (editScreen.width !== vw || editScreen.height !== vh) {
-      editScreen.width = vw;
-      editScreen.height = vh;
-    }
-    const t = editVideo.currentTime;
-    if (!renderOverlay) {
-      editCtx.drawImage(editVideo, 0, 0, vw, vh);
-      drawPieceTransition(vw, vh, t);
-      requestAnimationFrame(drawEditFrame);
-      return;
-    }
-    const score = scoreAt(t);
-    state.us = score.us;
-    state.them = score.them;
-    if (state.goalFx && t > editLastT && t - editLastT < 1) {
-      const passed = editEvents.find((ev) => ev.delta > 0 && ev.t > editLastT && ev.t <= t);
-      if (passed) goalFx = { side: passed.key, at: performance.now() };
-    }
-    editLastT = t;
-    editCtx.drawImage(editVideo, 0, 0, vw, vh);
-    drawScoreboard(vw, vh, editCtx); // 「得点板：出さない」のときは描かない（draw.js）
-    drawGoalFx(vw, vh, editCtx);
-    drawPieceTransition(vw, vh, t);
+  if (!vw || !vh) return;
+  if (editScreen.width !== vw || editScreen.height !== vh) {
+    editScreen.width = vw;
+    editScreen.height = vh;
   }
-  requestAnimationFrame(drawEditFrame);
+  if (!renderOverlay) {
+    editCtx.drawImage(editVideo, 0, 0, vw, vh);
+    drawPieceTransition(vw, vh, t);
+    return;
+  }
+  const score = scoreAt(t);
+  state.us = score.us;
+  state.them = score.them;
+  if (state.goalFx && t > editLastT && t - editLastT < 1) {
+    const passed = editEvents.find((ev) => ev.delta > 0 && ev.t > editLastT && ev.t <= t);
+    if (passed) goalFx = { side: passed.key, at: performance.now() };
+  }
+  editLastT = t;
+  editCtx.drawImage(editVideo, 0, 0, vw, vh);
+  drawScoreboard(vw, vh, editCtx); // 「得点板：出さない」のときは描かない（draw.js）
+  drawGoalFx(vw, vh, editCtx);
+  drawPieceTransition(vw, vh, t);
+}
+
+// ---- 書き出しのカクつきをなくす：動画の1コマが出るたびに描いて、その1コマを録る ----
+// これまでは画面の描き直し（60回／秒）で描いて 30コマ／秒で録っていたので、同じコマが2回入ったり1コマ抜けたりした。
+// requestVideoFrameCallback（動画のコマが出たとき）と、canvas の録画を「描いたときだけ1コマ」（captureStream(0)＋requestFrame）にする。
+// どちらかが使えない古いブラウザでは、これまでどおり（frameSync は false）。
+// いまは試しているところなので、URL に ?framesync=1 を付けて開いたときだけ使う（iPhone の Safari で確かめてから、ふだんも使う）
+let frameSync = false;
+const FRAME_SYNC_TRIAL = new URLSearchParams(location.search).has("framesync");
+const canSyncFrames = () =>
+  FRAME_SYNC_TRIAL &&
+  typeof HTMLVideoElement !== "undefined" &&
+  typeof HTMLVideoElement.prototype.requestVideoFrameCallback === "function" &&
+  typeof window.CanvasCaptureMediaStreamTrack === "function" &&
+  "requestFrame" in window.CanvasCaptureMediaStreamTrack.prototype;
+function startFrameSync() {
+  const onFrame = (now, meta) => {
+    if (!rendering || !frameSync) return;
+    paintEditFrame(meta.mediaTime);
+    recordStream?.getVideoTracks()[0]?.requestFrame?.();
+    editVideo.requestVideoFrameCallback(onFrame);
+  };
+  editVideo.requestVideoFrameCallback(onFrame);
 }
 
 // ⚡ ハイライトの書き出し中：つなぎ目の前後に柄（draw.js の drawTransition）。

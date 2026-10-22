@@ -38,7 +38,9 @@ async function renderPieces(pieces, { overlay, kind, title }) {
     editLastT = a;
     goalFx = null;
     if (!started) {
-      beginRecording(editScreen, audioDest ? audioDest.stream.getAudioTracks() : [], kind);
+      frameSync = canSyncFrames(); // 動画のコマごとに描いて録る（カクつかない）。使えないブラウザはこれまでどおり
+      beginRecording(editScreen, audioDest ? audioDest.stream.getAudioTracks() : [], kind, { manualFrames: frameSync });
+      if (frameSync) startFrameSync();
       started = true;
     } else if (recorder?.state === "paused") {
       recorder.resume();
@@ -163,6 +165,7 @@ window.addEventListener("beforeunload", (e) => {
 
 function finishExport() {
   piecePlan = null;
+  frameSync = false;
   clearInterval(tipTimer);
   if (!exporting) return;
   exporting = false;
