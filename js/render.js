@@ -21,6 +21,7 @@ async function renderPieces(pieces, { overlay, kind, title }) {
   $("exportTitle").textContent = title;
   startExportWait();
   $("exportOverlay").hidden = false;
+  $("editor").classList.add("is-exporting"); // 動画の枠を赤く（録画中と同じ）
   if ($("editor").hidden) requestAnimationFrame(drawEditFrame); // 撮った動画にの画面では、もう描きつづけている
   await keepScreenOn();
   const total = pieces.reduce((sum, p) => sum + (p.b - p.a), 0);
@@ -169,6 +170,7 @@ window.addEventListener("beforeunload", (e) => {
 });
 
 function finishExport() {
+  $("editor").classList.remove("is-exporting");
   piecePlan = null;
   frameSync = false;
   clearInterval(tipTimer);
