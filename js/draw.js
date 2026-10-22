@@ -105,8 +105,10 @@ function drawGoalFx(w, h, c = screenCtx) {
   c.fillStyle = "#ffffff";
   c.fillRect(0, y - 5 * s, w, 5 * s);
   c.fillRect(0, y + bandH, w, 5 * s);
-  // GOAL! と、下にチーム名・新しいスコア
-  c.translate(w / 2, h / 2 - 18 * s);
+  // GOAL! と、下にチーム名・新しいスコア（下の行がないとき＝得点板なしは、GOAL! を帯のまんなかに）
+  const [left, right] = state.swapped ? [state.them, state.us] : [state.us, state.them];
+  const sub = goalFx.trial ? "（お試し）" : team ? `${left} - ${right}` : "";
+  c.translate(w / 2, h / 2 - (sub ? 18 * s : 0));
   c.scale(pop, pop);
   c.textAlign = "center";
   c.textBaseline = "middle";
@@ -128,8 +130,6 @@ function drawGoalFx(w, h, c = screenCtx) {
   c.font = font(34 * s);
   // スコアは左上の得点板と同じ左右の並び（⇄ で入れかえたときは them が左）。
   // ▶ 試す・アイコンや文字を変えたときの見本（trial）は点を入れないので、スコアの代わりに「（お試し）」
-  const [left, right] = state.swapped ? [state.them, state.us] : [state.us, state.them];
-  const sub = goalFx.trial ? "（お試し）" : team ? `${left} - ${right}` : "";
   if (sub) c.fillText(`${name ? `${name}　` : ""}${sub}`, w / 2, h / 2 + 62 * s);
   c.restore();
 }
