@@ -210,7 +210,7 @@ function drawPreview() {
 }
 document.querySelectorAll(".team-col input").forEach((input) => input.addEventListener("input", drawPreview));
 
-// ---- 使い方のタブ：撮る／あとから付ける（チーム・色・プレビュー・スコアは共通） ----
+// ---- 使い方のタブ：撮る／撮った動画に（得点板をつける）（チーム・色・プレビュー・スコアは共通） ----
 document.querySelectorAll("[data-mode]").forEach((tab) =>
   tab.addEventListener("click", () => {
     const mode = tab.dataset.mode;

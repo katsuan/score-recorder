@@ -1,4 +1,4 @@
-// ろくが：描く（得点板・GOAL のエフェクト）。撮る画面・プレビュー・あとから付けるで共通に使う。
+// ろくが：描く（得点板・GOAL のエフェクト）。撮る画面・プレビュー・撮った動画に（得点板をつける）で共通に使う。
 // 読み込む順は index.html（core → draw → setup → studio → record → editor → render → main）。
 "use strict";
 

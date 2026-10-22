@@ -1,4 +1,4 @@
-// ろくが：書き出し（あとから付ける・⚡ ハイライトで共通）と、撮るときの ⚡ ハイライト。
+// ろくが：書き出し（撮った動画に（得点板をつける）・⚡ ハイライトで共通）と、撮るときの ⚡ ハイライト。
 // 読み込む順は index.html（core → draw → setup → studio → record → editor → render → main）。
 "use strict";
 
@@ -20,7 +20,7 @@ async function renderPieces(pieces, { overlay, kind, title }) {
   renderOverlay = overlay;
   $("exportTitle").textContent = title;
   $("exportOverlay").hidden = false;
-  if ($("editor").hidden) requestAnimationFrame(drawEditFrame); // あとから付けるの画面では、もう描きつづけている
+  if ($("editor").hidden) requestAnimationFrame(drawEditFrame); // 撮った動画にの画面では、もう描きつづけている
   await keepScreenOn();
   const total = pieces.reduce((sum, p) => sum + (p.b - p.a), 0);
   let done = 0;
@@ -58,7 +58,7 @@ async function renderPieces(pieces, { overlay, kind, title }) {
   finishExport();
 }
 
-// あとから付ける：選んだ範囲を、得点板つきで書き出す（終わったら保存の画面は「閉じる」だけ）
+// 撮った動画に（得点板をつける）：選んだ範囲を、得点板つきで書き出す（終わったら保存の画面は「閉じる」だけ）
 async function exportVideo() {
   if (!Number.isFinite(editVideo.duration) || !editVideo.duration) return alert("動画の長さが分かりません。少し待ってから、もう一度お試しください。");
   const pieces = exportSegments().map(([a, b]) => ({ src: editVideo.src, a, b }));

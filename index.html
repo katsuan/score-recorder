@@ -26,7 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、ろくがの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610221020">
+<link rel="stylesheet" href="style.css?v=202610221148">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -39,8 +39,8 @@
   <p class="ls-brand-copy">撮った試合も、取った点も、とっておき</p>
   <!-- 2つの使い方：いま撮る（カメラ）／撮っておいた動画に、あとから得点板を付ける。チーム・色・プレビューは共通 -->
   <div class="ls-tabs mode-tabs" role="tablist" aria-label="使い方">
-    <button class="ls-tab" type="button" role="tab" data-mode="shoot" aria-selected="true">📹 撮る</button>
-    <button class="ls-tab" type="button" role="tab" data-mode="later" aria-selected="false">🎞 あとから付ける</button>
+    <button class="ls-tab" type="button" role="tab" data-mode="shoot" aria-selected="true">📹 撮りながら</button>
+    <button class="ls-tab" type="button" role="tab" data-mode="later" aria-selected="false">🎞 撮った動画に</button>
   </div>
   <p class="lead" data-mode-only="shoot">スマホを<b>横</b>にして、得点板つきで撮ります。</p>
   <p class="lead" data-mode-only="later" hidden>撮った動画に、あとから得点板を入れます。</p>
@@ -121,7 +121,7 @@
     </div>
   </details>
   <button id="openCamera" class="ls-button is-primary is-block" type="button" data-mode-only="shoot">📹 カメラを開く</button>
-  <!-- あとから付ける：端末の動画を選ぶ（動画はこの端末の中だけで使う） -->
+  <!-- 撮った動画に（得点板をつける）：端末の動画を選ぶ（動画はこの端末の中だけで使う） -->
   <button id="pickVideo" class="ls-button is-primary is-block" type="button" data-mode-only="later" hidden>🎞 動画を選ぶ</button>
   <input id="videoFile" type="file" accept="video/*" hidden>
   <!-- 録った動画があるときだけ：保存の画面をもう一度開く（はじめの画面にもどっても、0 - 0 から撮りなおすまで残っている） -->
@@ -189,12 +189,12 @@
   </div>
 </section>
 
-<!-- あとから付ける：選んだ動画を流しながら、点が入ったところで ＋1（その時間を覚える）。そのあと得点板つきで書き出す。
+<!-- 撮った動画に（得点板をつける）：選んだ動画を流しながら、点が入ったところで ＋1（その時間を覚える）。そのあと得点板つきで書き出す。
      書き出しは動画を最初から流して、画面（得点板つき）をそのまま録る（ブラウザでは動画と同じ時間かかる） -->
 <section id="editor" class="editor" hidden>
   <div class="editor-bar">
     <button id="editBack" class="small" type="button">← 戻る</button>
-    <span class="editor-title">🎞 あとから付ける</span>
+    <span class="editor-title">🎞 撮った動画に得点板をつける</span>
   </div>
   <!-- 動画：枠は動画の縦横比で大きさを決める（行がふえても縮まない。動画は枠の中にまるごと入れる） -->
   <div class="editor-stage"><canvas id="editScreen" class="edit-screen"></canvas></div>
@@ -227,7 +227,7 @@
   </div>
 </section>
 
-<!-- 書き出し中（あとから付ける・得点ハイライト）：ほかの操作はできないように上からかぶせる -->
+<!-- 書き出し中（撮った動画に（得点板をつける）・得点ハイライト）：ほかの操作はできないように上からかぶせる -->
 <div id="exportOverlay" class="export-overlay" hidden>
   <p id="exportTitle" class="export-title">書き出し中…</p>
   <p id="exportProg" class="export-prog"></p>
@@ -277,14 +277,14 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610221020"></script>
-<script src="js/draw.js?v=202610221020"></script>
-<script src="js/setup.js?v=202610221020"></script>
-<script src="js/studio.js?v=202610221020"></script>
-<script src="js/record.js?v=202610221020"></script>
-<script src="js/editor.js?v=202610221020"></script>
-<script src="js/render.js?v=202610221020"></script>
-<script src="js/main.js?v=202610221020"></script>
+<script src="js/core.js?v=202610221148"></script>
+<script src="js/draw.js?v=202610221148"></script>
+<script src="js/setup.js?v=202610221148"></script>
+<script src="js/studio.js?v=202610221148"></script>
+<script src="js/record.js?v=202610221148"></script>
+<script src="js/editor.js?v=202610221148"></script>
+<script src="js/render.js?v=202610221148"></script>
+<script src="js/main.js?v=202610221148"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

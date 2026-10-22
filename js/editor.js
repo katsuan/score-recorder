@@ -1,8 +1,8 @@
-// ろくが：あとから付ける（撮っておいた動画に、得点の時間を入れる）。
+// ろくが：撮った動画に（得点板をつける）（撮っておいた動画に、得点の時間を入れる）。
 // 読み込む順は index.html（core → draw → setup → studio → record → editor → render → main）。
 "use strict";
 
-// ---- あとから付ける：撮っておいた動画に、得点板を付けて書き出す ----
+// ---- 撮った動画に（得点板をつける）：撮っておいた動画に、得点板を付けて書き出す ----
 // 動画を流しながら ＋1／−1 を押すと、その時間を覚える（events）。得点板はその時間までの点を出す。
 // 書き出しは、動画を最初から流して、得点板つきの canvas と動画の音を録る（5分ごとに分ける・保存の画面は撮るときと同じ）
 const editVideo = $("editVideo");
@@ -73,7 +73,7 @@ function scoreAt(t) {
 }
 
 // 毎コマ：動画の絵 ＋ その時間の得点板 ＋（点が入った時間を通ったら）GOAL のエフェクト
-let rendering = false; // 書き出し中（あとから付ける・得点ハイライト）
+let rendering = false; // 書き出し中（撮った動画に（得点板をつける）・得点ハイライト）
 let renderOverlay = true; // 得点板・GOAL を描くか（得点ハイライトは、動画にもう入っているので描かない）
 function drawEditFrame() {
   if ($("editor").hidden && !rendering) return;

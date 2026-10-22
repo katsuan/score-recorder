@@ -77,8 +77,8 @@ function startRecording() {
   $("record").setAttribute("aria-label", "録画を止める");
 }
 
-// 録画をはじめる（カメラの画面でも、あとから付けるの書き出しでも同じ）：canvas の絵と音を、5分ごとに分けて録る
-// kind：shot（カメラで撮る）・edit（あとから付けるの書き出し）・highlight（得点ハイライト）
+// 録画をはじめる（カメラの画面でも、撮った動画にの書き出しでも同じ）：canvas の絵と音を、5分ごとに分けて録る
+// kind：shot（カメラで撮る）・edit（撮った動画にの書き出し）・highlight（得点ハイライト）
 let recKind = "shot";
 function beginRecording(canvas, audioTracks, kind = "shot") {
   recKind = kind;
@@ -118,7 +118,7 @@ function showElapsed() {
 // ---- 保存の画面 ----
 // 止めたら：見返し・保存・共有（何本かあるときは1本ずつ、またはまとめて）
 function showSaved() {
-  // あとから付けるの書き出しのあとは「次はどうする？」（撮る画面向け）は出さず、閉じるだけ
+  // 撮った動画にの書き出しのあとは「次はどうする？」（撮る画面向け）は出さず、閉じるだけ
   $("nextShot").hidden = exportMode;
   $("closeSheetOnly").hidden = !exportMode;
   exportMode = false;
@@ -186,7 +186,7 @@ function renderClips() {
         c.kind === "highlight"
           ? `⚡ ハイライト　${clock(c.to - c.from)}${size}`
           : c.kind === "edit"
-            ? `🎞 あとから付けた動画　${sameTake.length > 1 ? `${sameTake.indexOf(c) + 1}本目　` : ""}${clock(c.from)}〜${clock(c.to)}${size}`
+            ? `🎞 撮った動画に得点板をつけた動画　${sameTake.length > 1 ? `${sameTake.indexOf(c) + 1}本目　` : ""}${clock(c.from)}〜${clock(c.to)}${size}`
             : `${shotTakes().length > 1 ? `${takeNumber(c.take)}回目　` : ""}${sameTake.length > 1 ? `${sameTake.indexOf(c) + 1}本目　` : ""}${clock(c.from)}〜${clock(c.to)}${size}`;
       const play = Object.assign(document.createElement("button"), { type: "button", className: "clip-play", textContent: label });
       play.addEventListener("click", () => showClip(i));
