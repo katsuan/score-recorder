@@ -117,9 +117,20 @@ $("swapSides").addEventListener("click", () => {
 });
 
 // ---- GOAL のエフェクトを出すか・試す ----
+// 得点板を出すか（出す／出さない）
+document.querySelectorAll("[data-board]").forEach((b) =>
+  b.addEventListener("click", () => {
+    state.board = b.dataset.board === "on";
+    save();
+    showGoalFxSetting();
+    drawPreview();
+  })
+);
 const showGoalFxSetting = () => {
+  document.querySelectorAll("[data-board]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.board === "on") === state.board)));
   document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
-  $("fxMeta").textContent = state.goalFx ? "ON" : ""; // GOAL のエフェクトを出すときだけ、たたんだ見出しに小さく
+  // たたんだ見出しに小さく：得点板を出さないときは「得点板なし」、GOAL のエフェクトを出すときは「ON」
+  $("fxMeta").textContent = [state.board ? "" : "得点板なし", state.goalFx ? "演出ON" : ""].filter(Boolean).join("・");
   showEditFxMeta();
 };
 document.querySelectorAll("[data-goal-fx]").forEach((b) =>
@@ -139,7 +150,7 @@ const showFxLabel = () => {
 };
 // 「撮った動画に」の「🎉 得点のエフェクト」の見出しの右：いまの字（⚽ GOAL!）か「出さない」
 const showEditFxMeta = () => {
-  $("editFxMeta").textContent = state.goalFx ? fxLabel() : "出さない";
+  $("editFxMeta").textContent = [state.board ? "" : "得点板なし", state.goalFx ? fxLabel() : "演出なし"].filter(Boolean).join("・");
 };
 // 2文字まで（絵文字は1つで1文字に数える）
 const firstChars = (text, n) => {

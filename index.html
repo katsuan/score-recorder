@@ -26,7 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、ろくがの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610221305">
+<link rel="stylesheet" href="style.css?v=202610221309">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -84,7 +84,7 @@
   <p class="hint team-shared">チーム名・色は、さくせん盤と共通です。</p>
   <!-- 得点板のプレビューと GOAL のエフェクト：たたんだ欄（開くと、動画に入る得点板を見ておける。エフェクトははじめから出す（「出さない」にもできる）） -->
   <details id="previewFold" class="ls-fold">
-    <summary><span class="ls-fold-icon" aria-hidden="true">👀</span><span class="fold-title">プレビュー・得点のエフェクト</span><span id="fxMeta" class="meta"></span></summary>
+    <summary><span class="ls-fold-icon" aria-hidden="true">👀</span><span class="fold-title">プレビュー・得点板と演出</span><span id="fxMeta" class="meta"></span></summary>
     <div class="ls-fold-body">
     <div class="preview-frame">
       <canvas id="preview" class="preview" width="1280" height="720" aria-label="得点板のプレビュー"></canvas>
@@ -92,6 +92,14 @@
     </div>
     <!-- エフェクトの設定（出さない／出す／▶ 試す・アイコン・文字）。「撮った動画に」を開いているあいだは、そちらの「🎉 得点のエフェクト」へ移す（editor.js） -->
     <div id="fxControls" class="fx-controls">
+    <!-- 得点板を出すか：プレビュー・撮る画面・撮った動画に・書き出す動画のすべてに効く（出さないときは GOAL の演出・つなぎ目だけ） -->
+    <div class="split">
+      <span class="split-label">得点板（左上のチーム名とスコア）</span>
+      <div class="seg" role="radiogroup" aria-label="得点板">
+        <button class="chip" type="button" role="radio" data-board="on">出す</button>
+        <button class="chip" type="button" role="radio" data-board="off">出さない</button>
+      </div>
+    </div>
     <div class="split">
       <span class="split-label">得点のエフェクト（＋1 のとき、チームの色の帯と文字）</span>
       <div class="seg" role="radiogroup" aria-label="得点のエフェクト">
@@ -224,18 +232,17 @@
   <ol id="editEvents" class="edit-events"></ol>
   <!-- 🎉 得点のエフェクト：はじめの画面と同じ設定（出さない／出す／▶ 試す・アイコン・文字）。中身ははじめの画面の #fxControls を開いているあいだだけ移す -->
   <details id="editFxFold" class="edit-fx">
-    <summary><span>🎉 得点のエフェクト</span><span id="editFxMeta" class="meta"></span></summary>
+    <summary><span>🎉 得点板と演出</span><span id="editFxMeta" class="meta"></span></summary>
     <div id="editFxBody" class="edit-fx-body"></div>
   </details>
-  <!-- 何を書き出す？：できあがりで選ぶ（3つ）。ハイライトは得点・⭐ の 10秒前〜6秒後をつなぐ（撮るときの得点ハイライトと同じ）。
-       演出だけ＝ハイライトを得点板なしで（GOAL の演出・⭐ の場面・つなぎ目だけ）。長さの目安は editor.js の showExportRange -->
+  <!-- 何を書き出す？：全部か ⚡ ハイライト（得点・⭐ の 10秒前〜6秒後をつなぐ。撮るときの得点ハイライトと同じ）。
+       得点板を出すかは「🎉 得点板と演出」で。長さの目安は editor.js の showExportRange -->
   <p class="export-mode-title">何を書き出す？</p>
   <div class="export-modes" role="radiogroup" aria-label="書き出すもの">
-    <button type="button" role="radio" data-export-mode="all" aria-checked="true"><span class="em-icon">📼</span><span class="em-text"><b>全部</b><small>試合まるごと・得点板つき</small></span><em data-em-len="all"></em></button>
-    <button type="button" role="radio" data-export-mode="hl" aria-checked="false"><span class="em-icon">⚡</span><span class="em-text"><b>ハイライト</b><small>得点・⭐ の前後だけ・得点板つき</small></span><em data-em-len="hl"></em></button>
-    <button type="button" role="radio" data-export-mode="fx" aria-checked="false"><span class="em-icon">🎬</span><span class="em-text"><b>演出だけ</b><small>得点板なし・GOAL と ⭐ の場面だけ</small></span><em data-em-len="fx"></em></button>
+    <button type="button" role="radio" data-export-mode="all" aria-checked="true"><span class="em-icon">📼</span><span class="em-text"><b>全部</b><small>試合まるごと</small></span><em data-em-len="all"></em></button>
+    <button type="button" role="radio" data-export-mode="hl" aria-checked="false"><span class="em-icon">⚡</span><span class="em-text"><b>ハイライト</b><small>得点・⭐ の前後だけをつなぐ</small></span><em data-em-len="hl"></em></button>
   </div>
-  <p id="exportModeHint" class="export-mode-hint" hidden>ハイライト・演出だけは、＋1 か ⭐ を入れると選べます</p>
+  <p id="exportModeHint" class="export-mode-hint" hidden>ハイライトは、＋1 か ⭐ を入れると選べます</p>
   <!-- ⚡ ハイライトのつなぎ目の柄（⚡ ハイライトを選んだときだけ）。ボタンは draw.js の TRANSITIONS から作る（setup.js） -->
   <div class="transition-row" data-transition-row hidden><span>つなぎ目</span><div class="transition-chips" role="radiogroup" aria-label="ハイライトのつなぎ目"></div></div>
   <button id="editExport" class="ls-button is-primary is-block" type="button">📼 得点板つきで書き出す</button>
@@ -302,14 +309,14 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610221305"></script>
-<script src="js/draw.js?v=202610221305"></script>
-<script src="js/setup.js?v=202610221305"></script>
-<script src="js/studio.js?v=202610221305"></script>
-<script src="js/record.js?v=202610221305"></script>
-<script src="js/editor.js?v=202610221305"></script>
-<script src="js/render.js?v=202610221305"></script>
-<script src="js/main.js?v=202610221305"></script>
+<script src="js/core.js?v=202610221309"></script>
+<script src="js/draw.js?v=202610221309"></script>
+<script src="js/setup.js?v=202610221309"></script>
+<script src="js/studio.js?v=202610221309"></script>
+<script src="js/record.js?v=202610221309"></script>
+<script src="js/editor.js?v=202610221309"></script>
+<script src="js/render.js?v=202610221309"></script>
+<script src="js/main.js?v=202610221309"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

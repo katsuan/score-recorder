@@ -18,8 +18,6 @@ async function renderPieces(pieces, { overlay, kind, title }) {
   exporting = true;
   rendering = true;
   renderOverlay = overlay;
-  // 撮った動画にの ⚡ ハイライトで「得点板：入れない」のときは、得点板だけ描かない（GOAL の演出・つなぎ目は描く）
-  renderBoard = !(kind === "highlight" && overlay && !state.hlBoard);
   $("exportTitle").textContent = title;
   startExportWait();
   $("exportOverlay").hidden = false;
@@ -170,7 +168,6 @@ function finishExport() {
   exporting = false;
   rendering = false;
   renderOverlay = true;
-  renderBoard = true;
   editVideo.pause();
   editVideo.playbackRate = editRate;
   $("exportOverlay").hidden = true;

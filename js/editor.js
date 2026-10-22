@@ -122,7 +122,6 @@ function scoreAt(t) {
 // 毎コマ：動画の絵 ＋ その時間の得点板 ＋（点が入った時間を通ったら）GOAL のエフェクト
 let rendering = false; // 書き出し中（撮った動画に（得点板をつける）・得点ハイライト）
 let renderOverlay = true; // 得点板・GOAL を描くか（得点ハイライトは、動画にもう入っているので描かない）
-let renderBoard = true; // 得点板を描くか（⚡ ハイライトで「得点板：入れない」のときは描かない。GOAL の演出は描く）
 function drawEditFrame() {
   if ($("editor").hidden && !rendering) return;
   const vw = editVideo.videoWidth;
@@ -148,7 +147,7 @@ function drawEditFrame() {
     }
     editLastT = t;
     editCtx.drawImage(editVideo, 0, 0, vw, vh);
-    if (renderBoard || !rendering) drawScoreboard(vw, vh, editCtx); // 書き出し中で「得点板：入れない」のときだけ描かない
+    drawScoreboard(vw, vh, editCtx); // 「得点板：出さない」のときは描かない（draw.js）
     drawGoalFx(vw, vh, editCtx);
     drawPieceTransition(vw, vh, t);
   }
@@ -209,17 +208,12 @@ document.querySelectorAll("[data-jump]").forEach((b) =>
     editLastT = editVideo.currentTime;
   })
 );
-// 何を書き出す？：全部（exportRange "all"）／⚡ ハイライト（"goals"・得点板つき）／🎬 演出だけ（"goals"・state.hlBoard false）
-const chosenExport = () => (exportRange === "all" ? "all" : state.hlBoard ? "hl" : "fx");
+// 何を書き出す？：全部（exportRange "all"）／⚡ ハイライト（"goals"）。得点板を出すかは「🎉 得点板と演出」で
+const chosenExport = () => (exportRange === "all" ? "all" : "hl");
 document.querySelectorAll("[data-export-mode]").forEach((b) =>
   b.addEventListener("click", () => {
     if (b.disabled) return;
-    const mode = b.dataset.exportMode;
-    exportRange = mode === "all" ? "all" : "goals";
-    if (mode !== "all") {
-      state.hlBoard = mode === "hl"; // 演出だけ＝得点板なし（次から同じ選び方に）
-      save();
-    }
+    exportRange = b.dataset.exportMode === "all" ? "all" : "goals";
     showExportRange();
   })
 );
@@ -230,13 +224,13 @@ function exportSegments(range = exportRange) {
   if (range === "all") return [[0, d]];
   return highlightSpans(editEvents.filter((ev) => ev.delta > 0 || ev.mark).map((ev) => ev.t), d); // 得点と ⭐ ナイスプレー
 }
-const EXPORT_LABELS = { all: "📼 全部を書き出す", hl: "⚡ ハイライトを書き出す", fx: "🎬 演出だけのハイライトを書き出す" };
+const EXPORT_LABELS = { all: "📼 全部を書き出す", hl: "⚡ ハイライトを書き出す" };
 // 選んでいるもの・それぞれの長さの目安・つなぎ目（ハイライトのときだけ）・書き出すボタンの文言
 function showExportRange() {
   const hasGoals = editEvents.some((ev) => ev.delta > 0 || ev.mark);
   if (!hasGoals && exportRange === "goals") exportRange = "all";
   const len = (range) => exportSegments(range).reduce((sum, [a, b]) => sum + (b - a), 0);
-  const lens = { all: len("all"), hl: len("goals"), fx: len("goals") };
+  const lens = { all: len("all"), hl: len("goals") };
   const mode = chosenExport();
   document.querySelectorAll("[data-export-mode]").forEach((b) => {
     const m = b.dataset.exportMode;

@@ -4,6 +4,7 @@
 
 // 得点板：左上に濃い札。[左のチームの色] 左のチーム 2 - 1 右のチーム [右のチームの色]。大きさは映像の高さに合わせる
 function drawScoreboard(w, h, ctx = screenCtx) {
+  if (!state.board) return; // 「得点板：出さない」（👀 プレビューの欄）
   const s = Math.min(w, h) / 720; // 720p で 1
   const pad = 20 * s;
   const boxH = 64 * s;
