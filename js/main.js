@@ -5,6 +5,7 @@ showSetupScore();
 showHand();
 showSides();
 showGoalFxSetting();
+showFxLabel();
 renderColorChips();
 // プレビューは、字（M PLUS Rounded）を読みこんだあとにも描き直す
 drawPreview();

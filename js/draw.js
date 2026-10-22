@@ -65,10 +65,13 @@ function drawScoreboard(w, h, ctx = screenCtx) {
   ctx.restore();
 }
 
-// ---- GOAL のエフェクト：＋1 のとき、画面の真ん中に得点したチームの色の帯と「GOAL!」を2秒ほど（動画にも入る） ----
+// ---- GOAL のエフェクト：＋1 のとき、画面の真ん中に得点したチームの色の帯と「⚽ GOAL!」を2秒ほど（動画にも入る）。アイコン・文字は変えられる ----
 const GOAL_FX_MS = 2200;
 let goalFx = null; // { side: "us"|"them", at: 時刻 }
 
+
+// エフェクトに出す字：アイコン＋文字（文字が空なら GOAL!）
+const fxLabel = () => [state.fxIcon, state.fxText.trim() || "GOAL!"].filter(Boolean).join(" ");
 
 function drawGoalFx(w, h, c = screenCtx) {
   if (!goalFx) return;
@@ -106,8 +109,12 @@ function drawGoalFx(w, h, c = screenCtx) {
   c.fillStyle = ink;
   c.shadowColor = "rgba(0, 0, 0, 0.25)";
   c.shadowBlur = 10 * s;
+  // アイコンと文字（はじめの画面で変えられる。文字が空なら GOAL!）。長い文字は横からはみ出さないよう縮める
+  const label = fxLabel();
   c.font = font(112 * s);
-  c.fillText("⚽ GOAL!", 0, 0);
+  const fit = Math.min(1, (w * 0.9) / Math.max(1, c.measureText(label).width));
+  c.font = font(112 * s * fit);
+  c.fillText(label, 0, 0);
   c.restore();
   c.save();
   c.globalAlpha = alpha;

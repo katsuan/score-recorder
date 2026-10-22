@@ -128,12 +128,31 @@ document.querySelectorAll("[data-goal-fx]").forEach((b) =>
     showGoalFxSetting();
   })
 );
-// たたんだ欄を開いたら、プレビューを描き直す（たたんでいる間は大きさが測れないため）
-$("previewFold").addEventListener("toggle", () => $("previewFold").open && drawPreview());
-$("tryGoal").addEventListener("click", () => {
+// エフェクトのアイコン・文字（サッカー以外でも）。変えたら、試しに出して見せる
+const showFxLabel = () => {
+  document.querySelectorAll("[data-fx-icon]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.fxIcon === state.fxIcon)));
+  $("fxText").value = state.fxText;
+};
+const tryFx = () => {
   goalFx = { side: "us", at: performance.now() };
   drawPreview();
+};
+document.querySelectorAll("[data-fx-icon]").forEach((b) =>
+  b.addEventListener("click", () => {
+    state.fxIcon = b.dataset.fxIcon;
+    save();
+    showFxLabel();
+    tryFx();
+  })
+);
+$("fxText").addEventListener("input", () => {
+  state.fxText = $("fxText").value;
+  save();
+  tryFx();
 });
+// たたんだ欄を開いたら、プレビューを描き直す（たたんでいる間は大きさが測れないため）
+$("previewFold").addEventListener("toggle", () => $("previewFold").open && drawPreview());
+$("tryGoal").addEventListener("click", tryFx);
 
 // ---- 得点板のプレビュー（はじめの画面）：芝のピッチの絵に、動画と同じ得点板・エフェクトを描く ----
 const preview = $("preview");

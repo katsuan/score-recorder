@@ -87,6 +87,8 @@ const state = {
   // 前は「はじめは出さない」で OFF が覚えられているので、fxV（この決まりの版）が 2 でなければ、いちどだけ ON にする
   goalFx: saved.fxV === 2 ? saved.goalFx !== false : true,
   fxV: 2,
+  fxIcon: typeof saved.fxIcon === "string" ? saved.fxIcon : "⚽", // エフェクトのアイコン（"" はなし）。サッカー以外でも
+  fxText: typeof saved.fxText === "string" ? saved.fxText : "", // エフェクトの文字（空なら GOAL!）
   swapped: saved.swapped === true, // 左右を入れかえる（us を右に）。us・them は中の呼び名で、自分のチームとはかぎらない
   hand: ["left", "right"].includes(saved.hand) ? saved.hand : "center", // ＋1・録画のまとまりの位置（片手で持つ側に寄せる）
   turn: ["left", "right"].includes(saved.turn) ? saved.turn : null // 縦の画面のまま倒して撮るときの向き（前に選んだもの。次からは選ばずに始める）
