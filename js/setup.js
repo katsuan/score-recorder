@@ -147,8 +147,9 @@ const firstChars = (text, n) => {
   if (window.Intl?.Segmenter) return [...new Intl.Segmenter("ja", { granularity: "grapheme" }).segment(t)].slice(0, n).map((x) => x.segment).join("");
   return Array.from(t).slice(0, n).join("");
 };
+// 試しに出す（点は入れない。演出の下の行は「（お試し）」）
 const tryFx = () => {
-  goalFx = { side: "us", at: performance.now() };
+  goalFx = { side: "us", at: performance.now(), trial: true };
   drawPreview();
 };
 document.querySelectorAll("[data-fx-icon]").forEach((b) =>

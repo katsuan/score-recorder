@@ -122,9 +122,11 @@ function drawGoalFx(w, h, c = screenCtx) {
   c.textBaseline = "middle";
   c.fillStyle = ink;
   c.font = font(34 * s);
-  // スコアは左上の得点板と同じ左右の並び（⇄ で入れかえたときは them が左）
+  // スコアは左上の得点板と同じ左右の並び（⇄ で入れかえたときは them が左）。
+  // ▶ 試す・アイコンや文字を変えたときの見本（trial）は点を入れないので、スコアの代わりに「（お試し）」
   const [left, right] = state.swapped ? [state.them, state.us] : [state.us, state.them];
-  c.fillText(`${name ? `${name}　` : ""}${left} - ${right}`, w / 2, h / 2 + 62 * s);
+  const sub = goalFx.trial ? "（お試し）" : `${left} - ${right}`;
+  c.fillText(`${name ? `${name}　` : ""}${sub}`, w / 2, h / 2 + 62 * s);
   c.restore();
 }
 

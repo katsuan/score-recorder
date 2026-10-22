@@ -306,6 +306,10 @@ function addEditEvent(key, delta, mark = false) {
   editEvents.push(ev);
   editEvents.sort((a, b) => a.t - b.t);
   navigator.vibrate?.(delta > 0 ? 30 : [15, 50, 15]);
+  // ＋1 で GOAL の演出、−1 は取り消しなので消す（撮る画面・アプリと同じ。止めているときも出す）
+  if (delta > 0 && !mark && state.goalFx) goalFx = { side: key, at: performance.now() };
+  if (delta < 0) goalFx = null;
+  editLastT = editVideo.currentTime; // 押したところを通ったと見なして、二重に出さない
   renderEditEvents();
   // 一覧へは自動で動かさない（続けて ＋1 を押せるように、ボタンを画面に残す）
 }
