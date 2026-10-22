@@ -40,7 +40,12 @@ async function renderPieces(pieces, { overlay, kind, title }) {
     if (!started) {
       frameSync = canSyncFrames(); // 動画のコマごとに描いて録る（カクつかない）。使えないブラウザはこれまでどおり
       beginRecording(editScreen, audioDest ? audioDest.stream.getAudioTracks() : [], kind, { manualFrames: frameSync });
-      if (frameSync) startFrameSync();
+      if (frameSync) {
+        // 録りはじめにすぐ1コマ（最初のコマが出るまで録画に何も来ないと、重い動画で録画がうまく始まらないことがある）
+        paintEditFrame();
+        recordStream?.getVideoTracks()[0]?.requestFrame?.();
+        startFrameSync();
+      }
       started = true;
     } else if (recorder?.state === "paused") {
       recorder.resume();

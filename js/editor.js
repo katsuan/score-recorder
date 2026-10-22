@@ -125,7 +125,13 @@ let renderOverlay = true; // 得点板・GOAL を描くか（得点ハイライ�
 // 毎コマ描く（撮った動画にの画面・書き出し）。書き出しで frameSync のときは、動画のコマごとに paintEditFrame を呼ぶ（下の startFrameSync）
 function drawEditFrame() {
   if ($("editor").hidden && !rendering) return;
-  if (!(rendering && frameSync)) paintEditFrame();
+  if (!(rendering && frameSync)) {
+    paintEditFrame();
+  } else if (!editVideo.paused && performance.now() - lastSyncFrameAt > 200) {
+    // 安全策：動画のコマの合図が 0.2 秒来ないときは、ここで描いて録る（何も録れないことがないように）
+    paintEditFrame();
+    recordStream?.getVideoTracks()[0]?.requestFrame?.();
+  }
   requestAnimationFrame(drawEditFrame);
 }
 
@@ -163,6 +169,7 @@ function paintEditFrame(t = editVideo.currentTime) {
 // どちらかが使えない古いブラウザでは、これまでどおり（frameSync は false）。
 // いまは試しているところなので、URL に ?framesync=1 を付けて開いたときだけ使う（iPhone の Safari で確かめてから、ふだんも使う）
 let frameSync = false;
+let lastSyncFrameAt = 0; // 動画のコマの合図が最後に来た時刻（来ないときは drawEditFrame で描いて録る）
 const FRAME_SYNC_TRIAL = new URLSearchParams(location.search).has("framesync");
 const canSyncFrames = () =>
   FRAME_SYNC_TRIAL &&
@@ -173,6 +180,7 @@ const canSyncFrames = () =>
 function startFrameSync() {
   const onFrame = (now, meta) => {
     if (!rendering || !frameSync) return;
+    lastSyncFrameAt = performance.now();
     paintEditFrame(meta.mediaTime);
     recordStream?.getVideoTracks()[0]?.requestFrame?.();
     editVideo.requestVideoFrameCallback(onFrame);
