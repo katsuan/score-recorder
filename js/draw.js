@@ -150,7 +150,7 @@ function drawTransition(w, h, c, p) {
 }
 
 // RoQga：濃い緑のピッチの面（左右の辺が斜め）が右から入り、つなぎ目で画面をおおって、左へ抜ける。
-// 面の中は芝刈りのしま模様と、うっすらハーフウェーラインとセンターサークル。斜めの辺に白と赤の線。まん中に横長のロゴ。
+// 面の中は芝刈りのしま模様と、うっすらハーフウェーラインとセンターサークル。斜めの辺に、対戦する2チームの色の線（得点板と同じく、左のチームが左側）。まん中に横長のロゴ。
 // アプリ版（q-roqga-ios の TransitionRenderer）も同じ寸法・同じ動き
 const wipeSlant = (h) => h * 0.22; // 斜めの辺の、上と下のずれ
 // 面の横の位置（面の左上が x）：入るときはだんだん遅く、抜けるときはだんだん速く
@@ -162,7 +162,10 @@ function wipeOffset(p, w, h) {
 }
 let wipePanel = null; // 面の絵（大きさごとに 1 回だけ描く）
 function roqgaPanel(w, h) {
-  if (wipePanel && wipePanel.w === w && wipePanel.h === h && wipePanel.logo === transitionLogo.complete) return wipePanel.canvas;
+  // 得点板の左右の並びのチームの色（⇄ で入れかえたときは them が左）
+  const [leftColor, rightColor] = state.swapped ? [state.colorThem, state.colorUs] : [state.colorUs, state.colorThem];
+  const key = `${w}x${h}:${leftColor}:${rightColor}:${transitionLogo.complete}`;
+  if (wipePanel && wipePanel.key === key) return wipePanel.canvas;
   const slant = wipeSlant(h);
   const W = w + slant * 2;
   const s = Math.min(w, h);
@@ -202,9 +205,9 @@ function roqgaPanel(w, h) {
   c.arc(W / 2, h / 2, h * 0.3, 0, Math.PI * 2);
   c.stroke();
   c.restore();
-  // 斜めの辺：外側に白、少し内側に赤（Q の録画の点の色）
-  const edge = (x0, inward) => {
-    [["#ffffff", 0, s * 0.016], ["#e53935", s * 0.03, s * 0.01]].forEach(([color, gap, width]) => {
+  // 斜めの辺：対戦する2チームの色の線を2本（左のチームの色が左側・右のチームの色が右側）
+  const edge = (x0, inward, outer, inner) => {
+    [[outer, 0, s * 0.016], [inner, s * 0.03, s * 0.016]].forEach(([color, gap, width]) => {
       const d = (gap + width / 2) * inward;
       c.strokeStyle = color;
       c.lineWidth = width;
@@ -214,8 +217,8 @@ function roqgaPanel(w, h) {
       c.stroke();
     });
   };
-  edge(0, 1); // 左の辺（入ってくるときの先）
-  edge(W - slant, -1); // 右の辺（抜けていくときの後ろ）
+  edge(0, 1, leftColor, rightColor); // 左の辺（入ってくるときの先）：外側が左のチーム
+  edge(W - slant, -1, rightColor, leftColor); // 右の辺（抜けていくときの後ろ）：外側が右のチーム
   // まん中に横長のロゴ（影つき）
   if (transitionLogo.complete && transitionLogo.naturalWidth) {
     const lh = s * 0.26;
@@ -227,7 +230,7 @@ function roqgaPanel(w, h) {
     c.drawImage(transitionLogo, W / 2 - lw / 2, h / 2 - lh / 2, lw, lh);
     c.restore();
   }
-  wipePanel = { w, h, logo: transitionLogo.complete, canvas: cv };
+  wipePanel = { key, canvas: cv };
   return cv;
 }
 function drawRoqgaWipe(w, h, c, p) {
