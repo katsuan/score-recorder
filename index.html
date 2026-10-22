@@ -26,7 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、ろくがの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610221352">
+<link rel="stylesheet" href="style.css?v=202610221356">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -194,7 +194,8 @@
     <p class="tip-title">はじめての方へ</p>
     <ul>
       <li><b>🔴 赤い丸</b>：録画をはじめる・止める</li>
-      <li><b>＋1</b>：点が入ったら、そのチームの色を押す（まちがえたら −1）</li>
+      <li class="with-board"><b>＋1</b>：点が入ったら、そのチームの色を押す（まちがえたら −1）</li>
+      <li class="without-board"><b>GOAL</b>：点が入ったら押す（まちがえたら −1）</li>
       <li><b>⭐ ナイス</b>：おしい場面・いいプレーをハイライトに</li>
       <li><b>右上の ●●●</b>：＋1 を左右に寄せる（片手で押しやすく）</li>
     </ul>
@@ -309,14 +310,14 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610221352"></script>
-<script src="js/draw.js?v=202610221352"></script>
-<script src="js/setup.js?v=202610221352"></script>
-<script src="js/studio.js?v=202610221352"></script>
-<script src="js/record.js?v=202610221352"></script>
-<script src="js/editor.js?v=202610221352"></script>
-<script src="js/render.js?v=202610221352"></script>
-<script src="js/main.js?v=202610221352"></script>
+<script src="js/core.js?v=202610221356"></script>
+<script src="js/draw.js?v=202610221356"></script>
+<script src="js/setup.js?v=202610221356"></script>
+<script src="js/studio.js?v=202610221356"></script>
+<script src="js/record.js?v=202610221356"></script>
+<script src="js/editor.js?v=202610221356"></script>
+<script src="js/render.js?v=202610221356"></script>
+<script src="js/main.js?v=202610221356"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

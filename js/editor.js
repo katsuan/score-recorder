@@ -291,6 +291,7 @@ $("editSeek").addEventListener("input", (e) => {
 
 // ＋1／−1：左右は得点板と同じ並び、ボタンはチームの色
 function renderEditScore() {
+  if (!state.board) return renderEditGoalOnly();
   const keys = state.swapped ? ["them", "us"] : ["us", "them"];
   $("editSides").replaceChildren(
     ...keys.map((key) => {
@@ -346,6 +347,22 @@ function renderEditScore() {
   );
 }
 
+// 得点板を出さないとき：チームを分けない1つの GOAL（左のチームの点として覚える。撮る画面と同じ）
+function renderEditGoalOnly() {
+  const side = document.createElement("div");
+  side.className = "edit-side is-solo";
+  side.style.setProperty("--team", NEUTRAL_FX_COLOR);
+  side.style.setProperty("--team-ink", "#ffffff");
+  const plus = Object.assign(document.createElement("button"), { type: "button", className: "plus", textContent: "GOAL" });
+  plus.setAttribute("aria-label", "GOAL（いまの時間。ハイライトに入れる）");
+  plus.addEventListener("click", () => addEditEvent("us", 1));
+  const minus = Object.assign(document.createElement("button"), { type: "button", className: "minus", textContent: "−1" });
+  minus.setAttribute("aria-label", "GOAL を取り消す（いまの時間）");
+  minus.addEventListener("click", () => addEditEvent("us", -1));
+  side.append(plus, minus);
+  $("editSides").replaceChildren(side);
+}
+
 $("editMark").addEventListener("click", () => addEditEvent(null, 0, true));
 function addEditEvent(key, delta, mark = false) {
   const ev = { t: editVideo.currentTime, key, delta, ...(mark ? { mark: true } : {}) };
@@ -372,14 +389,15 @@ function renderEditEvents() {
         editVideo.currentTime = Math.max(0, ev.t - 3); // 少し前から見られるように
         editLastT = editVideo.currentTime;
       });
-      const color = ev.mark ? "#ffd54a" : ev.key === "us" ? state.colorUs : state.colorThem;
+      const color = ev.mark ? "#ffd54a" : !state.board ? NEUTRAL_FX_COLOR : ev.key === "us" ? state.colorUs : state.colorThem;
       const name = ev.mark ? "" : (ev.key === "us" ? state.teamUs : state.teamThem).trim() || sideName(ev.key);
       const after = scoreAt(ev.t);
       const [l, r] = state.swapped ? [after.them, after.us] : [after.us, after.them];
       const text = document.createElement("span");
       const dot = Object.assign(document.createElement("i"), { className: "ev-dot" });
       dot.style.background = color;
-      text.append(dot, ev.mark ? "⭐ ナイスプレー" : `${name} ${ev.delta > 0 ? "＋1" : "−1"} → ${l} - ${r}`);
+      // 得点板を出さないときは、チーム名とスコアを出さない
+      text.append(dot, ev.mark ? "⭐ ナイスプレー" : !state.board ? (ev.delta > 0 ? "GOAL" : "GOAL を取り消し") : `${name} ${ev.delta > 0 ? "＋1" : "−1"} → ${l} - ${r}`);
       const del = Object.assign(document.createElement("button"), { type: "button", textContent: "✕" });
       del.setAttribute("aria-label", "この得点を消す");
       del.addEventListener("click", () => {

@@ -113,6 +113,13 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .side .plus { width: 76px; height: 76px; background: var(--team, rgba(0, 0, 0, 0.45)); color: var(--team-ink, #fff); border: 3px solid rgba(255, 255, 255, 0.9); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45); font-size: 22px; }
 .side .minus { width: 52px; height: 32px; background: rgba(0, 0, 0, 0.45); border: 2px solid var(--team, transparent); font-size: 14px; }
 .side button:active { transform: scale(0.94); }
+/* 得点板を出さないとき（setup.js の showBoardMode）：チームを分けない1つの GOAL ボタン（芝の緑）。右のチームのボタン・チーム名は出さない */
+:root.no-board .studio .side.is-them { display: none; }
+:root.no-board .studio .side.is-us { --team: #1f6b38 !important; --team-ink: #fff !important; bottom: var(--side-bottom); }
+:root.no-board .studio .side-name { display: none; }
+:root.no-board .side .plus { font-size: 19px; }
+.without-board, :root.no-board .with-board { display: none; }
+:root.no-board .without-board { display: list-item; }
 .bar { position: absolute; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); }
 /* 左よせ・右よせのときは、録画ボタンを反対側のはしへ（＋1 を押す親指が当たらないように） */
 .studio { --rec-pad: calc(24px + max(env(safe-area-inset-left), env(safe-area-inset-right))); }
@@ -240,6 +247,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .edit-side .plus { width: 100%; min-height: 64px; border: 3px solid rgba(255, 255, 255, 0.9); border-radius: 16px; background: var(--team); color: var(--team-ink); font: inherit; font-size: 22px; font-weight: 800; cursor: pointer; }
 .edit-side .minus { min-width: 64px; min-height: 32px; border: 2px solid var(--team); border-radius: 999px; background: rgba(0, 0, 0, 0.4); color: #fff; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
 .edit-side button:active { transform: scale(0.96); }
+.edit-side.is-solo { grid-column: 1 / -1; } /* 得点板を出さないときの1つの GOAL */
 /* 得点の一覧（操作の欄といっしょに動く） */
 .edit-events { display: grid; align-content: start; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .edit-events:empty::before { content: "まだ得点はありません"; font-size: 13px; opacity: 0.7; }

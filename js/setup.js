@@ -108,6 +108,23 @@ function showSides() {
     el.setAttribute("aria-label", sideName(key) + rest);
   });
   showSetupScore();
+  showBoardMode();
+}
+// 得点板を出さないときは、チームを分けない：撮る画面の ＋1 は1つの「GOAL」（左のチームの点として覚える。数は出さない）。
+// 撮った動画にの ＋1 も1つに（editor.js の renderEditScore）
+function showBoardMode() {
+  document.documentElement.classList.toggle("no-board", !state.board);
+  document.querySelectorAll("#studio .side.is-us .plus").forEach((b) => {
+    b.textContent = state.board ? "＋1" : "GOAL";
+    if (!state.board) b.setAttribute("aria-label", "GOAL（ハイライトに入れる）");
+  });
+  document.querySelectorAll("#studio .side.is-us .minus").forEach((b) => {
+    if (!state.board) b.setAttribute("aria-label", "GOAL を取り消す");
+  });
+  if (!$("editor").hidden) {
+    renderEditScore();
+    renderEditEvents();
+  }
 }
 $("swapSides").addEventListener("click", () => {
   state.swapped = !state.swapped;
@@ -123,6 +140,7 @@ document.querySelectorAll("[data-board]").forEach((b) =>
     state.board = b.dataset.board === "on";
     save();
     showGoalFxSetting();
+    showSides(); // ＋1 を1つの GOAL に（またはもどす）。ボタンの説明も付けなおす
     drawPreview();
   })
 );
