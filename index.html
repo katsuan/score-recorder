@@ -28,7 +28,7 @@
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、ろくがの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
 <script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610230110">
+<link rel="stylesheet" href="style.css?v=202610221616">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -44,8 +44,6 @@
     <button class="ls-tab" type="button" role="tab" data-mode="shoot" aria-selected="true">📹 撮りながら</button>
     <button class="ls-tab" type="button" role="tab" data-mode="later" aria-selected="false">🎞 撮った動画に</button>
   </div>
-  <p class="lead" data-mode-only="shoot">スマホを<b>横</b>にして、得点板つきで撮ります。</p>
-  <p class="lead" data-mode-only="later" hidden>撮った動画に、あとから得点板を入れます。</p>
   <!-- チーム：得点板と同じく、左のチーム・右のチーム（自分のチームの試合とはかぎらないので「自チーム・相手」とは呼ばない。
        ⇄ で入れかえると、ラベルも並びに合わせて変わる）。名前と色（緑・黄・白・カスタム。さくせん盤と同じ形）。
        チーム名・色はさくせん盤と共通（左のチーム＝さくせん盤の自チーム、右のチーム＝相手） -->
@@ -83,7 +81,6 @@
     <button id="editScore" class="link" type="button" aria-expanded="false">✏️ スコアを変える（途中からのとき）</button>
     <button id="resetScore" class="link" type="button" hidden>0 - 0 にする</button>
   </p>
-  <p class="hint team-shared">チーム名・色は、さくせん盤と共通です。</p>
   <!-- 得点板のプレビューと GOAL のエフェクト：たたんだ欄（開くと、動画に入る得点板を見ておける。エフェクトははじめから出す（「出さない」にもできる）） -->
   <details id="previewFold" class="ls-fold">
     <summary><span class="ls-fold-icon" aria-hidden="true">👀</span><span class="fold-title">プレビュー・得点板と演出</span><span id="fxMeta" class="meta"></span></summary>
@@ -157,12 +154,12 @@
   <div class="side is-us">
     <span class="side-name" data-name-of="us"></span>
     <button class="plus" type="button" data-score="us" data-delta="1" aria-label="左のチームに1点" data-side-aria="us:に1点">＋1</button>
-    <button class="minus" type="button" data-score="us" data-delta="-1" aria-label="左のチームの1点を取り消す" data-side-aria="us:の1点を取り消す">−1</button>
+    <button class="minus" type="button" data-score="us" data-delta="-1" aria-label="左のチームの1点をへらす" data-side-aria="us:の1点をへらす">−1</button>
   </div>
   <div class="side is-them">
     <span class="side-name" data-name-of="them"></span>
     <button class="plus" type="button" data-score="them" data-delta="1" aria-label="右のチームに1点" data-side-aria="them:に1点">＋1</button>
-    <button class="minus" type="button" data-score="them" data-delta="-1" aria-label="右のチームの1点を取り消す" data-side-aria="them:の1点を取り消す">−1</button>
+    <button class="minus" type="button" data-score="them" data-delta="-1" aria-label="右のチームの1点をへらす" data-side-aria="them:の1点をへらす">−1</button>
   </div>
   <!-- ⭐ ナイスプレー（おしい・いいプレーなど。録画前から出しておき、効くのは録画中）。点は変えずに、その時間を得点ハイライトに入れる -->
   <button id="markLive" class="mark-btn" type="button" aria-label="ナイスプレー（ハイライトに入れる）">⭐ ナイス</button>
@@ -318,14 +315,14 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610230110"></script>
-<script src="js/draw.js?v=202610230110"></script>
-<script src="js/setup.js?v=202610230110"></script>
-<script src="js/studio.js?v=202610230110"></script>
-<script src="js/record.js?v=202610230110"></script>
-<script src="js/editor.js?v=202610230110"></script>
-<script src="js/render.js?v=202610230110"></script>
-<script src="js/main.js?v=202610230110"></script>
+<script src="js/core.js?v=202610221616"></script>
+<script src="js/draw.js?v=202610221616"></script>
+<script src="js/setup.js?v=202610221616"></script>
+<script src="js/studio.js?v=202610221616"></script>
+<script src="js/record.js?v=202610221616"></script>
+<script src="js/editor.js?v=202610221616"></script>
+<script src="js/render.js?v=202610221616"></script>
+<script src="js/main.js?v=202610221616"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

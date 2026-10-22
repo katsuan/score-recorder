@@ -386,7 +386,7 @@ function renderEditScore() {
       plus.setAttribute("aria-label", `${name}に1点（いまの時間）`);
       plus.addEventListener("click", () => addEditEvent(key, 1));
       const minus = Object.assign(document.createElement("button"), { type: "button", className: "minus", textContent: "−1" });
-      minus.setAttribute("aria-label", `${name}の1点を取り消す（いまの時間）`);
+      minus.setAttribute("aria-label", `${name}の1点をへらす（いまの時間）`);
       minus.addEventListener("click", () => addEditEvent(key, -1));
       side.append(label, plus, minus);
       return side;
@@ -404,7 +404,7 @@ function renderEditGoalOnly() {
   plus.setAttribute("aria-label", "GOAL（いまの時間。ハイライトに入れる）");
   plus.addEventListener("click", () => addEditEvent("us", 1));
   const minus = Object.assign(document.createElement("button"), { type: "button", className: "minus", textContent: "−1" });
-  minus.setAttribute("aria-label", "GOAL を取り消す（いまの時間）");
+  minus.setAttribute("aria-label", "GOAL を1つへらす（いまの時間）");
   minus.addEventListener("click", () => addEditEvent("us", -1));
   side.append(plus, minus);
   $("editSides").replaceChildren(side);
@@ -416,7 +416,7 @@ function addEditEvent(key, delta, mark = false) {
   editEvents.push(ev);
   editEvents.sort((a, b) => a.t - b.t);
   navigator.vibrate?.(delta > 0 ? 30 : [15, 50, 15]);
-  // ＋1 で GOAL の演出、−1 は取り消しなので消す（撮る画面・アプリと同じ。止めているときも出す）
+  // ＋1 で GOAL の演出、−1 は点をへらすので消す（撮る画面・アプリと同じ。止めているときも出す）
   if (delta > 0 && !mark && state.goalFx) goalFx = { side: key, at: performance.now() };
   if (delta < 0) goalFx = null;
   editLastT = editVideo.currentTime; // 押したところを通ったと見なして、二重に出さない
@@ -444,12 +444,23 @@ function renderEditEvents() {
       const dot = Object.assign(document.createElement("i"), { className: "ev-dot" });
       dot.style.background = color;
       // 得点板を出さないときは、チーム名とスコアを出さない
-      text.append(dot, ev.mark ? "⭐ ナイスプレー" : !state.board ? (ev.delta > 0 ? "GOAL" : "GOAL を取り消し") : `${name} ${ev.delta > 0 ? "＋1" : "−1"} → ${l} - ${r}`);
+      text.append(dot, ev.mark ? "⭐ ナイスプレー" : !state.board ? (ev.delta > 0 ? "GOAL" : "GOAL −1") : `${name} ${ev.delta > 0 ? "＋1" : "−1"} → ${l} - ${r}`);
       const del = Object.assign(document.createElement("button"), { type: "button", textContent: "✕" });
       del.setAttribute("aria-label", "この得点を消す");
+      // 確かめずに消して、トーストの「元に戻す」で同じ場所にもどす
       del.addEventListener("click", () => {
+        const at = editEvents.indexOf(ev);
         editEvents = editEvents.filter((x) => x !== ev);
         renderEditEvents();
+        showResume();
+        LineShareUI.toast(ev.mark ? "⭐ を消しました" : "得点を消しました", {
+          actionLabel: "元に戻す",
+          onAction: () => {
+            editEvents.splice(Math.min(at, editEvents.length), 0, ev);
+            renderEditEvents();
+            showResume();
+          }
+        });
       });
       li.append(jump, text, del);
       return li;

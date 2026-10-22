@@ -18,7 +18,7 @@ async function openCamera() {
     // 音も一緒に録る。マイクが使えないときは映像だけ
     cameraStream = await navigator.mediaDevices.getUserMedia({ video: video_, audio: true }).catch(() => navigator.mediaDevices.getUserMedia({ video: video_, audio: false }));
   } catch (error) {
-    $("setupError").textContent = "カメラを使えませんでした。ブラウザの設定でカメラを許可してから、もう一度お試しください。";
+    $("setupError").textContent = "カメラを使えませんでした。ブラウザの設定でカメラを許可してから、もう一度押してね。";
     $("setupError").hidden = false;
     return;
   }
@@ -161,7 +161,7 @@ $("handToggle").addEventListener("click", () => {
 // ---- 得点の ＋・−（録画中でも押せる。0 より下にはしない）。＋1 のときは GOAL のエフェクト ----
 // 点を変える（＋1・−1）。押したボタンが一瞬光る（画面のまんなかには何も出さない。動画に入るのか迷わせないため。
 // いまの点は、動画に入る左上の得点板で見える）。Android は軽く震える（iPhone のブラウザは震えない）。
-// 押しまちがいは、そのチームの −1 で直す（画面がごちゃつかないよう「取り消す」ボタンは出さない）
+// 押しまちがいは、そのチームの −1 で直す（画面がごちゃつかないよう「元に戻す」ボタンは出さない）
 // 撮っているあいだに ＋1 を押した時間（得点ハイライト用）。[{ take, t: その回の録りはじめからの秒, key }]
 let liveGoals = [];
 function changeScore(key, delta, button) {
@@ -175,7 +175,7 @@ function changeScore(key, delta, button) {
     }
   }
   if (delta > 0 && state.goalFx) goalFx = { side: key, at: performance.now() };
-  if (delta < 0) goalFx = null; // 取り消したら消す
+  if (delta < 0) goalFx = null; // へらしたら消す
   save();
   navigator.vibrate?.(delta > 0 ? 30 : [15, 50, 15]);
   if (button) {
@@ -205,4 +205,17 @@ $("markLive").addEventListener("click", () => {
 });
 
 $("record").addEventListener("click", () => (recording ? stopRecording() : startRecording()));
-$("openCamera").addEventListener("click", openCamera);
+// カメラの許可を待つあいだは、ボタンの中に「開いています…」（二度押しもしない）
+$("openCamera").addEventListener("click", async () => {
+  const button = $("openCamera");
+  if (button.disabled) return;
+  const label = button.textContent;
+  button.disabled = true;
+  button.textContent = "📹 カメラを開いています…";
+  try {
+    await openCamera();
+  } finally {
+    button.disabled = false;
+    button.textContent = label;
+  }
+});

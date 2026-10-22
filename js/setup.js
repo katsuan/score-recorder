@@ -119,7 +119,7 @@ function showBoardMode() {
     if (!state.board) b.setAttribute("aria-label", "GOAL（ハイライトに入れる）");
   });
   document.querySelectorAll("#studio .side.is-us .minus").forEach((b) => {
-    if (!state.board) b.setAttribute("aria-label", "GOAL を取り消す");
+    if (!state.board) b.setAttribute("aria-label", "GOAL を1つへらす");
   });
   if (!$("editor").hidden) {
     renderEditScore();

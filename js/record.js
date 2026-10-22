@@ -12,7 +12,7 @@ let recorder = null;
 let recording = false;
 // 録り終えた動画 [{ blob, type, from, to, take, takeAt, file, url, saved }]。from・to はその回の録りはじめからの秒。
 // 「スコアそのままで続きを撮る」で録りなおしても前の動画は消さず、続けて足していく（take が何回目の録画か）。
-// 消すのは「0 - 0 から撮りなおす」のときだけ（保存していない動画があれば確かめる）
+// 消すのは動画の行の 🗑 だけ（すぐ消して「元に戻す」で戻せる）
 let clips = [];
 let take = 0;
 let startedAt = 0;
@@ -63,12 +63,12 @@ function startClip() {
 
 function startRecording() {
   if (!window.MediaRecorder || !screen.captureStream) {
-    LineShareUI.ask({ title: "この端末のブラウザでは録画できません", ok: "OK", cancel: null });
+    LineShareUI.ask({ title: "この端末のブラウザでは録画できません", ok: "閉じる", cancel: null });
     return;
   }
   // カメラが使えていないとき（許可していない・ほかのアプリが使っている）は録画しない
   if (!cameraStream) {
-    LineShareUI.ask({ title: "カメラが使えません", text: "🏠 から、もう一度「カメラを開く」を押して、カメラとマイクを許可してください。", ok: "OK", cancel: null });
+    LineShareUI.ask({ title: "カメラが使えません", text: "🏠 から、もう一度「カメラを開く」を押して、カメラとマイクを許可してください。", ok: "閉じる", cancel: null });
     return;
   }
   beginRecording(screen, cameraStream.getAudioTracks());
@@ -237,24 +237,32 @@ async function shareFiles(list) {
     // やめたときは何もしない
   }
 }
-// 動画を消す（🗑）。まだ保存・共有していないものだけ確かめる。消したら一覧を出しなおし、なくなったら閉じる
-async function deleteClip(c) {
-  if (!c.saved && !(await LineShareUI.ask({ title: "この動画を消しますか？", text: "まだ保存・共有していません。消すと元に戻せません。", ok: "消す", danger: true }))) return;
-  if (c.url) URL.revokeObjectURL(c.url);
+// 動画を消す（🗑）：確かめずに消して、トーストの「元に戻す」で同じ場所にもどす（動画の中身は少しのあいだ残しておく）。
+// 消したら一覧を出しなおし、なくなったら閉じる
+function deleteClip(c) {
+  const at = clips.indexOf(c);
   clips = clips.filter((x) => x !== c);
   showOpenSaved();
-  if (!clips.length) {
-    closeSaveSheet();
-    return;
-  }
-  renderClips();
+  if (clips.length) renderClips();
+  else closeSaveSheet();
+  LineShareUI.toast("動画を消しました", {
+    actionLabel: "元に戻す",
+    onAction: () => {
+      clips.splice(Math.min(at, clips.length), 0, c);
+      showOpenSaved();
+      if (!$("saveSheet").hidden) renderClips();
+    }
+  });
+  // 元に戻せなくなったら（トーストが消えたら）、中身を手放す
+  setTimeout(() => {
+    if (!clips.includes(c) && c.url) URL.revokeObjectURL(c.url);
+  }, 8000);
 }
-// 保存・共有した動画に印（✓）。消すとき、まだ保存していない動画か確かめるのに使う
+// 保存・共有した動画に印（✓）
 function markSaved(list) {
   list.forEach((c) => (c.saved = true));
   renderClips();
 }
-// 何回目の録画か（0 - 0 にしてからの数え方）
 // 何回目の録画か（カメラで撮ったものだけで数える）
 const shotTakes = () => [...new Set(clips.filter((c) => c.kind === "shot").map((c) => c.take))].sort((a, b) => a - b);
 const takeNumber = (t) => shotTakes().indexOf(t) + 1;

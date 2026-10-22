@@ -36,7 +36,6 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* 見出しの行は Q キット（ls-brand）。アイコンの角だけ丸く、ひとことは緑 */
 .ls-brand-icon { width: 28px; height: 28px; border-radius: 7px; }
 .ls-brand-copy { margin-top: -10px; color: var(--accent); font-size: 13px; }
-.lead { line-height: 1.7; }
 /* チームは左右に（左のチーム・右のチーム。得点板と同じ並び） */
 .teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; }
 .teams .team-col[data-side="us"] { order: 1; }
@@ -76,7 +75,6 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .chip.color.is-taken::after { content: ""; position: absolute; inset: 2px; border-radius: 50%; background: linear-gradient(to top right, transparent calc(50% - 1.5px), #7d8a82 calc(50% - 1.5px), #7d8a82 calc(50% + 1.5px), transparent calc(50% + 1.5px)); pointer-events: none; }
 .chip.color.is-custom { overflow: hidden; background: conic-gradient(#e5484d, #ffd23f, #2fbf71, #38bdf8, #6c47ff, #e5484d); }
 .chip.color.is-custom input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; font-size: 16px; }
-.team-shared { margin-top: -6px; text-align: center; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 /* ボタンは Q キット（ls-button）。押しやすいよう大きめ */
 .ls-button.is-block { min-height: 52px; font-size: 17px; font-weight: 800; }
