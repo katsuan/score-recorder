@@ -58,8 +58,8 @@ $("tipOk").addEventListener("click", () => {
 // 横向きにしてくださいの画面からも、はじめの画面へ
 $("rotateHome").addEventListener("click", closeCamera);
 
-function closeCamera() {
-  if (recording && !confirm("録画中です。止めて戻りますか？")) return;
+async function closeCamera() {
+  if (recording && !(await LineShareUI.ask({ title: "録画中です", text: "止めて戻りますか？", ok: "止めて戻る", danger: true }))) return;
   stopRecording();
   cameraStream?.getTracks().forEach((t) => t.stop());
   cameraStream = null;

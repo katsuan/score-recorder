@@ -63,12 +63,12 @@ function startClip() {
 
 function startRecording() {
   if (!window.MediaRecorder || !screen.captureStream) {
-    alert("この端末のブラウザでは録画できません。");
+    LineShareUI.ask({ title: "この端末のブラウザでは録画できません", ok: "OK", cancel: null });
     return;
   }
   // カメラが使えていないとき（許可していない・ほかのアプリが使っている）は録画しない
   if (!cameraStream) {
-    alert("カメラが使えません。🏠 から、もう一度「カメラを開く」を押して、カメラとマイクを許可してください。");
+    LineShareUI.ask({ title: "カメラが使えません", text: "🏠 から、もう一度「カメラを開く」を押して、カメラとマイクを許可してください。", ok: "OK", cancel: null });
     return;
   }
   beginRecording(screen, cameraStream.getAudioTracks());
@@ -238,8 +238,8 @@ async function shareFiles(list) {
   }
 }
 // 動画を消す（🗑）。まだ保存・共有していないものだけ確かめる。消したら一覧を出しなおし、なくなったら閉じる
-function deleteClip(c) {
-  if (!c.saved && !confirm("この動画はまだ保存・共有していません。消しますか？")) return;
+async function deleteClip(c) {
+  if (!c.saved && !(await LineShareUI.ask({ title: "この動画を消しますか？", text: "まだ保存・共有していません。消すと元に戻せません。", ok: "消す", danger: true }))) return;
   if (c.url) URL.revokeObjectURL(c.url);
   clips = clips.filter((x) => x !== c);
   showOpenSaved();

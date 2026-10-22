@@ -26,9 +26,9 @@ $("videoFile").addEventListener("change", (e) => {
   if (file) openEditor(file);
 });
 
-function openEditor(file) {
+async function openEditor(file) {
   // さっきの動画に点を入れていたら、別の動画にする前に確かめる（さっきの点は消える）
-  if (editUrl && editEvents.length && !confirm(`さっきの動画に入れた得点（${editEvents.length}件）は消えます。別の動画にしますか？`)) return;
+  if (editUrl && editEvents.length && !(await LineShareUI.ask({ title: "別の動画にしますか？", text: `さっきの動画に入れた得点（${editEvents.length}件）は消えます。`, ok: "別の動画にする", danger: true }))) return;
   if (editUrl) URL.revokeObjectURL(editUrl);
   editUrl = URL.createObjectURL(file);
   editVideo.src = editUrl;

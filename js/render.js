@@ -7,7 +7,7 @@
 // あいだを飛ばすときは録画を一時停止してつなぐ。流した時間だけかかる
 async function renderPieces(pieces, { overlay, kind, title }) {
   if (!window.MediaRecorder || !editScreen.captureStream) {
-    alert("この端末のブラウザでは書き出せません。");
+    LineShareUI.ask({ title: "この端末のブラウザでは書き出せません", ok: "OK", cancel: null });
     return;
   }
   if (!pieces.length) return;
@@ -74,7 +74,7 @@ async function renderPieces(pieces, { overlay, kind, title }) {
 
 // 撮った動画に（得点板をつける）：選んだ範囲を、得点板つきで書き出す（終わったら保存の画面は「閉じる」だけ）
 async function exportVideo() {
-  if (!Number.isFinite(editVideo.duration) || !editVideo.duration) return alert("動画の長さが分かりません。少し待ってから、もう一度お試しください。");
+  if (!Number.isFinite(editVideo.duration) || !editVideo.duration) return LineShareUI.ask({ title: "動画の長さが分かりません", text: "少し待ってから、もう一度お試しください。", ok: "OK", cancel: null });
   const pieces = exportSegments().map(([a, b]) => ({ src: editVideo.src, a, b }));
   if (!pieces.length) return;
   exportMode = true;
@@ -186,8 +186,8 @@ function finishExport() {
   // やめたときも、そこまでの動画は保存の画面に出す（撮るときと同じ）
   stopRecording();
 }
-$("editExport").addEventListener("click", () => {
-  if (!editEvents.length && !confirm("まだ得点を入れていません。はじめのスコアのまま書き出しますか？")) return;
+$("editExport").addEventListener("click", async () => {
+  if (!editEvents.length && !(await LineShareUI.ask({ title: "まだ得点を入れていません", text: "はじめのスコアのまま書き出しますか？", ok: "書き出す" }))) return;
   exportVideo();
 });
 $("exportCancel").addEventListener("click", () => finishExport());
