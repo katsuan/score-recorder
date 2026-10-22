@@ -49,13 +49,21 @@ function highlightSpans(times, end) {
 const STORE_KEY = "roqga:state";
 const SAQSEN_KEY = "soccer:state"; // さくせん盤（同じ katsuan.github.io）のチーム名・色
 
+// 端末に残った中身は、ほかのツール（さくせん盤）や前の版が書いたものもあるので、形を確かめてから使う
+const isObj = (v) => Boolean(v) && typeof v === "object" && !Array.isArray(v);
 const load = (key) => {
   try {
-    return JSON.parse(localStorage.getItem(key)) || {};
+    const v = JSON.parse(localStorage.getItem(key));
+    return isObj(v) ? v : {};
   } catch {
     return {};
   }
 };
+// 文字なら max 字まで（絵文字も1字）。文字でなければ null
+const textOf = (v, max) => (typeof v === "string" ? [...v].slice(0, max).join("") : null);
+// 点は 0〜999 の整数
+const scoreOf = (v) => Math.min(999, Math.max(0, Math.floor(Number(v)) || 0));
+const NAME_MAX = 20; // さくせん盤のチーム名と同じ
 const save = () => {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(state));
@@ -77,23 +85,23 @@ const saqsen = load(SAQSEN_KEY);
 const saved = load(STORE_KEY);
 const pickHex = (...list) => list.find((c) => /^#[0-9a-f]{6}$/i.test(String(c || ""))) || "#ffffff";
 const state = {
-  teamUs: saqsen.team ?? saved.teamUs ?? "",
-  teamThem: saqsen.opponent ?? saved.teamThem ?? "",
+  teamUs: textOf(saqsen.team, NAME_MAX) ?? textOf(saved.teamUs, NAME_MAX) ?? "",
+  teamThem: textOf(saqsen.opponent, NAME_MAX) ?? textOf(saved.teamThem, NAME_MAX) ?? "",
   colorUs: pickHex(saqsen.ourColor, saved.colorUs, TEAM_COLORS[0].hex),
   colorThem: pickHex(saqsen.oppColor, saved.colorThem, TEAM_COLORS[2].hex),
-  us: Number(saved.us) || 0,
-  them: Number(saved.them) || 0,
+  us: scoreOf(saved.us),
+  them: scoreOf(saved.them),
   // ＋1 のとき「GOAL!」のエフェクトを動画に入れるか。はじめは出す（ON）。
   // 前は「はじめは出さない」で OFF が覚えられているので、fxV（この決まりの版）が 2 でなければ、いちどだけ ON にする
   goalFx: saved.fxV === 2 ? saved.goalFx !== false : true,
   fxV: 2,
   // ⚡ ハイライトのつなぎ目の柄（draw.js の TRANSITIONS の id）。はじめは RoQga
-  transition: typeof saved.transition === "string" ? saved.transition : "roqga",
+  transition: textOf(saved.transition, 40) ?? "roqga",
   // 得点板を出すか（出さないときは GOAL の演出・つなぎ目だけ）。プレビュー・撮る画面・撮った動画に・書き出す動画のすべてに効く。はじめは出す
   board: saved.board !== false,
-  fxIcon: typeof saved.fxIcon === "string" ? saved.fxIcon : "⚽", // エフェクトのアイコン（"" はなし）。サッカー以外でも
-  fxCustom: typeof saved.fxCustom === "string" ? saved.fxCustom : "", // カスタムのアイコン（好きな絵文字・文字。2文字まで）
-  fxText: typeof saved.fxText === "string" ? saved.fxText : "", // エフェクトの文字（空なら GOAL!）
+  fxIcon: textOf(saved.fxIcon, 16) ?? "⚽", // エフェクトのアイコン（"" はなし）。サッカー以外でも
+  fxCustom: textOf(saved.fxCustom, 16) ?? "", // カスタムのアイコン（好きな絵文字・文字。2文字まで）
+  fxText: textOf(saved.fxText, 12) ?? "", // エフェクトの文字（空なら GOAL!）
   swapped: saved.swapped === true, // 左右を入れかえる（us を右に）。us・them は中の呼び名で、自分のチームとはかぎらない
   hand: ["left", "right"].includes(saved.hand) ? saved.hand : "center", // ＋1・録画のまとまりの位置（片手で持つ側に寄せる）
   turn: ["left", "right"].includes(saved.turn) ? saved.turn : null // 縦の画面のまま倒して撮るときの向き（前に選んだもの。次からは選ばずに始める）
