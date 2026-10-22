@@ -69,6 +69,7 @@ function drawScoreboard(w, h, ctx = screenCtx) {
 // ---- GOAL のエフェクト：＋1 のとき、画面の真ん中に得点したチームの色の帯と「⚽ GOAL!」を2秒ほど（動画にも入る）。アイコン・文字は変えられる ----
 const GOAL_FX_MS = 2200;
 let goalFx = null; // { side: "us"|"them", at: 時刻 }
+const NEUTRAL_FX_COLOR = "#1f6b38"; // 得点板を出さないときの帯（つなぎ目の柄と同じ芝の緑）
 
 
 // エフェクトに出す字：アイコン＋文字（文字が空なら GOAL!）
@@ -82,8 +83,10 @@ function drawGoalFx(w, h, c = screenCtx) {
     return;
   }
   const s = Math.min(w, h) / 720;
-  const color = goalFx.side === "us" ? state.colorUs : state.colorThem;
-  const name = (goalFx.side === "us" ? state.teamUs : state.teamThem).trim();
+  // 得点板を出さないときは、どちらのチームかを出さない（帯はろくがの芝の緑、下のチーム名・スコアもなし）
+  const team = state.board;
+  const color = team ? (goalFx.side === "us" ? state.colorUs : state.colorThem) : NEUTRAL_FX_COLOR;
+  const name = team ? (goalFx.side === "us" ? state.teamUs : state.teamThem).trim() : "";
   const ink = isLight(color) ? "#14231a" : "#ffffff";
   // 出てくる（0〜10%）・とどまる・消える（80〜100%）
   const alpha = t < 0.1 ? t / 0.1 : t > 0.8 ? (1 - t) / 0.2 : 1;
@@ -126,8 +129,8 @@ function drawGoalFx(w, h, c = screenCtx) {
   // スコアは左上の得点板と同じ左右の並び（⇄ で入れかえたときは them が左）。
   // ▶ 試す・アイコンや文字を変えたときの見本（trial）は点を入れないので、スコアの代わりに「（お試し）」
   const [left, right] = state.swapped ? [state.them, state.us] : [state.us, state.them];
-  const sub = goalFx.trial ? "（お試し）" : `${left} - ${right}`;
-  c.fillText(`${name ? `${name}　` : ""}${sub}`, w / 2, h / 2 + 62 * s);
+  const sub = goalFx.trial ? "（お試し）" : team ? `${left} - ${right}` : "";
+  if (sub) c.fillText(`${name ? `${name}　` : ""}${sub}`, w / 2, h / 2 + 62 * s);
   c.restore();
 }
 
