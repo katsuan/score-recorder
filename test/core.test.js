@@ -4,9 +4,9 @@ const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
+const XSS = "<img src=x onerror=alert(1)>"; // qcheck-ok: W8 テストの見本の文字（画面では動かさない）
 
 const code = fs.readFileSync(path.join(__dirname, "../js/core.js"), "utf8");
-const XSS = "<img src=x onerror=alert(1)>";
 
 // 端末に store（キー → 文字）を入れて core.js を読み、state を返す
 function boot(store) {
