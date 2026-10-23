@@ -136,3 +136,35 @@ test("止めたまま ＋1 を続けて押すと、一覧のスコアは 1 - 0 �
     { us: 1, them: 1 }
   ]);
 });
+
+// 利用状況の記録（Q キットの shared/log.js の LineShareLog）。電波がない・読めないときは無くても止まらない
+function withLog(run) {
+  run("var logged = []; window.LineShareLog = { track: (event, o) => logged.push([event, o.kind, o.count]) };");
+  return () => JSON.parse(run("JSON.stringify(logged)"));
+}
+
+test("記録の部品が読めない・こわれていても、止まらない（電波がないときも使える）", () => {
+  const { run } = boot();
+  run("window.LineShareLog = undefined");
+  assert.doesNotThrow(() => run("logUse('shot', 1)"));
+  run("window.LineShareLog = { track() { throw new Error('offline'); } }");
+  assert.doesNotThrow(() => run("logUse('shot', 1)"));
+});
+
+test("カメラで録り終えると、録った秒数を記録する（書き出しの録画は数えない）", () => {
+  const { run } = boot();
+  const logged = withLog(run);
+  run("recording = true; recKind = 'shot'; startedAt = Date.now() - 65000; stopRecording()");
+  run("recording = true; recKind = 'edit'; startedAt = Date.now(); stopRecording()");
+  assert.deepEqual(logged(), [["send", "shot", 65]]);
+});
+
+test("共有できたら、本数を記録する（やめたときは記録しない）", async () => {
+  const { run } = boot();
+  const logged = withLog(run);
+  run("navigator.share = () => Promise.resolve()");
+  await run("shareFiles([{ file: 1 }, { file: 2 }])");
+  run("navigator.share = () => Promise.reject(new Error('AbortError'))");
+  await run("shareFiles([{ file: 1 }])");
+  assert.deepEqual(logged(), [["send", "share", 2]]);
+});

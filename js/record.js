@@ -118,6 +118,7 @@ function stopRecording() {
   clearTimeout(segmentTimer);
   if (recording) {
     recording = false;
+    if (recKind === "shot") logUse("shot", Math.round((Date.now() - startedAt) / 1000)); // カメラで録った秒数
     if (recorder && recorder.state !== "inactive") recorder.stop(); // 書き出しの合間で一時停止中でも止める
   }
   clearInterval(tick);
@@ -250,6 +251,7 @@ function showClip(i) {
 async function shareFiles(list) {
   try {
     await navigator.share({ files: list.map((c) => c.file) });
+    logUse("share", list.length);
     markSaved(list);
     markShared();
   } catch {

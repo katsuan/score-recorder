@@ -31,6 +31,16 @@ const pad2 = (n) => String(n).padStart(2, "0");
 // お知らせだけの窓（ボタンは「閉じる」1つ）
 const notice = (title, text) => LineShareUI.ask({ title, ...(text ? { text } : {}), ok: "閉じる", cancel: null });
 // 押したボタンを一瞬光らせる（続けて押しても、はじめから光らせなおす）
+// 利用状況の記録（Q キットの shared/log.js。開いたことは log.js がひとりでに記録する）。
+// 記録するのは、何をしたか（kind）と数（秒・本数）だけ。動画・チーム名などは送らない。
+// 電波がない・部品が読めないときは何もしない（ろくがはそのまま使える。送れなかった記録は捨てる）
+const logUse = (kind, count = "") => {
+  try {
+    window.LineShareLog?.track("send", { kind, count });
+  } catch {
+    // 記録できなくても使える
+  }
+};
 const flash = (el, cls = "is-hit") => {
   el.classList.remove(cls);
   void el.offsetWidth;

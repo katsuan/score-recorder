@@ -23,7 +23,10 @@ $("pickVideo").addEventListener("click", () => $("videoFile").click());
 $("videoFile").addEventListener("change", (e) => {
   const file = e.target.files?.[0];
   e.target.value = ""; // 同じ動画をもう一度選べるように
-  if (file) openEditor(file);
+  if (file) {
+    logUse("pick-video"); // 🎞 撮った動画にを使った
+    openEditor(file);
+  }
 });
 
 async function openEditor(file) {

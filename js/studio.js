@@ -207,6 +207,7 @@ $("openCamera").addEventListener("click", async () => {
   button.textContent = "📹 カメラを開いています…";
   try {
     await openCamera();
+    if (cameraStream) logUse("camera"); // 📹 撮りながらでカメラを開けた
   } finally {
     button.disabled = false;
     button.textContent = label;
