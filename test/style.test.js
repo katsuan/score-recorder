@@ -26,3 +26,11 @@ test("光らせるボタンは、位置を transform で決めない", () => {
     }
   }
 });
+
+// 暗い表示では --ink（字の色）が明るくなる。地を白などの明るい色に決めているところで --ink を使うと、白い地に白い字になる
+// （見本の「プレビュー」の札・撮る画面の「はじめての方へ」が読めなかった）。そこでは --ink をその場で濃い色に決めなおす
+test("明るい地に決めたところは、暗い表示でも字が濃いまま", () => {
+  const light = /background(?:-color)?:\s*(#fff\b|#ffffff|white|#eef7f0|rgba\(255,\s*255,\s*255,\s*0\.[5-9])/;
+  const bad = rules.filter((r) => light.test(r.body) && /color:\s*var\(--ink(?:-soft)?\)/.test(r.body) && !/--ink:\s*#/.test(r.body));
+  assert.deepStrictEqual(bad.map((r) => r.selector), []);
+});

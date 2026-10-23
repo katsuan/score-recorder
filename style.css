@@ -59,7 +59,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .preview-frame { position: relative; }
 .preview { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; background: #2e8b4a; }
 /* 「プレビュー」の札（画面の上だけ。動画には入らない） */
-.preview-tag { position: absolute; right: 8px; bottom: 8px; padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.9); color: var(--ink); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; }
+.preview-tag { --ink: #23302a; --ink-soft: #5c6b62; position: absolute; right: 8px; bottom: 8px; padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.9); color: var(--ink); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; }
 /* チームの色：丸いボタン（緑・黄・白）と、カスタム（自由な色）。さくせん盤と同じ形 */
 .chips.colors { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 44px; }
 .chip.color { position: relative; flex: 0 0 auto; width: 28px; height: 28px; min-height: 0; aspect-ratio: 1; /* .chip の高さ（40px）を外して、まん丸に */ padding: 0; border: 2px solid var(--border); border-radius: 50%; cursor: pointer; }
@@ -228,7 +228,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* はじめの画面：「カメラを開く」は画面の下に固定（スクロールしなくても押せる） */
 #openCamera, #pickVideo { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 5; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2); }
 /* 保存のしかたの案内 */
-.guide { padding: 8px 12px; border-radius: 10px; background: #eef7f0; color: var(--ink); font-size: 13px; font-weight: 700; line-height: 1.5; }
+.guide { --ink: #23302a; --ink-soft: #5c6b62; padding: 8px 12px; border-radius: 10px; background: #eef7f0; color: var(--ink); font-size: 13px; font-weight: 700; line-height: 1.5; }
 
 /* 使い方のタブ：撮る／あとから付ける */
 /* 使い方のタブは Q キット（ls-tabs）。2つを等分に。はじめの画面の中なので、上にはりつけない */
@@ -312,7 +312,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
   .sheet-side { min-height: 0; overflow-y: auto; padding-right: 2px; }
 }
 /* ④ はじめての方への案内（撮る画面の上。動画には入らない） */
-.studio-tip { position: absolute; left: 50%; top: 50%; z-index: 6; transform: translate(-50%, -50%); width: min(420px, calc(100% - 32px)); max-height: calc(100% - 24px); overflow-y: auto; display: grid; gap: 10px; padding: 16px; border-radius: 16px; background: #fff; color: var(--ink); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+.studio-tip { --ink: #23302a; --ink-soft: #5c6b62; position: absolute; left: 50%; top: 50%; z-index: 6; transform: translate(-50%, -50%); width: min(420px, calc(100% - 32px)); max-height: calc(100% - 24px); overflow-y: auto; display: grid; gap: 10px; padding: 16px; border-radius: 16px; background: #fff; color: var(--ink); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
 .studio-tip[hidden] { display: none; }
 .tip-title { font-weight: 800; }
 .studio-tip ul { display: grid; gap: 6px; margin: 0; padding-left: 1.1em; font-size: 14px; line-height: 1.5; }
