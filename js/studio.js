@@ -5,8 +5,7 @@
 // ---- カメラ ----
 const video = $("camera");
 const screen = $("screen");
-const ctx = screen.getContext("2d");
-const screenCtx = ctx;
+const screenCtx = screen.getContext("2d");
 let cameraStream = null;
 let wakeLock = null;
 
@@ -98,18 +97,19 @@ function drawFrame() {
     screen.width = w;
     screen.height = h;
   }
-  ctx.save();
+  const c = screenCtx;
+  c.save();
   if (rotate && turn === "left") {
     // 左に倒した（スマホの上が左）：映像の右が上になるので、左回りに 90°
-    ctx.translate(0, h);
-    ctx.rotate(-Math.PI / 2);
+    c.translate(0, h);
+    c.rotate(-Math.PI / 2);
   } else if (rotate) {
     // 右に倒した（スマホの上が右）：映像の左が上になるので、右回りに 90°
-    ctx.translate(w, 0);
-    ctx.rotate(Math.PI / 2);
+    c.translate(w, 0);
+    c.rotate(Math.PI / 2);
   }
-  ctx.drawImage(video, 0, 0, vw, vh);
-  ctx.restore();
+  c.drawImage(video, 0, 0, vw, vh);
+  c.restore();
   drawScoreboard(w, h);
   drawGoalFx(w, h);
   requestAnimationFrame(drawFrame);
@@ -178,11 +178,7 @@ function changeScore(key, delta, button) {
   if (delta < 0) goalFx = null; // へらしたら消す
   save();
   navigator.vibrate?.(delta > 0 ? 30 : [15, 50, 15]);
-  if (button) {
-    button.classList.remove("is-hit");
-    void button.offsetWidth; // 続けて押しても、はじめから光らせなおす
-    button.classList.add("is-hit");
-  }
+  if (button) flash(button);
 }
 document.querySelectorAll("[data-score]").forEach((b) => b.addEventListener("click", () => changeScore(b.dataset.score, Number(b.dataset.delta), b)));
 // ⭐ ナイスプレー（効くのは録画中だけ）：点は変えずに、その時間を得点ハイライトに入れる
@@ -198,10 +194,7 @@ $("markLive").addEventListener("click", () => {
   }
   liveGoals.push({ take, t: (Date.now() - startedAt) / 1000, key: null, mark: true });
   navigator.vibrate?.(20);
-  const b = $("markLive");
-  b.classList.remove("is-hit");
-  void b.offsetWidth;
-  b.classList.add("is-hit");
+  flash($("markLive"));
 });
 
 $("record").addEventListener("click", () => (recording ? stopRecording() : startRecording()));

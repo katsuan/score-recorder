@@ -49,6 +49,8 @@ async function openEditor(file) {
 
 // 撮った動画にの画面を出す（はじめて開くときも、さっきの動画にもどるときも）
 function showEditor() {
+  // 撮る画面の ⚡ ハイライトを作ると、この動画の枠に録った動画を入れているので、さっきの動画にもどす
+  if (editUrl && editVideo.src !== editUrl) editVideo.src = editUrl;
   renderEditScore(); // チーム名・色は、はじめの画面で変えているかもしれない
   renderEditEvents();
   $("editFxBody").append($("fxControls")); // エフェクトの設定を、この画面の「🎉 得点のエフェクト」へ
@@ -110,13 +112,17 @@ editorEl.addEventListener("focusout", () => {
 window.visualViewport?.addEventListener("resize", fitEditorToViewport);
 window.visualViewport?.addEventListener("scroll", fitEditorToViewport);
 
-// その時間までの点
-function scoreAt(t) {
-  const score = { ...editBase };
-  editEvents.forEach((ev) => {
-    if (ev.t <= t && !ev.mark) score[ev.key] = Math.max(0, score[ev.key] + ev.delta);
-  });
+// 点を1つ動かす（0 より下にはしない）
+const applyEvent = (score, ev) => {
+  if (!ev.mark) score[ev.key] = Math.max(0, score[ev.key] + ev.delta);
   return score;
+};
+// その時間までの点
+const scoreAt = (t) => editEvents.filter((ev) => ev.t <= t).reduce(applyEvent, { ...editBase });
+// 一覧の1行ずつの「そのあとのスコア」（同じ時間に続けて押しても、押した順に1つずつ）
+function scoresAfterEvents() {
+  const score = { ...editBase };
+  return editEvents.map((ev) => ({ ...applyEvent(score, ev) }));
 }
 
 let rendering = false; // 書き出し中（撮った動画に（得点板をつける）・得点ハイライト）
@@ -263,9 +269,7 @@ function jumpBy(sec) {
 function pressByKey(button) {
   if (!button) return;
   button.click();
-  button.classList.remove("is-key");
-  void button.offsetWidth; // 続けて押しても光るように
-  button.classList.add("is-key");
+  flash(button, "is-key");
 }
 document.addEventListener("keydown", (e) => {
   if (editorEl.hidden || exporting || e.metaKey || e.ctrlKey || e.altKey || e.repeat && /^Digit|^Numpad|KeyN/.test(e.code)) return;
@@ -339,7 +343,7 @@ $("editSeek").addEventListener("input", (e) => {
 // ＋1／−1：左右は得点板と同じ並び、ボタンはチームの色
 function renderEditScore() {
   if (!state.board) return renderEditGoalOnly();
-  const keys = state.swapped ? ["them", "us"] : ["us", "them"];
+  const keys = inOrder("us", "them");
   $("editSides").replaceChildren(
     ...keys.map((key) => {
       const color = key === "us" ? state.colorUs : state.colorThem;
@@ -427,8 +431,9 @@ function addEditEvent(key, delta, mark = false) {
 // 入れた得点の一覧：時間（押すとそこへ）・どちらのチーム・そのあとのスコア・✕（消す）
 function renderEditEvents() {
   showExportRange();
+  const afters = scoresAfterEvents();
   $("editEvents").replaceChildren(
-    ...editEvents.map((ev) => {
+    ...editEvents.map((ev, index) => {
       const li = document.createElement("li");
       const jump = Object.assign(document.createElement("button"), { type: "button", textContent: clock(Math.floor(ev.t)) });
       jump.setAttribute("aria-label", `${clock(Math.floor(ev.t))} へ`);
@@ -438,8 +443,8 @@ function renderEditEvents() {
       });
       const color = ev.mark ? "#ffd54a" : !state.board ? NEUTRAL_FX_COLOR : ev.key === "us" ? state.colorUs : state.colorThem;
       const name = ev.mark ? "" : (ev.key === "us" ? state.teamUs : state.teamThem).trim() || sideName(ev.key);
-      const after = scoreAt(ev.t);
-      const [l, r] = state.swapped ? [after.them, after.us] : [after.us, after.them];
+      const after = afters[index];
+      const [l, r] = inOrder(after.us, after.them);
       const text = document.createElement("span");
       const dot = Object.assign(document.createElement("i"), { className: "ev-dot" });
       dot.style.background = color;

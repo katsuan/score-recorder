@@ -27,6 +27,17 @@ const isLight = (hex) => {
   return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 > 0.62;
 };
 const inkFor = (hex) => (isLight(hex) ? "#1a1a1a" : "#ffffff");
+const pad2 = (n) => String(n).padStart(2, "0");
+// お知らせだけの窓（ボタンは「閉じる」1つ）
+const notice = (title, text) => LineShareUI.ask({ title, ...(text ? { text } : {}), ok: "閉じる", cancel: null });
+// 押したボタンを一瞬光らせる（続けて押しても、はじめから光らせなおす）
+const flash = (el, cls = "is-hit") => {
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+};
+// 左右の並び（⇄ で入れかえたときは them が左）。us・them の順にわたすと、[左, 右] で返す
+const inOrder = (us, them) => (state.swapped ? [them, us] : [us, them]);
 // ⚡ ハイライト：得点・⭐ ナイスプレーの何秒前から何秒後までを入れるか
 const HIGHLIGHT_BEFORE = 10;
 const HIGHLIGHT_AFTER = 6;

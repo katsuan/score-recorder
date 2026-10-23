@@ -16,7 +16,6 @@ let recording = false;
 let clips = [];
 let take = 0;
 let startedAt = 0;
-let clipStartedAt = 0;
 let tick = 0;
 let segmentTimer = 0;
 let recordStream = null;
@@ -51,27 +50,38 @@ function startClip() {
     }
   });
   activeRecs.add(rec);
-  rec.start(1000); // 1秒ごとに区切って受け取る（長く録っても途中で失いにくい）
+  try {
+    rec.start(1000); // 1秒ごとに区切って受け取る（長く録っても途中で失いにくい）
+  } catch (error) {
+    activeRecs.delete(rec);
+    throw error;
+  }
   recorder = rec;
-  clipStartedAt = Date.now();
   clearTimeout(segmentTimer);
   segmentTimer = setTimeout(() => {
     rec.stop(); // 5分ごとに分ける：いまの1本を閉じて、すぐ次の1本
-    startClip();
+    try {
+      startClip();
+    } catch {
+      stopRecording(); // 次の1本を始められなければ、そこまでで止めて保存の画面へ
+    }
   }, SEGMENT_MS);
 }
 
 function startRecording() {
   if (!window.MediaRecorder || !screen.captureStream) {
-    LineShareUI.ask({ title: "この端末のブラウザでは録画できません", ok: "閉じる", cancel: null });
+    notice("この端末のブラウザでは録画できません");
     return;
   }
   // カメラが使えていないとき（許可していない・ほかのアプリが使っている）は録画しない
   if (!cameraStream) {
-    LineShareUI.ask({ title: "カメラが使えません", text: "🏠 から、もう一度「カメラを開く」を押して、カメラとマイクを許可してください。", ok: "閉じる", cancel: null });
+    notice("カメラが使えません", "🏠 から、もう一度「カメラを開く」を押して、カメラとマイクを許可してください。");
     return;
   }
-  beginRecording(screen, cameraStream.getAudioTracks());
+  if (!beginRecording(screen, cameraStream.getAudioTracks())) {
+    notice("録画を始められませんでした", "この端末のブラウザでは録画できないようです。ほかのブラウザ（Safari・Chrome）で開いてね。");
+    return;
+  }
   $("record").classList.add("is-on");
   $("studio").classList.add("is-recording");
   $("record").setAttribute("aria-label", "録画を止める");
@@ -81,18 +91,27 @@ function startRecording() {
 // kind：shot（カメラで撮る）・edit（撮った動画にの書き出し）・highlight（得点ハイライト）
 let recKind = "shot";
 // manualFrames：canvas を「描いたときだけ1コマ」録る（書き出しで、動画のコマごとに requestFrame する。editor.js の startFrameSync）
+// 始められたら true。この端末の MediaRecorder が断ったら（形式・canvas を録れないなど）何も変えずに false
 function beginRecording(canvas, audioTracks, kind = "shot", { manualFrames = false } = {}) {
-  recKind = kind;
-  recordStream = canvas.captureStream(manualFrames ? 0 : 30);
-  audioTracks.forEach((t) => recordStream.addTrack(t));
-  mimeType = pickMimeType();
-  take += 1; // 前の動画は消さない（続きを撮るとき）
+  try {
+    recKind = kind;
+    recordStream = canvas.captureStream(manualFrames ? 0 : 30);
+    audioTracks.forEach((t) => recordStream.addTrack(t));
+    mimeType = pickMimeType();
+    take += 1; // 前の動画は消さない（続きを撮るとき）
+    recording = true;
+    startedAt = Date.now();
+    startClip();
+  } catch {
+    if (recording) take -= 1;
+    recording = false;
+    recordStream = null;
+    return false;
+  }
   pick = "all";
-  recording = true;
-  startedAt = Date.now();
-  startClip();
   tick = setInterval(showElapsed, 500);
   showElapsed();
+  return true;
 }
 
 function stopRecording() {
@@ -126,13 +145,13 @@ function showSaved() {
   $("sharedNote").hidden = true;
   $("restartSave").classList.remove("is-suggest");
   // 「続きを撮る」に、いまのスコアを（左右の並びで）
-  const [l, r] = state.swapped ? [state.them, state.us] : [state.us, state.them];
+  const [l, r] = inOrder(state.us, state.them);
   $("nextKeep").textContent = `いまの ${l} - ${r} のまま（後半など）`;
   // 今回の録画の動画に名前をつける（前の回の動画は、もう名前がついている）
   const now = takeClips();
   now.forEach((c, i) => {
     const d = new Date(c.takeAt);
-    const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}`;
+    const stamp = `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}-${pad2(d.getHours())}${pad2(d.getMinutes())}`;
     const ext = c.type.includes("mp4") ? "mp4" : "webm";
     const tail = c.kind === "highlight" ? "-highlight" : now.length > 1 ? `-${i + 1}` : "";
     const name = `score-${stamp}${tail}.${ext}`;

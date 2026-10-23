@@ -11,8 +11,7 @@ function drawScoreboard(w, h, ctx = screenCtx) {
   const font = (size, weight = 800) => `${weight} ${size}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
   // チーム名がないときは、名前の代わりにチームの色の丸
   // 左右（入れかえたときは them が左）。下の「Us」は左、「Them」は右のこと
-  const left = state.swapped ? { name: state.teamThem, color: state.colorThem, score: state.them } : { name: state.teamUs, color: state.colorUs, score: state.us };
-  const right = state.swapped ? { name: state.teamUs, color: state.colorUs, score: state.us } : { name: state.teamThem, color: state.colorThem, score: state.them };
+  const [left, right] = inOrder({ name: state.teamUs, color: state.colorUs, score: state.us }, { name: state.teamThem, color: state.colorThem, score: state.them });
   const nameUs = left.name.trim();
   const nameThem = right.name.trim();
   const dot = 26 * s;
@@ -30,7 +29,8 @@ function drawScoreboard(w, h, ctx = screenCtx) {
   ctx.save();
   ctx.fillStyle = "rgba(12, 22, 16, 0.8)";
   ctx.beginPath();
-  ctx.roundRect(x, y, boxW, boxH, 14 * s);
+  if (ctx.roundRect) ctx.roundRect(x, y, boxW, boxH, 14 * s);
+  else ctx.rect(x, y, boxW, boxH); // 角を丸められない古いブラウザ（iOS 15 まで）は四角
   ctx.fill();
   // チームの色の帯（左右の端）
   ctx.fillStyle = left.color;
@@ -106,7 +106,7 @@ function drawGoalFx(w, h, c = screenCtx) {
   c.fillRect(0, y - 5 * s, w, 5 * s);
   c.fillRect(0, y + bandH, w, 5 * s);
   // GOAL! と、下にチーム名・新しいスコア（下の行がないとき＝得点板なしは、GOAL! を帯のまんなかに）
-  const [left, right] = state.swapped ? [state.them, state.us] : [state.us, state.them];
+  const [left, right] = inOrder(state.us, state.them);
   const sub = goalFx.trial ? "（お試し）" : team ? `${left} - ${right}` : "";
   c.translate(w / 2, h / 2 - (sub ? 18 * s : 0));
   c.scale(pop, pop);
@@ -169,7 +169,7 @@ function wipeOffset(p, w, h) {
 let wipePanel = null; // 面の絵（大きさごとに 1 回だけ描く）
 function roqgaPanel(w, h) {
   // 得点板の左右の並びのチームの色（⇄ で入れかえたときは them が左）
-  const [leftColor, rightColor] = state.swapped ? [state.colorThem, state.colorUs] : [state.colorUs, state.colorThem];
+  const [leftColor, rightColor] = inOrder(state.colorUs, state.colorThem);
   const key = `${w}x${h}:${leftColor}:${rightColor}:${transitionLogo.complete}`;
   if (wipePanel && wipePanel.key === key) return wipePanel.canvas;
   const slant = wipeSlant(h);

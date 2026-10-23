@@ -7,7 +7,7 @@ $("teamUs").value = state.teamUs;
 $("teamThem").value = state.teamThem;
 // いまのスコア（左右の並びに合わせる）。点があるときだけ「0 - 0 にする」を出す
 function showSetupScore() {
-  $("setupScore").textContent = state.swapped ? `${state.them} - ${state.us}` : `${state.us} - ${state.them}`;
+  $("setupScore").textContent = inOrder(state.us, state.them).join(" - ");
   document.querySelectorAll("[data-score-of]").forEach((b) => (b.textContent = state[b.dataset.scoreOf]));
   $("resetScore").hidden = state.us === 0 && state.them === 0;
 }

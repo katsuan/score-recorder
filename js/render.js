@@ -7,7 +7,7 @@
 // あいだを飛ばすときは録画を一時停止してつなぐ。流した時間だけかかる
 async function renderPieces(pieces, { overlay, kind, title }) {
   if (!window.MediaRecorder || !editScreen.captureStream) {
-    LineShareUI.ask({ title: "この端末のブラウザでは書き出せません", ok: "閉じる", cancel: null });
+    notice("この端末のブラウザでは書き出せません");
     return;
   }
   if (!pieces.length) return;
@@ -31,16 +31,17 @@ async function renderPieces(pieces, { overlay, kind, title }) {
     if (!exporting) break;
     // つなぎ目の柄：切り出した部分が2つ以上のときだけ（editor.js の drawPieceTransition）
     piecePlan = pieces.length > 1 ? { index, count: pieces.length, a, b } : null;
-    if (editVideo.src !== src) {
-      editVideo.src = src;
-      await new Promise((r) => editVideo.addEventListener("loadeddata", r, { once: true }));
-    }
+    if (editVideo.src !== src && !(await loadVideo(src))) continue; // 読めない動画は飛ばす
     await seekTo(a);
     editLastT = a;
     goalFx = null;
     if (!started) {
       frameSync = canSyncFrames(); // 動画のコマごとに描いて録る（カクつかない）。使えないブラウザはこれまでどおり
-      beginRecording(editScreen, audioDest ? audioDest.stream.getAudioTracks() : [], kind, { manualFrames: frameSync });
+      if (!beginRecording(editScreen, audioDest ? audioDest.stream.getAudioTracks() : [], kind, { manualFrames: frameSync })) {
+        finishExport();
+        notice("書き出しを始められませんでした", "この端末のブラウザでは書き出せないようです。ほかのブラウザ（Safari・Chrome）で開いてね。");
+        return;
+      }
       if (frameSync) {
         // 録りはじめにすぐ1コマ（最初のコマが出るまで録画に何も来ないと、重い動画で録画がうまく始まらないことがある）
         paintEditFrame();
@@ -72,9 +73,24 @@ async function renderPieces(pieces, { overlay, kind, title }) {
   finishExport();
 }
 
+// 動画の枠に src を入れて、読めたら true（読めなければ false。待ちつづけない）
+const loadVideo = (src) =>
+  new Promise((resolve) => {
+    const done = (ok) => () => {
+      editVideo.removeEventListener("loadeddata", onLoad);
+      editVideo.removeEventListener("error", onError);
+      resolve(ok);
+    };
+    const onLoad = done(true);
+    const onError = done(false);
+    editVideo.addEventListener("loadeddata", onLoad, { once: true });
+    editVideo.addEventListener("error", onError, { once: true });
+    editVideo.src = src;
+  });
+
 // 撮った動画に（得点板をつける）：選んだ範囲を、得点板つきで書き出す（終わったら保存の画面は「閉じる」だけ）
 async function exportVideo() {
-  if (!Number.isFinite(editVideo.duration) || !editVideo.duration) return LineShareUI.ask({ title: "動画の長さが分かりません", text: "少し待ってから、もう一度お試しください。", ok: "閉じる", cancel: null });
+  if (!Number.isFinite(editVideo.duration) || !editVideo.duration) return notice("動画の長さが分かりません", "少し待ってから、もう一度押してね。");
   const pieces = exportSegments().map(([a, b]) => ({ src: editVideo.src, a, b }));
   if (!pieces.length) return;
   exportMode = true;
