@@ -178,3 +178,22 @@ test("共有できたら、季節の絵文字がつくことがある（QSeason 
   run("window.QSeason = { decorate() { throw new Error('x'); } }; markShared();");
   assert.equal($el("sharedNote").textContent, "✓ 共有できました");
 });
+
+test("書き出せる動画が1本もなかったときは、「書き出した」と記録しない", async () => {
+  const { run } = boot({ MediaRecorder: class { static isTypeSupported() { return true; } } });
+  const logged = withLog(run);
+  // 読めない動画：loadeddata は来ず、error が来る
+  run(`editScreen.captureStream = () => ({}); editVideo.addEventListener = (type, fn) => { if (type === "error") Promise.resolve().then(fn); };`);
+  await run("renderPieces([{ src: 'blob:gone', a: 0, b: 5 }], { overlay: true, kind: 'edit', title: '' })");
+  assert.deepEqual(logged(), []);
+  assert.equal(run("exporting"), false);
+});
+
+test("動画のファイル名：日時と、分けたときの番号・ハイライト", () => {
+  const { run } = boot();
+  const at = new Date(2026, 9, 24, 9, 5).getTime();
+  run(`var at = ${at};`);
+  assert.equal(run("clipFileName({ takeAt: at, type: 'video/mp4', kind: 'shot' }, 0, 1)"), "score-20261024-0905.mp4");
+  assert.equal(run("clipFileName({ takeAt: at, type: 'video/webm', kind: 'shot' }, 1, 3)"), "score-20261024-0905-2.webm");
+  assert.equal(run("clipFileName({ takeAt: at, type: 'video/mp4', kind: 'highlight' }, 0, 2)"), "score-20261024-0905-highlight.mp4");
+});

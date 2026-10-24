@@ -70,8 +70,8 @@ async function renderPieces(pieces, { overlay, kind, title }) {
     if (recorder?.state === "recording") recorder.pause();
     done += b - a;
   }
-  // 最後まで書き出せたら記録（やめたときは数えない）：edit＝撮った動画に・highlight＝⚡ ハイライト。数は秒
-  if (exporting) logUse(kind === "highlight" ? "highlight" : "export", Math.round(total));
+  // 最後まで書き出せたら記録（やめたとき・1本も書き出せなかったときは数えない）：edit＝撮った動画に・highlight＝⚡ ハイライト。数は秒
+  if (exporting && started) logUse(kind === "highlight" ? "highlight" : "export", Math.round(total));
   finishExport();
 }
 

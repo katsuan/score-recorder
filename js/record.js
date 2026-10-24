@@ -139,31 +139,40 @@ function showElapsed() {
 // ---- 保存の画面 ----
 // 止めたら：見返し・保存・共有（何本かあるときは1本ずつ、またはまとめて）
 function showSaved() {
-  // 撮った動画にの書き出しのあとは「次はどうする？」（撮る画面向け）は出さず、閉じるだけ
-  $("nextShot").hidden = exportMode;
-  $("closeSheetOnly").hidden = !exportMode;
-  exportMode = false;
-  $("sharedNote").hidden = true;
-  $("restartSave").classList.remove("is-suggest");
   // 「続きを撮る」に、いまのスコアを（左右の並びで）
   const [l, r] = inOrder(state.us, state.them);
   $("nextKeep").textContent = `いまの ${l} - ${r} のまま（後半など）`;
   // 今回の録画の動画に名前をつける（前の回の動画は、もう名前がついている）
   const now = takeClips();
   now.forEach((c, i) => {
-    const d = new Date(c.takeAt);
-    const stamp = `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}-${pad2(d.getHours())}${pad2(d.getMinutes())}`;
-    const ext = c.type.includes("mp4") ? "mp4" : "webm";
-    const tail = c.kind === "highlight" ? "-highlight" : now.length > 1 ? `-${i + 1}` : "";
-    const name = `score-${stamp}${tail}.${ext}`;
-    c.file = new File([c.blob], name, { type: c.type });
+    c.file = new File([c.blob], clipFileName(c, i, now.length), { type: c.type });
     c.url = URL.createObjectURL(c.blob);
   });
-  showSaveGuide();
   // 今回の録画が5分を超えていたら（2本以上）、どれを残すか選ぶ：全部・最初の5分・最後の5分
   $("pickClips").hidden = now.length < 2;
+  // 撮った動画にの書き出しのあとは「次はどうする？」（撮る画面向け）は出さず、閉じるだけ
+  openSaveSheet(!exportMode);
+  exportMode = false;
+}
+
+// 保存の画面を出す。withNextShot：撮る画面のあとの「次はどうする？」を出すか（出さないときは「閉じる」だけ）
+function openSaveSheet(withNextShot) {
+  $("nextShot").hidden = !withNextShot;
+  $("closeSheetOnly").hidden = withNextShot;
+  $("sharedNote").hidden = true;
+  $("restartSave").classList.remove("is-suggest");
+  showSaveGuide();
   renderClips();
   $("saveSheet").hidden = false;
+}
+
+// 動画のファイル名：score-20261024-1530.mp4（5分ごとに分けたときは -1・-2、ハイライトは -highlight）
+function clipFileName(c, index, count) {
+  const d = new Date(c.takeAt);
+  const stamp = `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}-${pad2(d.getHours())}${pad2(d.getMinutes())}`;
+  const ext = c.type.includes("mp4") ? "mp4" : "webm";
+  const tail = c.kind === "highlight" ? "-highlight" : count > 1 ? `-${index + 1}` : "";
+  return `score-${stamp}${tail}.${ext}`;
 }
 
 // 保存のしかた：iPhone・iPad は共有から「ビデオを保存」で写真へ。共有できる端末は LINE などへ、できなければ ⬇️ で保存
@@ -312,14 +321,7 @@ function showOpenSaved() {
   $("openSaved").hidden = !clips.length;
   $("openSaved").textContent = `🎞 録った動画（${clips.length}本）`;
 }
-$("openSaved").addEventListener("click", () => {
-  $("nextShot").hidden = true;
-  $("closeSheetOnly").hidden = false;
-  $("sharedNote").hidden = true;
-  showSaveGuide();
-  renderClips();
-  $("saveSheet").hidden = false;
-});
+$("openSaved").addEventListener("click", () => openSaveSheet(false));
 $("closeSheetOnly").addEventListener("click", () => {
   closeSaveSheet();
   showOpenSaved();
