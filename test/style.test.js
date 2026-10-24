@@ -34,3 +34,9 @@ test("明るい地に決めたところは、暗い表示でも字が濃いま�
   const bad = rules.filter((r) => light.test(r.body) && /color:\s*var\(--ink(?:-soft)?\)/.test(r.body) && !/--ink:\s*#/.test(r.body));
   assert.deepStrictEqual(bad.map((r) => r.selector), []);
 });
+
+// 動画の「保存・共有」ボタンは、おくるんのマーク（Q キットの is-oqrn::before）を文字の左に並べる。grid だとマークが文字の上に回りこむ
+test("動画の行のボタンは、マークと文字を横に並べる（inline-flex）", () => {
+  const body = rules.find((r) => r.selector === ".clip-btn").body;
+  assert.match(body, /display:\s*inline-flex/);
+});

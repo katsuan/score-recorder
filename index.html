@@ -32,7 +32,7 @@
      送り先は config.js の gasWebAppUrl。電波がないときは送らずに使える（読めなくても止まらない） -->
 <script src="https://katsuan.github.io/line-share/config.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/log.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610241439">
+<link rel="stylesheet" href="style.css?v=202610241448">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -297,7 +297,7 @@
       </div>
       <!-- 録った動画（5分ごとに分けたときは何本か）。押すと上で見返せる -->
       <div id="clipList" class="clip-list"></div>
-      <button id="shareAll" class="ls-button is-primary is-block" type="button" hidden>📤 まとめて保存・共有</button>
+      <button id="shareAll" class="ls-button is-primary is-block is-oqrn" type="button" hidden>まとめて保存・共有</button>
       <p id="sharedNote" class="shared-note" hidden>✓ 共有できました</p>
       <!-- 得点ハイライト：撮っているあいだに ＋1 を押した時間の前後（10秒前〜6秒後）だけをつないで1本に（得点板はもう入っている） -->
       <div class="transition-row is-light" data-transition-row data-for="makeHighlight" hidden><span>つなぎ目</span><div class="transition-chips" role="radiogroup" aria-label="ハイライトのつなぎ目"></div></div>
@@ -319,14 +319,14 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイル。この順に読む（main.js は全部読んでから、最初の表示） -->
-<script src="js/core.js?v=202610241439"></script>
-<script src="js/draw.js?v=202610241439"></script>
-<script src="js/setup.js?v=202610241439"></script>
-<script src="js/studio.js?v=202610241439"></script>
-<script src="js/record.js?v=202610241439"></script>
-<script src="js/editor.js?v=202610241439"></script>
-<script src="js/render.js?v=202610241439"></script>
-<script src="js/main.js?v=202610241439"></script>
+<script src="js/core.js?v=202610241448"></script>
+<script src="js/draw.js?v=202610241448"></script>
+<script src="js/setup.js?v=202610241448"></script>
+<script src="js/studio.js?v=202610241448"></script>
+<script src="js/record.js?v=202610241448"></script>
+<script src="js/editor.js?v=202610241448"></script>
+<script src="js/render.js?v=202610241448"></script>
+<script src="js/main.js?v=202610241448"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

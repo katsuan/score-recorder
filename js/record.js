@@ -181,9 +181,9 @@ function showSaveGuide() {
   const canShare = clips.length && navigator.canShare?.({ files: [clips[0].file] });
   $("saveGuide").hidden = !clips.length;
   $("saveGuide").textContent = isIOS && canShare
-    ? "📱 写真へは「📤 保存・共有」→「ビデオを保存」。"
+    ? "📱 写真へは「保存・共有」→「ビデオを保存」。"
     : canShare
-      ? "📱 「📤 保存・共有」で LINE などへ。端末には ⬇️。"
+      ? "📱 「保存・共有」で LINE などへ。端末には ⬇️。"
       : "⬇️ で端末に保存。";
   $("saveGuide").textContent += "ページを閉じると消えます。";
 }
@@ -220,7 +220,7 @@ function renderClips() {
             : `${shotTakes().length > 1 ? `${takeNumber(c.take)}回目　` : ""}${sameTake.length > 1 ? `${sameTake.indexOf(c) + 1}本目　` : ""}${clock(c.from)}〜${clock(c.to)}${size}`;
       const play = Object.assign(document.createElement("button"), { type: "button", className: "clip-play", textContent: label });
       play.addEventListener("click", () => showClip(i));
-      const share = Object.assign(document.createElement("button"), { type: "button", className: "clip-btn", textContent: "📤 保存・共有" });
+      const share = Object.assign(document.createElement("button"), { type: "button", className: "clip-btn is-oqrn", textContent: "保存・共有" });
       share.hidden = !navigator.canShare?.({ files: [c.file] });
       share.addEventListener("click", () => shareFiles([c]));
       const down = Object.assign(document.createElement("a"), { className: "clip-btn", href: c.url, download: c.file.name, textContent: "⬇️" });
