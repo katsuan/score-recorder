@@ -27,6 +27,15 @@ const isLight = (hex) => {
   return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 > 0.62;
 };
 const inkFor = (hex) => (isLight(hex) ? "#1a1a1a" : "#ffffff");
+// 季節の絵文字（Q キットの season.js。tool-share.js があとから読む）を、うれしい瞬間の短い文にときどき足す。
+// なくても・止まっても、文はそのまま
+const seasonal = (text) => {
+  try {
+    return window.QSeason ? window.QSeason.decorate(text) : text;
+  } catch {
+    return text;
+  }
+};
 const pad2 = (n) => String(n).padStart(2, "0");
 // お知らせだけの窓（ボタンは「閉じる」1つ）
 const notice = (title, text) => LineShareUI.ask({ title, ...(text ? { text } : {}), ok: "閉じる", cancel: null });

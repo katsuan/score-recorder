@@ -168,3 +168,13 @@ test("共有できたら、本数を記録する（やめたときは記録し�
   await run("shareFiles([{ file: 1 }])");
   assert.deepEqual(logged(), [["send", "share", 2]]);
 });
+
+test("共有できたら、季節の絵文字がつくことがある（QSeason がなくても動く）", () => {
+  const { run, $el } = boot();
+  run("window.QSeason = undefined; markShared();");
+  assert.equal($el("sharedNote").textContent, "✓ 共有できました");
+  run("window.QSeason = { decorate: (t) => t + ' 🎃' }; markShared();");
+  assert.equal($el("sharedNote").textContent, "✓ 共有できました 🎃");
+  run("window.QSeason = { decorate() { throw new Error('x'); } }; markShared();");
+  assert.equal($el("sharedNote").textContent, "✓ 共有できました");
+});

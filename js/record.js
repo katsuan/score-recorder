@@ -290,6 +290,7 @@ const takeNumber = (t) => shotTakes().indexOf(t) + 1;
 
 // 共有がすんだら：「✓ 共有できました」と、「0 - 0 から撮りなおす」を目立たせる（次の試合へ）
 function markShared() {
+  $("sharedNote").textContent = seasonal("✓ 共有できました");
   $("sharedNote").hidden = false;
   $("restartSave").classList.add("is-suggest");
 }
