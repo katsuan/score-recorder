@@ -198,12 +198,11 @@ test("動画のファイル名：日時と、分けたときの番号・ハイ�
   assert.equal(run("clipFileName({ takeAt: at, type: 'video/mp4', kind: 'highlight' }, 0, 2)"), "score-20261024-0905-highlight.mp4");
 });
 
-test("動画の「保存・共有」ボタンは、おくるんのマーク（is-oqrn）つきで 📤 なし", () => {
-  const { run } = boot();
+// 動画の共有はスマホの共有メニュー（navigator.share）で、おくるんを通らない。おくるんのマーク（is-oqrn）は付けない（Q の決まり F1）
+test("動画の「保存・共有」は 📤 のまま、おくるんのマークは付けない", () => {
   const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
-  assert.match(html, /id="shareAll" class="[^"]*\bis-oqrn\b[^"]*"[^>]*>まとめて保存・共有</);
   const src = fs.readFileSync(path.join(__dirname, "../js/record.js"), "utf8");
-  assert.match(src, /className: "clip-btn is-oqrn", textContent: "保存・共有"/);
-  assert.ok(!/📤 保存・共有/.test(src));
-  assert.ok(run("true"));
+  assert.ok(!/is-oqrn/.test(html + src));
+  assert.match(html, />📤 まとめて保存・共有</);
+  assert.match(src, /textContent: "📤 保存・共有"/);
 });

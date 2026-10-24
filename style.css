@@ -214,7 +214,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .clip { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; gap: 6px; padding: 6px; border: 2px solid var(--border); border-radius: 12px; }
 .clip.is-current { border-color: var(--accent); background: var(--ls-accent-soft); }
 .clip-play { border: 0; background: none; color: var(--ink); font: inherit; font-size: 13px; font-weight: 800; text-align: left; cursor: pointer; }
-.clip-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 0 10px; border: 2px solid var(--border); border-radius: 999px; background: var(--card); color: var(--ink); font: inherit; font-size: 12px; font-weight: 800; text-decoration: none; cursor: pointer; }
+.clip-btn { display: grid; place-items: center; min-height: 36px; padding: 0 10px; border: 2px solid var(--border); border-radius: 999px; background: var(--card); color: var(--ink); font: inherit; font-size: 12px; font-weight: 800; text-decoration: none; cursor: pointer; }
 
 /* ＋1／−1 を押したとき：押したボタンが一瞬光る（押せたことが分かるように。ボタンは動画に入らない） */
 .side button.is-hit { animation: hit 0.45s ease-out; }
