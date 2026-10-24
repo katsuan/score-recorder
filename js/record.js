@@ -239,7 +239,7 @@ function renderClips() {
   const earlier = clips.length - now.length;
   $("shareAll").hidden = files.length < 2 || !navigator.canShare?.({ files });
   $("saveInfo").textContent = [
-    now.length > 1 ? `LINE で送れるよう、5分ずつ ${now.length}本に分けました。` : now.length ? "" : "録れませんでした。もう一度お試しください。",
+    now.length > 1 ? `トークで送れるよう、5分ずつ ${now.length}本に分けました。` : now.length ? "" : "録れませんでした。もう一度お試しください。",
     earlier ? `前の動画（${earlier}本）も下にあります。` : ""
   ].filter(Boolean).join("");
   if (shown.length) showClip(shown[shown.length - 1]);
