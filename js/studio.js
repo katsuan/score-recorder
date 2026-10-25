@@ -109,6 +109,7 @@ function drawFrame() {
   if (screen.width !== w || screen.height !== h) {
     screen.width = w;
     screen.height = h;
+    $("studio").style.setProperty("--vid-ar", (w / h).toFixed(4)); // 映像の横÷縦（右上のボタンを映像の内側にそろえる。style.css の .tools）
   }
   const c = screenCtx;
   c.save();

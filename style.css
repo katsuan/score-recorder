@@ -148,9 +148,12 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .studio.is-turned { --rec-pad: calc(36px + max(env(safe-area-inset-top), env(safe-area-inset-bottom))); }
 .studio.hand-left .bar { left: auto; right: var(--rec-pad); transform: none; }
 .studio.hand-right .bar { left: var(--rec-pad); transform: none; }
-.tools { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: calc(14px + env(safe-area-inset-right)); display: flex; gap: 8px; }
+/* 右上のボタンは、映像の内側にそろえる（映像は縦横比のまま画面に収めるので、はしに黒い帯ができることがある。帯の上に置くと、丸が見えず点だけ浮いて見える）。
+   --vid-ar は映像の横÷縦（studio.js の drawFrame） */
+.tools { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: calc(14px + env(safe-area-inset-right)); right: max(calc(14px + env(safe-area-inset-right)), calc((100vw - 100vh * var(--vid-ar, 1.7778)) / 2 + 12px)); display: flex; gap: 8px; }
 .studio.is-recording .tools > :not(#handToggle) { visibility: hidden; } /* 場所はそのまま（左よせ・右よせが動かないように） */
-.icon-btn { width: 34px; height: 34px; padding: 0; display: grid; place-items: center; font-size: 16px; }
+/* 丸い印だけのボタン（34px）。.small の余白（8px 14px）が後から上書きしないよう .small.icon-btn で（上書きされると ●●● の点が丸からはみ出す） */
+.small.icon-btn, .icon-btn { width: 34px; height: 34px; padding: 0; display: grid; place-items: center; place-content: center; font-size: 16px; }
 .hand-toggle { grid-auto-flow: column; gap: 3px; }
 .hand-toggle i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, 0.35); }
 .hand-toggle[data-hand="left"] i:nth-child(1), .hand-toggle[data-hand="center"] i:nth-child(2), .hand-toggle[data-hand="right"] i:nth-child(3) { background: #fff; }
@@ -188,7 +191,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* 倒したときは、ノッチや角の丸みが左右のはしに来るので、＋1 を中ほどへ寄せる */
 .studio.is-turned .bar { bottom: 18px; }
 /* 倒したとき（左・右どちらでも）：右上のボタンは、ふつうの横向きと同じく右上に1列で */
-.studio.is-turned .tools { top: 14px; right: calc(20px + env(safe-area-inset-top)); }
+.studio.is-turned .tools { top: 14px; right: calc(20px + env(safe-area-inset-top)); right: max(calc(20px + env(safe-area-inset-top)), calc((100dvh - 100dvw * var(--vid-ar, 1.7778)) / 2 + 12px)); }
 
 /* 保存のシート */
 .sheet { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, 0.6); }
