@@ -355,6 +355,7 @@ function showExportRange() {
   $("exportModeHint").hidden = hasGoals;
   // つなぎ目：ハイライト・演出だけで、つなぐところが2つ以上のときだけ
   document.querySelector("#editor [data-transition-row]").hidden = mode === "all" || exportSegments("goals").length < 2;
+  document.querySelector("#editor [data-hl-range]").hidden = mode === "all"; // 入れる長さ（ハイライトを選んだときだけ）
   $("editExport").textContent = lens[mode] ? `${EXPORT_LABELS[mode]}（約 ${clock(Math.ceil(lens[mode]))}）` : EXPORT_LABELS[mode];
 }
 ["loadedmetadata", "durationchange"].forEach((type) => editVideo.addEventListener(type, showExportRange));

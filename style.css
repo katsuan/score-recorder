@@ -356,6 +356,16 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .edit-side .name-input:focus { outline: none; border-bottom-color: #fff; }
 
 /* ⚡ ハイライトのつなぎ目の柄を選ぶ（撮った動画には濃い地、保存の画面は白い地） */
+/* ⚡ ハイライトに入れる長さ：[− 10秒前 ＋] 〜 [− 6秒後 ＋]（撮った動画にの濃い地では白っぽく。is-light は明るい地） */
+.hl-range { display: grid; gap: 6px; }
+.hl-range[hidden] { display: none; }
+.hl-steps { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-weight: 800; }
+.hl-step { display: inline-grid; grid-template-columns: 34px auto 34px; align-items: center; border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 999px; background: rgba(255, 255, 255, 0.08); }
+.hl-step b { min-width: 52px; text-align: center; font-size: 14px; font-variant-numeric: tabular-nums; }
+.hl-step button { height: 32px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
+.hl-step button:disabled { opacity: 0.35; cursor: default; }
+.hl-range.is-light .hl-step { border-color: var(--border); background: var(--card); }
+.hl-range.is-light .hl-step button { color: var(--accent); }
 .transition-row { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; }
 .transition-row > span { flex: 0 0 auto; opacity: 0.85; }
 .transition-chips { display: flex; flex-wrap: wrap; gap: 6px; }

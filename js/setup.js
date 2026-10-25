@@ -226,7 +226,9 @@ document.querySelectorAll("[data-split]").forEach((b) =>
 // 選んでいるほうと、たたんだ見出しの小さな字（分けるときだけ「5分ごと」）を出す
 function showSplitSetting() {
   document.querySelectorAll("[data-split]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.split === "on") === state.split)));
-  if ($("splitMeta")) $("splitMeta").textContent = state.split ? "5分ごと" : ""; // 前の index.html には、この欄がない
+  // たたんだ見出しの小さな字：分けるときは「5分ごと」、ハイライトの長さを変えたときは「⚡5〜3秒」
+  const custom = state.hlBefore !== HIGHLIGHT_DEFAULT.before || state.hlAfter !== HIGHLIGHT_DEFAULT.after;
+  if ($("splitMeta")) $("splitMeta").textContent = [state.split ? "5分ごと" : "", custom ? `⚡${state.hlBefore}〜${state.hlAfter}秒` : ""].filter(Boolean).join("・"); // 前の index.html には、この欄がない
 }
 // LINE の中で開いているときは、Safari・Chrome で開きなおす道を出す（LINE の openExternalBrowser=1）
 function showLineHint() {

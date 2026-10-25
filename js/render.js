@@ -3,22 +3,57 @@
 "use strict";
 
 // ---- 書き出し（共通）・⚡ ハイライト ----
-// ⚡ ハイライト：得点・⭐ ナイスプレーの何秒前から何秒後までを入れるか
-const HIGHLIGHT_BEFORE = 10;
-const HIGHLIGHT_AFTER = 6;
+// ⚡ ハイライト：得点・⭐ ナイスプレーの何秒前から何秒後までを入れるか。はじめは 10・6（state.hlBefore・hlAfter。「💾 保存の設定」で 1〜30 秒）
+const HIGHLIGHT_DEFAULT = { before: 10, after: 6 };
 // 時間（秒）のならびから、ハイライトに入れるところ [はじめ, 終わり] のならびを作る。近いものはひとつにつなぐ
 function highlightSpans(times, end) {
   const spans = [];
   [...times]
     .sort((a, b) => a - b)
     .forEach((t) => {
-      const a = Math.max(0, t - HIGHLIGHT_BEFORE);
-      const b = Math.min(end, t + HIGHLIGHT_AFTER);
+      const a = Math.max(0, t - state.hlBefore);
+      const b = Math.min(end, t + state.hlAfter);
       const last = spans[spans.length - 1];
       if (last && a <= last[1]) last[1] = Math.max(last[1], b);
       else spans.push([a, b]);
     });
   return spans;
+}
+
+// ⚡ ハイライトに入れる長さの − ＋（[data-hl-range] の欄ごと：はじめの画面の「💾 保存の設定」・保存の画面・撮った動画に）。
+// 変えたら、長さの目安・作るボタンも出しなおす
+function renderHighlightRange() {
+  document.querySelectorAll("[data-hl-range]").forEach((box) => {
+    const title = Object.assign(document.createElement("span"), { className: "split-label", textContent: "⚡ ハイライトに入れる長さ（得点・⭐ を押した時間から）" });
+    // [−] 10秒前 [＋] の1組を作る
+    const stepper = (key, word) => {
+      const wrap = Object.assign(document.createElement("div"), { className: "hl-step" });
+      const btn = (text, delta, label) => {
+        const b = Object.assign(document.createElement("button"), { type: "button", textContent: text });
+        b.setAttribute("aria-label", label);
+        b.disabled = delta < 0 ? state[key] <= 1 : state[key] >= 30;
+        b.addEventListener("click", () => {
+          state[key] = Math.min(30, Math.max(1, state[key] + delta));
+          save();
+          renderHighlightRange();
+          showHighlightSetting();
+        });
+        return b;
+      };
+      const value = Object.assign(document.createElement("b"), { textContent: `${state[key]}秒${word}` });
+      wrap.append(btn("−", -1, `1秒へらす（${word}）`), value, btn("＋", 1, `1秒ふやす（${word}）`));
+      return wrap;
+    };
+    const row = Object.assign(document.createElement("div"), { className: "hl-steps" });
+    row.append(stepper("hlBefore", "前"), Object.assign(document.createElement("span"), { textContent: "〜" }), stepper("hlAfter", "後"));
+    box.replaceChildren(title, row);
+  });
+}
+// 長さを変えたら、それを使うところを出しなおす（保存の画面の「⚡ 得点ハイライトを作る（約 ◯:◯◯）」・撮った動画にの長さの目安・はじめの画面の小さな字）
+function showHighlightSetting() {
+  if (!$("saveSheet").hidden) showHighlightButton();
+  if (!$("editor").hidden) showExportRange();
+  showSplitSetting();
 }
 
 // 書き出す（共通）：pieces＝[{ src: 動画の URL, a: はじめの秒, b: 終わりの秒 }] を順に流して、canvas の絵と動画の音を1本に録る。
@@ -171,6 +206,7 @@ function showHighlightButton() {
   const total = highlightPieces().reduce((sum, p) => sum + (p.b - p.a), 0);
   $("makeHighlight").hidden = !total;
   document.querySelector('[data-transition-row][data-for="makeHighlight"]').hidden = !total;
+  document.querySelector('[data-hl-range][data-for="makeHighlight"]').hidden = !total; // 入れる長さ（作る前に変えられる）
   if (total) $("makeHighlight").textContent = `⚡ 得点ハイライトを作る（約 ${clock(Math.ceil(total))}）`;
 }
 $("makeHighlight").addEventListener("click", () => {
@@ -183,7 +219,7 @@ $("makeHighlight").addEventListener("click", () => {
 
 // ---- 書き出し中の画面：動き（しま模様のバー・書き出しているところ）とプチ情報、画面を離れないように ----
 const EXPORT_TIPS = [
-  "⚡ ハイライトは、得点と ⭐ ナイスの 10秒前〜6秒後をつなぎます",
+  "⚡ ハイライトに入れる長さ（何秒前〜何秒後）は、💾 保存の設定で変えられます",
   "🎉 得点のエフェクトは、アイコンと文字を変えられます（サッカー以外でも）",
   "💾 保存の設定で、LINE で送れるよう 5分ずつに分けることもできます",
   "🔒 動画はこの端末の中だけで使います。どこにも送りません",

@@ -77,3 +77,11 @@ test("さくせん盤へ書くときは、チーム名・色だけを変え、�
   assert.deepEqual(now.players, [1, 2]);
   assert.equal(now.opponent, "B");
 });
+
+test("⚡ ハイライトの長さ：はじめは 10秒前〜6秒後。1〜30 秒の整数におさめる", () => {
+  assert.deepEqual([boot({}).state.hlBefore, boot({}).state.hlAfter], [10, 6]);
+  const { state } = boot({ "roqga:state": JSON.stringify({ hlBefore: 99, hlAfter: 0 }) });
+  assert.deepEqual([state.hlBefore, state.hlAfter], [30, 1]);
+  const broken = boot({ "roqga:state": JSON.stringify({ hlBefore: "x", hlAfter: null }) }).state;
+  assert.deepEqual([broken.hlBefore, broken.hlAfter], [10, 6]);
+});

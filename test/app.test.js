@@ -268,3 +268,10 @@ test("画面の文に「〜してください」「お試しください」を�
   }
   assert.deepStrictEqual(bad, []);
 });
+
+test("⚡ ハイライトの範囲は、設定した何秒前〜何秒後で作る（近いものはつなぐ）", () => {
+  const { run } = boot();
+  assert.equal(JSON.stringify(run("highlightSpans([12, 100], 200)")), JSON.stringify([[2, 18], [90, 106]]));
+  run("state.hlBefore = 5; state.hlAfter = 3;");
+  assert.equal(JSON.stringify(run("highlightSpans([12, 100], 200)")), JSON.stringify([[7, 15], [95, 103]]));
+});

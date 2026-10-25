@@ -32,7 +32,7 @@
      送り先は config.js の gasWebAppUrl。電波がないときは送らずに使える（読めなくても止まらない） -->
 <script src="https://katsuan.github.io/line-share/config.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/log.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610251900">
+<link rel="stylesheet" href="style.css?v=202610252000">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -155,6 +155,8 @@
       </div>
       <p class="hint">LINE のトークで送れる動画は5分まで。トークで送るなら「5分ごとに分ける」に。</p>
     </div>
+    <!-- ⚡ ハイライトに入れる長さ（押した時間の何秒前〜何秒後。はじめは 10・6）。中身は render.js の renderHighlightRange -->
+    <div class="split hl-range is-light" data-hl-range></div>
     </div>
   </details>
   <!-- LINE の中で開いているとき：保存は Safari・Chrome のほうが確か（LINE の中では、保存するとページが開きなおされ、録った動画が消えることがある） -->
@@ -269,7 +271,7 @@
     <summary><span>🎉 得点板と演出</span><span id="editFxMeta" class="meta"></span></summary>
     <div id="editFxBody" class="edit-fx-body"></div>
   </details>
-  <!-- 何を書き出す？：全部か ⚡ ハイライト（得点・⭐ の 10秒前〜6秒後をつなぐ。撮るときの得点ハイライトと同じ）。
+  <!-- 何を書き出す？：全部か ⚡ ハイライト（得点・⭐ の何秒前〜何秒後をつなぐ。はじめは 10秒前〜6秒後。撮るときの得点ハイライトと同じ）。
        得点板を出すかは「🎉 得点板と演出」で。長さの目安は editor.js の showExportRange -->
   <p class="export-mode-title">何を書き出す？</p>
   <div class="export-modes" role="radiogroup" aria-label="書き出すもの">
@@ -278,6 +280,7 @@
   </div>
   <p id="exportModeHint" class="export-mode-hint" hidden>ハイライトは、＋1 か ⭐ を入れると選べます</p>
   <!-- ⚡ ハイライトのつなぎ目の柄（⚡ ハイライトを選んだときだけ）。ボタンは draw.js の TRANSITIONS から作る（setup.js） -->
+  <div class="hl-range" data-hl-range hidden></div>
   <div class="transition-row" data-transition-row hidden><span>つなぎ目</span><div class="transition-chips" role="radiogroup" aria-label="ハイライトのつなぎ目"></div></div>
   <button id="editExport" class="ls-button is-primary is-block" type="button">📼 得点板つきで書き出す</button>
   <p class="hint editor-hint">点が入ったところで ＋1。書き出すあいだは、この画面のままで。</p>
@@ -324,7 +327,8 @@
       <!-- 録った動画（5分ごとに分けたときは何本か）。押すと上で見返せる -->
       <div id="clipList" class="clip-list"></div>
       <p id="sharedNote" class="shared-note" hidden>✓ 共有できました</p>
-      <!-- 得点ハイライト：撮っているあいだに ＋1 を押した時間の前後（10秒前〜6秒後）だけをつないで1本に（得点板はもう入っている） -->
+      <!-- 得点ハイライト：撮っているあいだに ＋1 を押した時間の前後（はじめは 10秒前〜6秒後。変えられる）だけをつないで1本に（得点板はもう入っている） -->
+      <div class="hl-range is-light" data-hl-range data-for="makeHighlight" hidden></div>
       <div class="transition-row is-light" data-transition-row data-for="makeHighlight" hidden><span>つなぎ目</span><div class="transition-chips" role="radiogroup" aria-label="ハイライトのつなぎ目"></div></div>
       <button id="makeHighlight" class="ls-button is-block" type="button" hidden>⚡ 得点ハイライトを作る</button>
       <!-- 次はどうする？：3つから選ぶ。それぞれ、押すとどうなるかを1行で。
@@ -344,15 +348,15 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイルをこの順に読み、最後に入口の app.js（全部読んでから、最初の表示） -->
-<script src="js/page.js?v=202610251900"></script>
-<script src="js/store.js?v=202610251900"></script>
-<script src="js/draw.js?v=202610251900"></script>
-<script src="js/setup.js?v=202610251900"></script>
-<script src="js/studio.js?v=202610251900"></script>
-<script src="js/record.js?v=202610251900"></script>
-<script src="js/editor.js?v=202610251900"></script>
-<script src="js/render.js?v=202610251900"></script>
-<script src="app.js?v=202610251900"></script>
+<script src="js/page.js?v=202610252000"></script>
+<script src="js/store.js?v=202610252000"></script>
+<script src="js/draw.js?v=202610252000"></script>
+<script src="js/setup.js?v=202610252000"></script>
+<script src="js/studio.js?v=202610252000"></script>
+<script src="js/record.js?v=202610252000"></script>
+<script src="js/editor.js?v=202610252000"></script>
+<script src="js/render.js?v=202610252000"></script>
+<script src="app.js?v=202610252000"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

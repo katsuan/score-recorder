@@ -18,6 +18,8 @@ const load = (key) => {
 };
 // 文字なら max 字まで（絵文字も1字）。文字でなければ null
 const textOf = (v, max) => (typeof v === "string" ? [...v].slice(0, max).join("") : null);
+// ハイライトの秒数は 1〜30 の整数（数でなければ初めの値）
+const hlSecondsOf = (v, fallback) => (Number.isFinite(Number(v)) && v !== null && v !== "" ? Math.min(30, Math.max(1, Math.round(Number(v)))) : fallback);
 // 点は 0〜999 の整数
 const scoreOf = (v) => Math.min(999, Math.max(0, Math.floor(Number(v)) || 0));
 const NAME_MAX = 20; // さくせん盤のチーム名と同じ
@@ -71,6 +73,9 @@ const state = {
   fxCustom: textOf(saved.fxCustom, 16) ?? "", // カスタムのアイコン（好きな絵文字・文字。2文字まで）
   fxText: textOf(saved.fxText, 12) ?? "", // エフェクトの文字（空なら GOAL!）
   swapped: saved.swapped === true, // 左右を入れかえる（us を右に）。us・them は中の呼び名で、自分のチームとはかぎらない
+  // ⚡ ハイライトに入れる長さ：得点・⭐ を押した時間の何秒前から、何秒後まで（はじめは 10・6。1〜30。アプリ版と同じ）
+  hlBefore: hlSecondsOf(saved.hlBefore, 10),
+  hlAfter: hlSecondsOf(saved.hlAfter, 6),
   split: saved.split === true, // 5分をこえる動画を5分ごとに分けるか（LINE のトークで送るとき）。はじめは1本のまま
   hand: ["left", "right"].includes(saved.hand) ? saved.hand : "center", // ＋1・録画のまとまりの位置（片手で持つ側に寄せる）
   turn: ["left", "right"].includes(saved.turn) ? saved.turn : null // 縦の画面のまま倒して撮るときの向き（前に選んだもの。次からは選ばずに始める）
