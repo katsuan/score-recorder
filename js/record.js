@@ -118,8 +118,24 @@ function beginRecording(canvas, audioTracks, kind = "shot", { manualFrames = fal
   return true;
 }
 
-// 録画を止める（いまの1本を閉じると、保存の画面が出る）。時間の表示とボタンも元にもどす
-function stopRecording() {
+// 撮った回ごとの、止めたときのスコア（⚡ 得点ハイライトの結果の札に使う）
+const takeEnd = {};
+let cardTimer = 0; // 結果の札を出して、止めるのを待っているところ
+// 録画を止める（いまの1本を閉じると、保存の画面が出る）。時間の表示とボタンも元にもどす。
+// カメラで撮っていて、全部にも結果の札を入れるときは、札を 2 秒録ってから止める（撮りながらの全部は、最初を選んでも最後に入る）。now：すぐ止める
+function stopRecording(now = false) {
+  if (recording && recKind === "shot") takeEnd[take] = { us: state.us, them: state.them };
+  if (!now && recording && recKind === "shot" && resultCardPlace("full")) {
+    if (cardTimer) return; // 札を出しているあいだにもう一度押しても、そのまま
+    resultCard = { us: state.us, them: state.them };
+    clearInterval(tick);
+    $("elapsed").textContent = "結果の札を入れています…";
+    cardTimer = setTimeout(() => stopRecording(true), RESULT_CARD_MS);
+    return;
+  }
+  clearTimeout(cardTimer);
+  cardTimer = 0;
+  resultCard = null;
   clearTimeout(segmentTimer);
   if (recording) {
     recording = false;

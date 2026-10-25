@@ -85,3 +85,10 @@ test("⚡ ハイライトの長さ：はじめは 10秒前〜6秒後。1〜30 �
   const broken = boot({ "roqga:state": JSON.stringify({ hlBefore: "x", hlAfter: null }) }).state;
   assert.deepEqual([broken.hlBefore, broken.hlAfter], [10, 6]);
 });
+
+test("結果の札：はじめは最初・ハイライトだけ。知らない値は最初にもどす", () => {
+  assert.deepEqual([boot({}).state.resultCard, boot({}).state.resultOnFull], ["start", false]);
+  const { state } = boot({ "roqga:state": JSON.stringify({ resultCard: "<b>", resultOnFull: "yes" }) });
+  assert.deepEqual([state.resultCard, state.resultOnFull], ["start", false]);
+  assert.equal(boot({ "roqga:state": JSON.stringify({ resultCard: "end", resultOnFull: true }) }).state.resultCard, "end");
+});

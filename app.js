@@ -9,6 +9,7 @@ showGoalFxSetting();
 showFxLabel();
 showSplitSetting();
 renderHighlightRange();
+showResultCardSetting();
 showLineHint();
 renderTransitionChoices();
 // プレビューは、字（M PLUS Rounded）を読みこんだあとにも描き直す

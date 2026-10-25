@@ -116,6 +116,7 @@ function drawFrame() {
   c.restore();
   drawScoreboard(w, h);
   drawGoalFx(w, h);
+  if (resultCard) drawResultCard(w, h, screenCtx, resultCard); // 止める前の 2 秒（結果の札を最後に入れるとき）
   requestAnimationFrame(drawFrame);
 }
 

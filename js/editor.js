@@ -138,7 +138,7 @@ function drawEditFrame() {
   if ($("editor").hidden && !rendering) return;
   if (!(rendering && frameSync)) {
     paintEditFrame();
-  } else if (wipeProgress() !== null || (!editVideo.paused && performance.now() - lastSyncFrameAt > 200)) {
+  } else if (resultCard || wipeProgress() !== null || (!editVideo.paused && performance.now() - lastSyncFrameAt > 200)) {
     // つなぎ目の柄が出ているあいだは、動画のコマを待たずに画面の描き直しごとに描いて録る（柄が時計どおりになめらかに動く）。
     // 安全策：動画のコマの合図が 0.2 秒来ないときも、ここで描いて録る（何も録れないことがないように）
     paintEditFrame();
@@ -156,6 +156,8 @@ function paintEditFrame(t = editVideo.currentTime) {
     editScreen.width = vw;
     editScreen.height = vh;
   }
+  // 結果の札を出しているあいだは、札だけ（書き出しの最初か最後の 2 秒）
+  if (rendering && resultCard) return drawResultCard(vw, vh, editCtx, resultCard);
   if (!renderOverlay) {
     editCtx.drawImage(editVideo, 0, 0, vw, vh);
     drawPieceTransition(vw, vh);

@@ -58,7 +58,8 @@ function showHighlightSetting() {
 
 // 書き出す（共通）：pieces＝[{ src: 動画の URL, a: はじめの秒, b: 終わりの秒 }] を順に流して、canvas の絵と動画の音を1本に録る。
 // あいだを飛ばすときは録画を一時停止してつなぐ。流した時間だけかかる
-async function renderPieces(pieces, { overlay, kind, title }) {
+// result：結果の札に出すスコア { us, them }（入れるかどうか・どこには「💾 保存の設定」で決まる。resultCardPlace）
+async function renderPieces(pieces, { overlay, kind, title, result }) {
   if (!window.MediaRecorder || !editScreen.captureStream) {
     notice("この端末のブラウザでは書き出せません");
     return;
@@ -81,6 +82,7 @@ async function renderPieces(pieces, { overlay, kind, title }) {
   let done = 0;
   let started = false;
   wipe = null;
+  const cardAt = result ? resultCardPlace(kind === "highlight" ? "highlight" : "full") : null;
   for (const [index, { src, a, b }] of pieces.entries()) {
     if (!exporting) break;
     // つなぎ目の柄：次の部分があるときは終わりに入れ、前の部分があるときははじめに抜く（editor.js の wipe）
@@ -105,6 +107,7 @@ async function renderPieces(pieces, { overlay, kind, title }) {
         startFrameSync();
       }
       started = true;
+      if (cardAt === "start") await recordCard(result); // 最初に結果の札（LINE などのサムネに結果が出る）
     } else if (recorder?.state === "paused") {
       recorder.resume();
     }
@@ -139,9 +142,23 @@ async function renderPieces(pieces, { overlay, kind, title }) {
     if (recorder?.state === "recording") recorder.pause();
     done += b - a;
   }
+  // 最後に結果の札
+  if (exporting && started && cardAt === "end") {
+    if (recorder?.state === "paused") recorder.resume();
+    await recordCard(result);
+  }
   // 最後まで書き出せたら記録（やめたとき・1本も書き出せなかったときは数えない）：edit＝撮った動画に・highlight＝⚡ ハイライト。数は秒
   if (exporting && started) logUse(kind === "highlight" ? "highlight" : "export", Math.round(total));
   finishExport();
+}
+
+// 結果の札を 2 秒録る（そのあいだは drawEditFrame が札を描いて録る）
+async function recordCard(score) {
+  resultCard = score;
+  paintEditFrame();
+  pushFrame();
+  await new Promise((resolve) => setTimeout(resolve, RESULT_CARD_MS));
+  resultCard = null;
 }
 
 // 再生をはじめた動画の、はじめのコマが出るまで待つ（出ないときも 0.5 秒で先へ。待てないブラウザは 0.15 秒）
@@ -179,7 +196,12 @@ async function exportVideo() {
   if (!pieces.length) return;
   exportMode = true;
   const highlight = exportRange === "goals"; // ⚡ ハイライト：保存の画面でも「⚡ ハイライト」として並ぶ
-  await renderPieces(pieces, { overlay: true, kind: highlight ? "highlight" : "edit", title: highlight ? "⚡ ハイライトを作っています…" : "書き出し中…" });
+  await renderPieces(pieces, {
+    overlay: true,
+    kind: highlight ? "highlight" : "edit",
+    title: highlight ? "⚡ ハイライトを作っています…" : "書き出し中…",
+    result: scoreAt(editVideo.duration) // 結果の札：入れた点の最後のスコア
+  });
 }
 
 // ⚡ ハイライト（撮るとき）：撮っているあいだに ＋1・⭐ を押した時間の前後を、録った動画（5分ごとの何本か）から切り出してつなぐ。
@@ -214,7 +236,9 @@ $("makeHighlight").addEventListener("click", () => {
   if (!pieces.length) return;
   $("saveSheet").hidden = true;
   $("playback").pause();
-  renderPieces(pieces, { overlay: false, kind: "highlight", title: "⚡ ハイライトを作っています…" });
+  // 結果の札：いちばんあとに撮った回の、止めたときのスコア
+  const lastTake = Math.max(...liveGoals.map((g) => g.take));
+  renderPieces(pieces, { overlay: false, kind: "highlight", title: "⚡ ハイライトを作っています…", result: takeEnd[lastTake] || { us: state.us, them: state.them } });
 });
 
 // ---- 書き出し中の画面：動き（しま模様のバー・書き出しているところ）とプチ情報、画面を離れないように ----
@@ -278,6 +302,7 @@ window.addEventListener("beforeunload", (e) => {
 function finishExport() {
   $("editor").classList.remove("is-exporting");
   wipe = null;
+  resultCard = null;
   frameSync = false;
   clearInterval(tipTimer);
   if (!exporting) return;

@@ -275,3 +275,15 @@ test("⚡ ハイライトの範囲は、設定した何秒前〜何秒後で作�
   run("state.hlBefore = 5; state.hlAfter = 3;");
   assert.equal(JSON.stringify(run("highlightSpans([12, 100], 200)")), JSON.stringify([[7, 15], [95, 103]]));
 });
+
+test("結果の札：はじめはハイライトの最初だけ。全部にも・最後・なしを選べ、得点板を出さないときは入れない", () => {
+  const { run } = boot();
+  assert.equal(run("resultCardPlace('highlight')"), "start");
+  assert.equal(run("resultCardPlace('full')"), null);
+  run("state.resultOnFull = true; state.resultCard = 'end';");
+  assert.equal(run("resultCardPlace('full')"), "end");
+  run("state.board = false;");
+  assert.equal(run("resultCardPlace('highlight')"), null);
+  run("state.board = true; state.resultCard = 'none';");
+  assert.equal(run("resultCardPlace('highlight')"), null);
+});

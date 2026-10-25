@@ -76,7 +76,10 @@ const state = {
   // ⚡ ハイライトに入れる長さ：得点・⭐ を押した時間の何秒前から、何秒後まで（はじめは 10・6。1〜30。アプリ版と同じ）
   hlBefore: hlSecondsOf(saved.hlBefore, 10),
   hlAfter: hlSecondsOf(saved.hlAfter, 6),
-  split: saved.split === true, // 5分をこえる動画を5分ごとに分けるか（LINE のトークで送るとき）。はじめは1本のまま
+  split: saved.split === true,
+  // 結果の札：どこに入れるか（none・start・end。はじめは start＝LINE などのサムネに結果）と、試合全部にも入れるか（はじめはハイライトだけ）
+  resultCard: ["none", "start", "end"].includes(saved.resultCard) ? saved.resultCard : "start",
+  resultOnFull: saved.resultOnFull === true, // 5分をこえる動画を5分ごとに分けるか（LINE のトークで送るとき）。はじめは1本のまま
   hand: ["left", "right"].includes(saved.hand) ? saved.hand : "center", // ＋1・録画のまとまりの位置（片手で持つ側に寄せる）
   turn: ["left", "right"].includes(saved.turn) ? saved.turn : null // 縦の画面のまま倒して撮るときの向き（前に選んだもの。次からは選ばずに始める）
 };

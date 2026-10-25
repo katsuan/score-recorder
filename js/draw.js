@@ -2,17 +2,20 @@
 // 読み込む順は index.html（page → store → draw → setup → studio → record → editor → render → app.js）。
 "use strict";
 
-// 得点板：左上に濃い札。[左のチームの色] 左のチーム 2 - 1 右のチーム [右のチームの色]。大きさは映像の高さに合わせる
-function drawScoreboard(w, h, ctx = screenCtx) {
+// 得点板：左上に濃い札。[左のチームの色] 左のチーム 2 - 1 右のチーム [右のチームの色]。大きさは映像の高さに合わせる。
+// opts：score（{ us, them }。なければいまのスコア）・scale（何倍か）・center（まん中の高さ。上からの割合。結果の札）
+function drawScoreboard(w, h, ctx = screenCtx, opts = {}) {
   if (!state.board) return; // 「得点板：出さない」（👀 プレビューの欄）
-  const s = Math.min(w, h) / 720; // 720p で 1
+  const s = (Math.min(w, h) / 720) * (opts.scale || 1); // 720p で 1
   const pad = 20 * s;
   const boxH = 64 * s;
   // 得点板の字の形（太さと大きさ）を返す
   const font = (size, weight = 800) => `${weight} ${size}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
   // チーム名がないときは、名前の代わりにチームの色の丸
   // 左右（入れかえたときは them が左）。下の「Us」は左、「Them」は右のこと
-  const [left, right] = inOrder({ name: state.teamUs, color: state.colorUs, score: state.us }, { name: state.teamThem, color: state.colorThem, score: state.them });
+  const us = opts.score ? opts.score.us : state.us;
+  const them = opts.score ? opts.score.them : state.them;
+  const [left, right] = inOrder({ name: state.teamUs, color: state.colorUs, score: us }, { name: state.teamThem, color: state.colorThem, score: them });
   const nameUs = left.name.trim();
   const nameThem = right.name.trim();
   const dot = 26 * s;
@@ -25,8 +28,10 @@ function drawScoreboard(w, h, ctx = screenCtx) {
   const chip = 10 * s;
   const gap = 16 * s;
   const boxW = chip + gap + nameUsW + gap * 1.5 + scoreW + gap * 1.5 + nameThemW + gap + chip + gap * 1.2;
-  const x = pad;
-  const y = pad;
+  // 結果の札：名前が長くてはみ出すときは小さくして描きなおす
+  if (opts.center && boxW > w * 0.92) return drawScoreboard(w, h, ctx, { ...opts, scale: ((opts.scale || 1) * w * 0.92) / boxW });
+  const x = opts.center ? (w - boxW) / 2 : pad;
+  const y = opts.center ? h * opts.center - boxH / 2 : pad;
   ctx.save();
   ctx.fillStyle = "rgba(12, 22, 16, 0.8)";
   ctx.beginPath();
@@ -65,6 +70,22 @@ function drawScoreboard(w, h, ctx = screenCtx) {
   cx += scoreW + gap * 1.5;
   nameOrDot(nameThem, right.color, cx);
   ctx.restore();
+}
+
+// ---- 結果の札（「💾 保存の設定」）：動画の最初か最後に 2 秒、RoQga の面（つなぎ目で画面をおおったところ）に、得点板を大きく（1.6 倍）してロゴの下に。
+// 最初に入れると、LINE などのサムネ（最初のコマ）に結果が出る。アプリ版（ResultCardRenderer）と同じ絵・同じ寸法 ----
+const RESULT_CARD_MS = 2000;
+let resultCard = null; // いま出している札のスコア { us, them }（出していなければ null）
+// 結果の札を描く（score：最後のスコア）
+function drawResultCard(w, h, c, score) {
+  drawRoqgaWipe(w, h, c, 0.5);
+  drawScoreboard(w, h, c, { score, scale: 1.6, center: 0.79 });
+}
+// その動画に結果の札を入れるところ（"start"・"end"・null）。kind：highlight（⚡ ハイライト）か full（全部）。
+// 得点板を出さないときは入れない（チームが分からないため）。はじめはハイライトだけ
+function resultCardPlace(kind) {
+  if (!state.board || state.resultCard === "none") return null;
+  return kind === "highlight" || state.resultOnFull ? state.resultCard : null;
 }
 
 // ---- GOAL のエフェクト：＋1 のとき、画面の真ん中に得点したチームの色の帯と「⚽ GOAL!」を2秒ほど（動画にも入る）。アイコン・文字は変えられる ----

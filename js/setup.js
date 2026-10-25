@@ -201,6 +201,7 @@ document.querySelectorAll("[data-board]").forEach((b) =>
     state.board = b.dataset.board === "on";
     save();
     showGoalFxSetting();
+    showResultCardSetting(); // 得点板を出さないときは、結果の札も入らない
     showSides(); // ＋1 を1つの GOAL に（またはもどす）。ボタンの説明も付けなおす
     drawPreview();
   })
@@ -229,6 +230,33 @@ function showSplitSetting() {
   // たたんだ見出しの小さな字：分けるときは「5分ごと」、ハイライトの長さを変えたときは「⚡5〜3秒」
   const custom = state.hlBefore !== HIGHLIGHT_DEFAULT.before || state.hlAfter !== HIGHLIGHT_DEFAULT.after;
   if ($("splitMeta")) $("splitMeta").textContent = [state.split ? "5分ごと" : "", custom ? `⚡${state.hlBefore}〜${state.hlAfter}秒` : ""].filter(Boolean).join("・"); // 前の index.html には、この欄がない
+}
+// ---- 結果の札：なし・最初・最後と、ハイライトだけ・全部にも ----
+document.querySelectorAll("[data-result-card]").forEach((b) =>
+  b.addEventListener("click", () => {
+    state.resultCard = b.dataset.resultCard;
+    save();
+    showResultCardSetting();
+  })
+);
+document.querySelectorAll("[data-result-full]").forEach((b) =>
+  b.addEventListener("click", () => {
+    state.resultOnFull = b.dataset.resultFull === "on";
+    save();
+    showResultCardSetting();
+  })
+);
+// 選んでいるほうと、説明（得点板を出さないときは入らない・撮りながらの全部は最後に入る）を出す
+function showResultCardSetting() {
+  if (!$("resultHint")) return; // 前の index.html には、この欄がない
+  document.querySelectorAll("[data-result-card]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.resultCard === state.resultCard)));
+  document.querySelectorAll("[data-result-full]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.resultFull === "on") === state.resultOnFull)));
+  $("resultFullRow").hidden = state.resultCard === "none";
+  $("resultHint").textContent = !state.board
+    ? "得点板を出さないときは、結果の札も入りません。"
+    : state.resultCard === "none"
+      ? ""
+      : `${state.resultCard === "start" ? "「最初」にすると、LINE などのサムネに結果が出ます。" : ""}${state.resultOnFull && state.resultCard === "start" ? "撮りながらの全部は、最後に入ります（撮りはじめには結果が分からないため）。" : ""}`;
 }
 // LINE の中で開いているときは、Safari・Chrome で開きなおす道を出す（LINE の openExternalBrowser=1）
 function showLineHint() {

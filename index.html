@@ -32,7 +32,7 @@
      送り先は config.js の gasWebAppUrl。電波がないときは送らずに使える（読めなくても止まらない） -->
 <script src="https://katsuan.github.io/line-share/config.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/log.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610252000">
+<link rel="stylesheet" href="style.css?v=202610252200">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -157,6 +157,20 @@
     </div>
     <!-- ⚡ ハイライトに入れる長さ（押した時間の何秒前〜何秒後。はじめは 10・6）。中身は render.js の renderHighlightRange -->
     <div class="split hl-range is-light" data-hl-range></div>
+    <!-- 結果の札：動画の最初か最後に 2 秒、チーム名と最後のスコア（アプリ版と同じ）。はじめは最初・ハイライトだけ -->
+    <div class="split">
+      <span class="split-label">結果の札（チーム名と最後のスコアを 2 秒）</span>
+      <div class="seg" role="radiogroup" aria-label="結果の札">
+        <button class="chip" type="button" role="radio" data-result-card="none">なし</button>
+        <button class="chip" type="button" role="radio" data-result-card="start">最初</button>
+        <button class="chip" type="button" role="radio" data-result-card="end">最後</button>
+      </div>
+      <div id="resultFullRow" class="seg" role="radiogroup" aria-label="結果の札を入れる動画">
+        <button class="chip" type="button" role="radio" data-result-full="off">ハイライトだけ</button>
+        <button class="chip" type="button" role="radio" data-result-full="on">全部にも</button>
+      </div>
+      <p id="resultHint" class="hint"></p>
+    </div>
     </div>
   </details>
   <!-- LINE の中で開いているとき：保存は Safari・Chrome のほうが確か（LINE の中では、保存するとページが開きなおされ、録った動画が消えることがある） -->
@@ -348,15 +362,15 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイルをこの順に読み、最後に入口の app.js（全部読んでから、最初の表示） -->
-<script src="js/page.js?v=202610252000"></script>
-<script src="js/store.js?v=202610252000"></script>
-<script src="js/draw.js?v=202610252000"></script>
-<script src="js/setup.js?v=202610252000"></script>
-<script src="js/studio.js?v=202610252000"></script>
-<script src="js/record.js?v=202610252000"></script>
-<script src="js/editor.js?v=202610252000"></script>
-<script src="js/render.js?v=202610252000"></script>
-<script src="app.js?v=202610252000"></script>
+<script src="js/page.js?v=202610252200"></script>
+<script src="js/store.js?v=202610252200"></script>
+<script src="js/draw.js?v=202610252200"></script>
+<script src="js/setup.js?v=202610252200"></script>
+<script src="js/studio.js?v=202610252200"></script>
+<script src="js/record.js?v=202610252200"></script>
+<script src="js/editor.js?v=202610252200"></script>
+<script src="js/render.js?v=202610252200"></script>
+<script src="app.js?v=202610252200"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
