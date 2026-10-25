@@ -149,7 +149,29 @@ document.querySelectorAll("[data-board]").forEach((b) =>
 // 「得点板を出す」「GOAL の演出」の選んでいるほうと、たたんだ見出しの小さな字を出す
 const showGoalFxSetting = () => {
   document.querySelectorAll("[data-board]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.board === "on") === state.board)));
-  document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
+  // ---- 保存の設定：5分をこえる動画を1本のままか、5分ごとに分けるか ----
+document.querySelectorAll("[data-split]").forEach((b) =>
+  b.addEventListener("click", () => {
+    state.split = b.dataset.split === "on";
+    save();
+    showSplitSetting();
+  })
+);
+// 選んでいるほうと、たたんだ見出しの小さな字（分けるときだけ「5分ごと」）を出す
+function showSplitSetting() {
+  document.querySelectorAll("[data-split]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.split === "on") === state.split)));
+  if ($("splitMeta")) $("splitMeta").textContent = state.split ? "5分ごと" : ""; // 前の index.html には、この欄がない
+}
+// LINE の中で開いているときは、Safari・Chrome で開きなおす道を出す（LINE の openExternalBrowser=1）
+function showLineHint() {
+  if (!/\bLine\//i.test(navigator.userAgent) || !$("lineHint")) return;
+  const url = new URL(location.href);
+  url.searchParams.set("openExternalBrowser", "1");
+  $("openOutside").href = url.href;
+  $("lineHint").hidden = false;
+}
+
+document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
   // エフェクトを出さないときは、アイコン・文字の設定も出さない
   $("fxLabelRow").hidden = !state.goalFx;
   // たたんだ見出しに小さく：得点板を出さないときは「得点板なし」、GOAL のエフェクトを出すときは「ON」

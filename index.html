@@ -32,7 +32,7 @@
      送り先は config.js の gasWebAppUrl。電波がないときは送らずに使える（読めなくても止まらない） -->
 <script src="https://katsuan.github.io/line-share/config.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/log.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610250239">
+<link rel="stylesheet" href="style.css?v=202610251200">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -135,6 +135,22 @@
     </div>
     </div>
   </details>
+  <!-- 保存の設定：長い動画を1本のまま残すか、5分ごとに分けるか（LINE のトークで送れる動画は5分まで）。はじめは1本のまま -->
+  <details id="saveFold" class="ls-fold">
+    <summary><span class="ls-fold-icon" aria-hidden="true">💾</span><span class="fold-title">保存の設定</span><span id="splitMeta" class="meta"></span></summary>
+    <div class="ls-fold-body">
+    <div class="split">
+      <span class="split-label">5分をこえる動画</span>
+      <div class="seg" role="radiogroup" aria-label="5分をこえる動画">
+        <button class="chip" type="button" role="radio" data-split="off">1本のまま</button>
+        <button class="chip" type="button" role="radio" data-split="on">5分ごとに分ける</button>
+      </div>
+      <p class="hint">LINE のトークで送れる動画は5分まで。トークで送るなら「5分ごとに分ける」に。</p>
+    </div>
+    </div>
+  </details>
+  <!-- LINE の中で開いているとき：保存は Safari・Chrome のほうが確か（LINE の中では、保存するとページが開きなおされ、録った動画が消えることがある） -->
+  <p id="lineHint" class="guide" hidden>LINE の中で開いています。保存すると録った動画が消えることがあるので、<a id="openOutside" href="#">Safari・Chrome で開く</a>のがおすすめです。</p>
   <button id="openCamera" class="ls-button is-primary is-block" type="button" data-mode-only="shoot">📹 カメラを開く</button>
   <!-- 撮った動画に（得点板をつける）：端末の動画を選ぶ（動画はこの端末の中だけで使う） -->
   <button id="pickVideo" class="ls-button is-primary is-block" type="button" data-mode-only="later" hidden>🎞 動画を選ぶ</button>
@@ -289,7 +305,9 @@
     <div class="sheet-side">
       <!-- 保存のしかた（iPhone は「ビデオを保存」で写真へ。端末によって出し分ける） -->
       <p id="saveGuide" class="guide" hidden></p>
-      <!-- 5分を超えたとき：どれを残すか（全部・最初の5分・最後の5分＝最後の1本） -->
+      <!-- 何本かあるときは、まず「まとめて保存・共有」（1本ずつ保存すると、LINE の中などでは残りが消えることがあるため） -->
+      <button id="shareAll" class="ls-button is-primary is-block" type="button" hidden>📤 まとめて保存・共有</button>
+      <!-- 5分ごとに分けて5分を超えたとき：どれを残すか（全部・最初の5分・最後の5分＝最後の1本） -->
       <div id="pickClips" class="seg" role="radiogroup" aria-label="どの動画を残すか" hidden>
         <button class="chip" type="button" role="radio" data-pick="all">全部</button>
         <button class="chip" type="button" role="radio" data-pick="first">最初の5分</button>
@@ -297,7 +315,6 @@
       </div>
       <!-- 録った動画（5分ごとに分けたときは何本か）。押すと上で見返せる -->
       <div id="clipList" class="clip-list"></div>
-      <button id="shareAll" class="ls-button is-primary is-block" type="button" hidden>📤 まとめて保存・共有</button>
       <p id="sharedNote" class="shared-note" hidden>✓ 共有できました</p>
       <!-- 得点ハイライト：撮っているあいだに ＋1 を押した時間の前後（10秒前〜6秒後）だけをつないで1本に（得点板はもう入っている） -->
       <div class="transition-row is-light" data-transition-row data-for="makeHighlight" hidden><span>つなぎ目</span><div class="transition-chips" role="radiogroup" aria-label="ハイライトのつなぎ目"></div></div>
@@ -319,15 +336,15 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイルをこの順に読み、最後に入口の app.js（全部読んでから、最初の表示） -->
-<script src="js/page.js?v=202610250239"></script>
-<script src="js/store.js?v=202610250239"></script>
-<script src="js/draw.js?v=202610250239"></script>
-<script src="js/setup.js?v=202610250239"></script>
-<script src="js/studio.js?v=202610250239"></script>
-<script src="js/record.js?v=202610250239"></script>
-<script src="js/editor.js?v=202610250239"></script>
-<script src="js/render.js?v=202610250239"></script>
-<script src="app.js?v=202610250239"></script>
+<script src="js/page.js?v=202610251200"></script>
+<script src="js/store.js?v=202610251200"></script>
+<script src="js/draw.js?v=202610251200"></script>
+<script src="js/setup.js?v=202610251200"></script>
+<script src="js/studio.js?v=202610251200"></script>
+<script src="js/record.js?v=202610251200"></script>
+<script src="js/editor.js?v=202610251200"></script>
+<script src="js/render.js?v=202610251200"></script>
+<script src="app.js?v=202610251200"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

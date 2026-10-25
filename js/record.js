@@ -1,11 +1,11 @@
-// ろくが：録画（5分ごとに分けて録る）と、保存の画面（見返し・保存・共有・次はどうする？）。
+// ろくが：録画（保存の設定で、5分ごとに分けても録れる）と、保存の画面（見返し・保存・共有・次はどうする？）。
 // 読み込む順は index.html（page → store → draw → setup → studio → record → editor → render → app.js）。
 "use strict";
 
 // ---- 録画 ----
-// LINE で送れる動画は 5分まで。いつも5分ごとに MediaRecorder を新しくして、1本ずつの動画（clips）にする
-// （あとから動画を切るのはブラウザでは難しいため）。5分以下なら1本だけ。
-// 5分を超えたときだけ、止めたあとの保存の画面で「全部（5分ごと）・最初の5分・最後の5分（最後の1本）」から選べる
+// はじめは止めるまで1本で録る。保存の設定で「5分ごとに分ける」にしたときだけ（LINE で送れる動画は 5分まで）、
+// 5分ごとに MediaRecorder を新しくして、1本ずつの動画（clips）にする（あとから動画を切るのはブラウザでは難しいため）。
+// 分けて5分を超えたときだけ、止めたあとの保存の画面で「全部（5分ごと）・最初の5分・最後の5分（最後の1本）」から選べる
 // 1本の長さ（LINE の5分に少し余裕をもたせて 4分55秒）。確かめるときは ?segment=秒 で短くできる
 const SEGMENT_MS = (Number(new URLSearchParams(location.search).get("segment")) || 295) * 1000;
 let recorder = null;
@@ -58,6 +58,7 @@ function startClip() {
   }
   recorder = rec;
   clearTimeout(segmentTimer);
+  if (!state.split) return; // 分けないとき（はじめ）は、止めるまでこの1本
   segmentTimer = setTimeout(() => {
     rec.stop(); // 5分ごとに分ける：いまの1本を閉じて、すぐ次の1本
     try {
@@ -88,7 +89,7 @@ function startRecording() {
   $("record").setAttribute("aria-label", "録画を止める");
 }
 
-// 録画をはじめる（カメラの画面でも、撮った動画にの書き出しでも同じ）：canvas の絵と音を、5分ごとに分けて録る
+// 録画をはじめる（カメラの画面でも、撮った動画にの書き出しでも同じ）：canvas の絵と音を録る（保存の設定で5分ごとにも）
 // kind：shot（カメラで撮る）・edit（撮った動画にの書き出し）・highlight（得点ハイライト）
 let recKind = "shot";
 // manualFrames：canvas を「描いたときだけ1コマ」録る（書き出しで、動画のコマごとに requestFrame する。editor.js の startFrameSync）
@@ -177,6 +178,8 @@ function clipFileName(c, index, count) {
   return `score-${stamp}${tail}.${ext}`;
 }
 
+// LINE の中のブラウザで開いているか（LINE の中では、保存するとページが開きなおされ、録った動画が消えることがある）
+const inLine = /\bLine\//i.test(navigator.userAgent);
 // 保存のしかた：iPhone・iPad は共有から「ビデオを保存」で写真へ。共有できる端末は LINE などへ、できなければ ⬇️ で保存
 const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 // 保存の画面の、保存のしかたの案内（iPhone は「ビデオを保存」、ほかは共有かダウンロード）を出す
@@ -189,6 +192,8 @@ function showSaveGuide() {
       ? "📱 「📤 保存・共有」で LINE などへ。端末には ⬇️。"
       : "⬇️ で端末に保存。";
   $("saveGuide").textContent += "ページを閉じると消えます。";
+  // LINE の中では、1本保存するとページが開きなおされ、残りが消えることがある
+  if (inLine && clips.length > 1) $("saveGuide").textContent += "LINE の中では1本ずつ保存すると残りが消えることがあるので、「まとめて保存・共有」で。";
 }
 
 // state の「どれを残すか」に合う動画（clips の番号）
@@ -244,6 +249,8 @@ function renderClips() {
   $("shareAll").hidden = files.length < 2 || !navigator.canShare?.({ files });
   $("saveInfo").textContent = [
     now.length > 1 ? `トークで送れるよう、5分ずつ ${now.length}本に分けました。` : now.length ? "" : "録れませんでした。もう一度お試しください。",
+    // 1本のままで5分をこえたら：LINE のトークでは送れないことがある（🏠 の「💾 保存の設定」で分けられる）
+    now.length === 1 && now[0].to - now[0].from > 300 ? "5分をこえているので、LINE のトークでは送れないことがあります（はじめの画面の「💾 保存の設定」で5分ごとに分けられます）。" : "",
     earlier ? `前の動画（${earlier}本）も下にあります。` : ""
   ].filter(Boolean).join("");
   if (shown.length) showClip(shown[shown.length - 1]);

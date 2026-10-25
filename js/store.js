@@ -62,6 +62,7 @@ const state = {
   fxCustom: textOf(saved.fxCustom, 16) ?? "", // カスタムのアイコン（好きな絵文字・文字。2文字まで）
   fxText: textOf(saved.fxText, 12) ?? "", // エフェクトの文字（空なら GOAL!）
   swapped: saved.swapped === true, // 左右を入れかえる（us を右に）。us・them は中の呼び名で、自分のチームとはかぎらない
+  split: saved.split === true, // 5分をこえる動画を5分ごとに分けるか（LINE のトークで送るとき）。はじめは1本のまま
   hand: ["left", "right"].includes(saved.hand) ? saved.hand : "center", // ＋1・録画のまとまりの位置（片手で持つ側に寄せる）
   turn: ["left", "right"].includes(saved.turn) ? saved.turn : null // 縦の画面のまま倒して撮るときの向き（前に選んだもの。次からは選ばずに始める）
 };
