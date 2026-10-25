@@ -63,6 +63,10 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .preview-tabs .chip[aria-selected="true"] { border-color: var(--accent); background: var(--ls-accent-soft); color: var(--ls-accent-ink); }
 .preview-caption { min-height: 1.6em; margin: 0; }
 .preview-frame.is-shoot .preview-tag { display: none; }
+/* 見本の ●●●（右上。見本の絵の上から 9%・右から 5% がまん中）に重ねた透明なボタン。保存される動画の見本では出さない */
+.preview-hand { position: absolute; top: 2%; right: 1.2%; width: 8%; aspect-ratio: 1; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.preview-hand:focus-visible { outline: 3px solid #fff; outline-offset: 1px; }
+.preview-frame:not(.is-shoot) .preview-hand { display: none; }
 .preview { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; background: #2e8b4a; }
 /* 「プレビュー」の札（画面の上だけ。動画には入らない） */
 .preview-tag { --ink: #23302a; --ink-soft: #5c6b62; position: absolute; right: 8px; bottom: 8px; padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.9); color: var(--ink); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; }

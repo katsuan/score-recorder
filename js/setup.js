@@ -398,7 +398,8 @@ function drawPreview() {
   drawGoalFx(w, h, c);
   drawNiceFx(w, h, c);
   drawStudioMock(c, w, h);
-  $("previewCaption").textContent = "撮っているときの画面（録画中）。＋1 の位置は、撮る画面の右上の ●●● で変えられます。";
+  $("previewCaption").textContent = "撮っているときの画面（録画中）。右上の ●●● を押すと、＋1 と録画ボタンの位置が変わります（撮る画面と同じ）。";
+  $("previewHand").setAttribute("aria-label", `＋1 の位置：${HAND_NAMES[state.hand]}（押すと切りかえ）`);
   if ((goalFx || niceFx) && $("studio").hidden) previewLoop = requestAnimationFrame(drawPreview);
 }
 
@@ -550,6 +551,13 @@ function drawSavedFlow(c, w, h) {
   $("previewCaption").textContent = `⚡ ハイライトの見本：${step.label}`;
   if ($("previewFold").open && $("studio").hidden && previewMode === "saved") previewLoop = requestAnimationFrame(drawPreview);
 }
+// 見本の ●●● を押したら、＋1・録画ボタンの位置を まんなか → 左よせ → 右よせ と変える（撮る画面の ●●● と同じ。端末に残す）
+$("previewHand").addEventListener("click", () => {
+  state.hand = { center: "left", left: "right", right: "center" }[state.hand];
+  save();
+  showHand();
+  drawPreview();
+});
 // プレビューの切りかえ（📹 撮る画面／💾 保存される動画）
 document.querySelectorAll("[data-preview]").forEach((b) =>
   b.addEventListener("click", () => {

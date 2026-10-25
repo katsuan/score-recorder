@@ -32,7 +32,7 @@
      送り先は config.js の gasWebAppUrl。電波がないときは送らずに使える（読めなくても止まらない） -->
 <script src="https://katsuan.github.io/line-share/config.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/log.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610260400">
+<link rel="stylesheet" href="style.css?v=202610260430">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -106,6 +106,8 @@
     <div class="preview-frame">
       <canvas id="preview" class="preview" width="1280" height="720" aria-label="プレビュー"></canvas>
       <span class="preview-tag">プレビュー</span>
+      <!-- 📹 撮る画面の見本の右上の ●●● に重ねた、押せるボタン：＋1・録画ボタンの位置を変える（撮る画面の ●●● と同じ設定。端末に残す） -->
+      <button id="previewHand" class="preview-hand" type="button"></button>
     </div>
     <p id="previewCaption" class="hint preview-caption"></p>
     <!-- エフェクトの設定（出さない／出す／▶ 試す・アイコン・文字）。「撮った動画に」を開いているあいだは、そちらの「🎉 得点のエフェクト」へ移す（editor.js） -->
@@ -378,15 +380,15 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイルをこの順に読み、最後に入口の app.js（全部読んでから、最初の表示） -->
-<script src="js/page.js?v=202610260400"></script>
-<script src="js/store.js?v=202610260400"></script>
-<script src="js/draw.js?v=202610260400"></script>
-<script src="js/setup.js?v=202610260400"></script>
-<script src="js/studio.js?v=202610260400"></script>
-<script src="js/record.js?v=202610260400"></script>
-<script src="js/editor.js?v=202610260400"></script>
-<script src="js/render.js?v=202610260400"></script>
-<script src="app.js?v=202610260400"></script>
+<script src="js/page.js?v=202610260430"></script>
+<script src="js/store.js?v=202610260430"></script>
+<script src="js/draw.js?v=202610260430"></script>
+<script src="js/setup.js?v=202610260430"></script>
+<script src="js/studio.js?v=202610260430"></script>
+<script src="js/record.js?v=202610260430"></script>
+<script src="js/editor.js?v=202610260430"></script>
+<script src="js/render.js?v=202610260430"></script>
+<script src="app.js?v=202610260430"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
