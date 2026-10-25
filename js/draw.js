@@ -159,6 +159,11 @@ function drawTransition(w, h, c, p) {
   tr.draw(w, h, c, p);
 }
 
+// 書き出しの前に、柄の絵を作っておく（はじめて描くときに少し時間がかかり、つなぎ目がかくつくため）
+function warmTransition(w, h) {
+  if (w && h && transitionOf(state.transition).id === "roqga") roqgaPanel(w, h);
+}
+
 // RoQga：濃い緑のピッチの面（左右の辺が斜め）が右から入り、つなぎ目で画面をおおって、左へ抜ける。
 // 面の中は芝刈りのしま模様と、うっすらハーフウェーラインとセンターサークル。斜めの辺に、対戦する2チームの色の線（得点板と同じく、左のチームが左側）。まん中に横長のロゴ。
 // アプリ版（q-roqga-ios の TransitionRenderer）も同じ寸法・同じ動き

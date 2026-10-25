@@ -45,12 +45,15 @@ async function renderPieces(pieces, { overlay, kind, title }) {
   const total = pieces.reduce((sum, p) => sum + (p.b - p.a), 0);
   let done = 0;
   let started = false;
+  wipe = null;
   for (const [index, { src, a, b }] of pieces.entries()) {
     if (!exporting) break;
     // つなぎ目の柄：切り出した部分が2つ以上のときだけ（editor.js の drawPieceTransition）
     piecePlan = pieces.length > 1 ? { index, count: pieces.length, a, b } : null;
+    const half = Math.min(TRANSITION_SEC / 2, (b - a) / 2);
     if (editVideo.src !== src && !(await loadVideo(src))) continue; // 読めない動画は飛ばす
     await seekTo(a);
+    if (piecePlan) warmTransition(editVideo.videoWidth, editVideo.videoHeight); // 柄の絵を先に作っておく（はじめのつなぎ目で止まらない）
     editLastT = a;
     goalFx = null;
     if (!started) {
@@ -71,6 +74,11 @@ async function renderPieces(pieces, { overlay, kind, title }) {
       recorder.resume();
     }
     await editVideo.play().catch(() => {});
+    // つなぎ目のあと：柄で画面をおおったまま、動画が流れはじめるのを待ってから、柄を抜けさせる（頭出し直後のかくつきを柄の下に隠す）
+    if (wipe?.hold) {
+      await firstFrame();
+      wipe = { dir: "out", from: performance.now(), half };
+    }
     await new Promise((resolve) => {
       const iv = setInterval(() => {
         const t = editVideo.currentTime;
@@ -78,13 +86,22 @@ async function renderPieces(pieces, { overlay, kind, title }) {
         $("exportProg").textContent = `${clock(Math.floor(now))} / ${clock(Math.ceil(total))}　のこり 約 ${clock(Math.max(0, Math.ceil(total - now)))}`;
         $("exportBar").style.width = `${Math.min(100, (now / total) * 100)}%`;
         drawExportPeek();
-        if (!exporting || t >= b - 0.05 || editVideo.ended) {
+        // 次の部分があるときは、終わりの half 秒で柄を入れはじめ、おおいきったら次へ
+        if (piecePlan && index < pieces.length - 1 && !wipe?.hold && wipe?.dir !== "in" && t >= b - half) wipe = { dir: "in", from: performance.now(), half };
+        const last = !piecePlan || index === pieces.length - 1;
+        if (!exporting || (last ? t >= b - 0.05 : wipeCovered()) || editVideo.ended) {
           clearInterval(iv);
           resolve();
         }
       }, 50);
     });
     editVideo.pause();
+    if (piecePlan && index < pieces.length - 1) {
+      // おおいきった絵を1コマ録ってから止める（次の部分は、この絵から始まる）
+      wipe = { hold: true };
+      paintEditFrame();
+      recordStream?.getVideoTracks()[0]?.requestFrame?.();
+    }
     if (recorder?.state === "recording") recorder.pause();
     done += b - a;
   }
@@ -92,6 +109,18 @@ async function renderPieces(pieces, { overlay, kind, title }) {
   if (exporting && started) logUse(kind === "highlight" ? "highlight" : "export", Math.round(total));
   finishExport();
 }
+
+// 再生をはじめた動画の、はじめのコマが出るまで待つ（出ないときも 0.5 秒で先へ。待てないブラウザは 0.15 秒）
+const firstFrame = () =>
+  new Promise((resolve) => {
+    const can = typeof editVideo.requestVideoFrameCallback === "function";
+    const timer = setTimeout(resolve, can ? 500 : 150);
+    if (!can) return;
+    editVideo.requestVideoFrameCallback(() => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
 
 // 動画の枠に src を入れて、読めたら true（読めなければ false。待ちつづけない）
 const loadVideo = (src) =>
@@ -214,6 +243,7 @@ window.addEventListener("beforeunload", (e) => {
 function finishExport() {
   $("editor").classList.remove("is-exporting");
   piecePlan = null;
+  wipe = null;
   frameSync = false;
   clearInterval(tipTimer);
   if (!exporting) return;

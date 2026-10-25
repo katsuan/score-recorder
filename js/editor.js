@@ -138,6 +138,10 @@ function drawEditFrame() {
   if ($("editor").hidden && !rendering) return;
   if (!(rendering && frameSync)) {
     paintEditFrame();
+  } else if (wipeProgress() !== null) {
+    // つなぎ目の柄が出ているあいだは、動画のコマを待たずに画面の描き直しごとに描いて録る（柄が時計どおりになめらかに動く）
+    paintEditFrame();
+    recordStream?.getVideoTracks()[0]?.requestFrame?.();
   } else if (!editVideo.paused && performance.now() - lastSyncFrameAt > 200) {
     // 安全策：動画のコマの合図が 0.2 秒来ないときは、ここで描いて録る（何も録れないことがないように）
     paintEditFrame();
@@ -157,7 +161,7 @@ function paintEditFrame(t = editVideo.currentTime) {
   }
   if (!renderOverlay) {
     editCtx.drawImage(editVideo, 0, 0, vw, vh);
-    drawPieceTransition(vw, vh, t);
+    drawPieceTransition(vw, vh);
     return;
   }
   const score = scoreAt(t);
@@ -171,7 +175,7 @@ function paintEditFrame(t = editVideo.currentTime) {
   editCtx.drawImage(editVideo, 0, 0, vw, vh);
   drawScoreboard(vw, vh, editCtx); // 「得点板：出さない」のときは描かない（draw.js）
   drawGoalFx(vw, vh, editCtx);
-  drawPieceTransition(vw, vh, t);
+  drawPieceTransition(vw, vh);
 }
 
 // ---- 書き出しのカクつきをなくす：動画の1コマが出るたびに描いて、その1コマを録る ----
@@ -196,8 +200,11 @@ function startFrameSync() {
   const onFrame = (now, meta) => {
     if (!rendering || !frameSync) return;
     lastSyncFrameAt = performance.now();
-    paintEditFrame(meta.mediaTime);
-    recordStream?.getVideoTracks()[0]?.requestFrame?.();
+    // つなぎ目の柄が出ているあいだは drawEditFrame が描いて録る（ここでも録ると、コマの間隔がばらつく）
+    if (wipeProgress() === null) {
+      paintEditFrame(meta.mediaTime);
+      recordStream?.getVideoTracks()[0]?.requestFrame?.();
+    }
     editVideo.requestVideoFrameCallback(onFrame);
   };
   editVideo.requestVideoFrameCallback(onFrame);
@@ -206,13 +213,24 @@ function startFrameSync() {
 // ⚡ ハイライトの書き出し中：つなぎ目の前後に柄（draw.js の drawTransition）。
 // piecePlan は render.js の renderPieces が、いま流している部分ごとに入れる（{ index, count, a, b }。つなぎ目がないときは null）
 let piecePlan = null;
-// ⚡ ハイライトの書き出し中、切り出した部分のはじめと終わりに、つなぎ目の柄を重ねる
-function drawPieceTransition(w, h, t) {
-  if (!rendering || !piecePlan) return;
-  const { index, count, a, b } = piecePlan;
-  const half = Math.min(TRANSITION_SEC / 2, (b - a) / 2);
-  if (index > 0 && t < a + half) drawTransition(w, h, editCtx, 0.5 + ((t - a) / half) * 0.5); // 抜けていく
-  else if (index < count - 1 && t > b - half) drawTransition(w, h, editCtx, ((t - (b - half)) / half) * 0.5); // 入ってくる
+// いま出ている柄の動き（render.js の renderPieces が入れる）。null（出ていない）・{ hold: true }（画面をおおったまま）・
+// { dir: "in"（入ってくる）か "out"（抜けていく）, from: 始めた時刻, half: 秒 }。
+// 柄は動画の時間ではなく時計で動かす（動画のコマは、次の部分の頭出しの直後などに間があいたり詰まったりして、柄がかくつくため）
+let wipe = null;
+// 柄の進みぐあい p（0〜1。0.5 で画面をおおう）を返す。出ていなければ null
+function wipeProgress() {
+  if (!rendering || !piecePlan || !wipe) return null;
+  if (wipe.hold) return 0.5;
+  const k = Math.min(1, (performance.now() - wipe.from) / (wipe.half * 1000));
+  if (wipe.dir === "out" && k >= 1) return null; // 抜けきった
+  return wipe.dir === "in" ? k * 0.5 : 0.5 + k * 0.5;
+}
+// 入ってくる柄が画面をおおいきったら true（その部分を終えてよい）
+const wipeCovered = () => Boolean(wipe && (wipe.hold || (wipe.dir === "in" && performance.now() - wipe.from >= wipe.half * 1000)));
+// ⚡ ハイライトの書き出し中、つなぎ目の柄を重ねる
+function drawPieceTransition(w, h) {
+  const p = wipeProgress();
+  if (p !== null) drawTransition(w, h, editCtx, p);
 }
 
 // 再生・止める・動画の位置

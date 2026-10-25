@@ -221,3 +221,23 @@ test("index.html は新しい名前のファイルを読み、前の名前のフ
     assert.ok(loads.every((m) => m[2] === version), `${old} の ?v= が index.html とちがう`);
   }
 });
+
+test("つなぎ目の柄は時計で動く：入ってきておおい、おおったまま待ち、抜けきると消える", () => {
+  const { run } = boot();
+  run("rendering = true; piecePlan = { index: 0, count: 2, a: 0, b: 2 };");
+  assert.equal(run("wipeProgress()"), null);
+  run("wipe = { dir: 'in', from: performance.now() - 200, half: 0.4 };");
+  const mid = run("wipeProgress()");
+  assert.ok(mid > 0.2 && mid < 0.3, `入ってくる途中 ${mid}`);
+  assert.equal(run("wipeCovered()"), false);
+  run("wipe.from = performance.now() - 1000;");
+  assert.equal(run("wipeProgress()"), 0.5); // おおいきったら、そこで止まる
+  assert.equal(run("wipeCovered()"), true);
+  run("wipe = { hold: true };");
+  assert.equal(run("wipeProgress()"), 0.5);
+  run("wipe = { dir: 'out', from: performance.now() - 200, half: 0.4 };");
+  const out = run("wipeProgress()");
+  assert.ok(out > 0.7 && out < 0.8, `抜けていく途中 ${out}`);
+  run("wipe.from = performance.now() - 1000;");
+  assert.equal(run("wipeProgress()"), null);
+});
