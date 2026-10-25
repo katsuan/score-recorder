@@ -30,12 +30,21 @@ const save = () => {
   }
 };
 
-// チームの色の選びかた（さくせん盤と同じ形の丸いボタン）。ほかの色はカスタムで
+// チームの色の選びかた：横いっぱいの1行に収まるだけの8色。最後に「カスタム」（自由な色）。
+// さくせん盤（TEAM_COLORS）・アプリ版（TeamColors.presets）と同じ色・同じ並び（はじめの3色 緑・黄・白 は前からの色。白は右のチームの最初の色）。
+// 色の名前は画面に出さず、読み上げだけに使う
 const TEAM_COLORS = [
   { label: "緑", hex: "#22a447" },
   { label: "黄", hex: "#ffd23f" },
-  { label: "白", hex: "#ffffff" }
+  { label: "白", hex: "#ffffff" },
+  { label: "赤", hex: "#e53935" },
+  { label: "青", hex: "#1e63d6" },
+  { label: "紺", hex: "#1b2a59" },
+  { label: "オレンジ", hex: "#ff8a1f" },
+  { label: "黒", hex: "#222222" }
 ];
+// 色から色の名前（緑・黄…、決まった色でなければ「カスタム」）を返す。読み上げに使う
+const teamColorName = (hex) => (TEAM_COLORS.find((c) => c.hex === String(hex).toLowerCase()) || { label: "カスタム" }).label;
 // チーム名・色は、さくせん盤と共通（同じ katsuan.github.io の soccer:state の team・opponent・ourColor・oppColor）。
 // 左のチーム（us）＝さくせん盤の自チーム、右のチーム（them）＝相手。どちらで変えても、もう一方にも出る。
 // さくせん盤にまだなければ、ろくがで前に使ったもの → 初めの値（緑・白）

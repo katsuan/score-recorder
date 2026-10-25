@@ -46,44 +46,102 @@ $("resetScore").addEventListener("click", () => {
   })
 );
 
-// チームの色：緑・黄・白の丸いボタンと、カスタム（自由な色）。さくせん盤と同じ形。
-// もう片方のチームと同じ色も選べるが、見分けにくいので薄くする（並びは変えない）
+// チームの色：チーム名の枠の中の色の丸と、その下の選べる色（8色＋カスタム）。さくせん盤・アプリ版と同じ形。
+// 一度に開くのは片方だけ。丸を押して開いたときは、決まった色を選ぶとたたむ（カスタムは選んでも開いたまま）。
+// チーム名を入れているあいだも、そのチームの色を出す（色を選んでもたたまない。入れおわったらたたむ）。
+// もう片方のチームと同じ色も選べるが、見分けにくいので薄くして斜めの線（並びは変えない）
+let colorOpen = null; // 開いているチーム（"us"・"them"・null）
+const colorKeyOf = (key) => (key === "us" ? "colorUs" : "colorThem");
+// そのチームの名前の欄に入力中かを返す
+const typingName = (key) => document.activeElement === $(key === "us" ? "teamUs" : "teamThem");
+// チームの色を変えて、はじめの画面・撮る画面のボタン・プレビューに出す（さくせん盤の側にも）
 function setTeamColor(key, hex) {
-  state[key === "us" ? "colorUs" : "colorThem"] = hex;
+  state[colorKeyOf(key)] = hex;
   save();
   shareTeams();
-  renderColorChips();
+  renderTeamColors();
   showTeamColors();
   drawPreview();
 }
-// はじめの画面のチームの色の丸（緑・黄・白とカスタム）を、いまの色で描きなおす
-function renderColorChips() {
-  document.querySelectorAll("[data-colors]").forEach((box) => {
-    const key = box.dataset.colors;
-    const current = String(key === "us" ? state.colorUs : state.colorThem).toLowerCase();
-    const other = String(key === "us" ? state.colorThem : state.colorUs).toLowerCase();
-    const isPreset = TEAM_COLORS.some((c) => c.hex === current);
-    const buttons = TEAM_COLORS.map((c) => {
-      const b = Object.assign(document.createElement("button"), { type: "button", className: "chip color" });
-      b.style.background = c.hex;
-      b.setAttribute("aria-pressed", String(current === c.hex));
-      b.classList.toggle("is-taken", c.hex === other);
-      b.setAttribute("aria-label", c.hex === other ? `${c.label}（もう片方のチームと同じ色）` : c.label);
-      b.addEventListener("click", () => setTeamColor(key, c.hex));
-      return b;
-    });
-    // カスタム：選んでいる間は、その色で丸を塗る
-    const custom = document.createElement("label");
-    custom.className = "chip color is-custom";
-    custom.setAttribute("aria-label", "カスタム（自由な色）");
-    custom.setAttribute("aria-pressed", String(!isPreset));
-    if (!isPreset) custom.style.background = current;
-    const input = Object.assign(document.createElement("input"), { type: "color", value: /^#[0-9a-f]{6}$/.test(current) ? current : "#ffffff" });
-    input.addEventListener("change", () => setTeamColor(key, input.value));
-    custom.append(input);
-    box.replaceChildren(...buttons, custom);
+// 色の丸（チーム名の左）と、開いているチームの選べる色を描きなおす
+function renderTeamColors() {
+  document.querySelectorAll("[data-color-dot]").forEach((dot) => {
+    const key = dot.dataset.colorDot;
+    const open = colorOpen === key;
+    dot.querySelector(".swatch").style.background = state[colorKeyOf(key)];
+    dot.classList.toggle("is-open", open);
+    dot.closest(".team-row").classList.toggle("is-open", open); // 枠のふちを緑に
+    dot.setAttribute("aria-expanded", String(open));
+    dot.setAttribute("aria-label", `${sideName(key)}の色を選ぶ（いま：${teamColorName(state[colorKeyOf(key)])}）`);
   });
+  const palette = $("colorPalette");
+  palette.hidden = !colorOpen;
+  if (!colorOpen) return palette.replaceChildren();
+  palette.setAttribute("aria-label", `${sideName(colorOpen)}の色`);
+  palette.replaceChildren(...paletteItems(colorOpen));
+  // しっぽ：押した丸のまん中を指す（⇄ で左右を入れかえても）
+  const dot = document.querySelector(`[data-color-dot="${colorOpen}"]`);
+  const x = dot.getBoundingClientRect().left + dot.offsetWidth / 2 - palette.getBoundingClientRect().left;
+  palette.style.setProperty("--tail-x", `${Math.round(x)}px`);
 }
+// 選べる色の中身：決まった色（もう片方のチームと同じ色は、薄くして斜めの線）とカスタム
+function paletteItems(key) {
+  const title = sideName(key);
+  const current = String(state[colorKeyOf(key)]).toLowerCase();
+  const other = String(state[colorKeyOf(key === "us" ? "them" : "us")]).toLowerCase();
+  const isPreset = TEAM_COLORS.some((c) => c.hex === current);
+  // 色を選ぶ（close が true なら、名前を入れているときでなければたたむ）
+  const pick = (hex, close) => {
+    if (close && !typingName(key)) colorOpen = null;
+    setTeamColor(key, hex);
+  };
+  // 色の丸（span.swatch）を作る
+  const swatch = (className) => Object.assign(document.createElement("span"), { className: `swatch${className ? ` ${className}` : ""}` });
+  const buttons = TEAM_COLORS.map((c) => {
+    const taken = c.hex === other;
+    const b = Object.assign(document.createElement("button"), { type: "button", className: "palette-item" });
+    b.setAttribute("aria-pressed", String(current === c.hex));
+    b.setAttribute("aria-label", `${title}：${c.label}` + (taken ? "（もう片方のチームと同じ色）" : ""));
+    const sw = swatch(taken ? "is-taken" : "");
+    sw.style.background = c.hex;
+    b.append(sw);
+    b.addEventListener("pointerdown", (e) => e.preventDefault()); // 名前を入れているときは、キーボードを出したまま色を選べるように
+    b.addEventListener("click", () => pick(c.hex, true));
+    return b;
+  });
+  // カスタム：自由な色（虹色の輪。選んでいる間は、まんなかをその色で塗る）。選んでも開いたまま
+  const custom = Object.assign(document.createElement("label"), { className: "palette-item" });
+  custom.setAttribute("aria-pressed", String(!isPreset));
+  const sw = swatch("is-custom");
+  if (!isPreset) sw.style.setProperty("--c", current);
+  const input = Object.assign(document.createElement("input"), { type: "color", value: /^#[0-9a-f]{6}$/.test(current) ? current : "#ffffff" });
+  input.setAttribute("aria-label", `${title}のカスタムの色`);
+  input.addEventListener("change", () => pick(input.value, false));
+  sw.append(input);
+  custom.append(sw);
+  return [...buttons, custom];
+}
+// 色の丸を押すと開く・たたむ
+document.querySelectorAll("[data-color-dot]").forEach((dot) =>
+  dot.addEventListener("click", () => {
+    colorOpen = colorOpen === dot.dataset.colorDot ? null : dot.dataset.colorDot;
+    renderTeamColors();
+  })
+);
+// チーム名を入れているあいだは、そのチームの色を出す。入れおわったら（色を押しているときでなければ）たたむ
+let pressingPalette = false;
+document.addEventListener("pointerdown", (e) => (pressingPalette = $("colorPalette").contains(e.target)), true);
+[["us", "teamUs"], ["them", "teamThem"]].forEach(([key, id]) => {
+  $(id).addEventListener("focus", () => {
+    colorOpen = key;
+    renderTeamColors();
+  });
+  $(id).addEventListener("blur", () => {
+    if (pressingPalette || colorOpen !== key) return;
+    colorOpen = null;
+    renderTeamColors();
+  });
+});
 
 // ---- 左右の入れかえ（はじめの画面のチームの並び・得点板・撮る画面の ＋1） ----
 // いま左にいるか右にいるかで呼ぶ（自分のチームの試合とはかぎらないので「自チーム・相手」とは呼ばない）
@@ -103,6 +161,7 @@ function showTeamColors() {
 function showSides() {
   showTeamColors();
   document.querySelector(".teams").classList.toggle("is-swapped", state.swapped);
+  renderTeamColors(); // 色の丸の読み上げ（左・右）と、しっぽの位置（並びを入れかえたあとで測る）
   $("studio").classList.toggle("is-swapped", state.swapped);
   document.querySelectorAll("[data-side-label]").forEach((el) => (el.textContent = sideName(el.dataset.sideLabel)));
   document.querySelectorAll("[data-side-aria]").forEach((el) => {

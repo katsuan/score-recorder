@@ -60,21 +60,28 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .preview { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; background: #2e8b4a; }
 /* 「プレビュー」の札（画面の上だけ。動画には入らない） */
 .preview-tag { --ink: #23302a; --ink-soft: #5c6b62; position: absolute; right: 8px; bottom: 8px; padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.9); color: var(--ink); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; }
-/* チームの色：丸いボタン（緑・黄・白）と、カスタム（自由な色）。さくせん盤と同じ形 */
-.chips.colors { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 44px; }
-.chip.color { position: relative; flex: 0 0 auto; width: 28px; height: 28px; min-height: 0; aspect-ratio: 1; /* .chip の高さ（40px）を外して、まん丸に */ padding: 0; border: 2px solid var(--border); border-radius: 50%; cursor: pointer; }
-.chip.color[aria-pressed="true"] { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent); }
+/* チーム名の枠の中の左に色の丸 [● チーム名]。丸を押す・名前を入れているあいだは、下に横いっぱいの1行で選べる色（8色＋カスタム）。
+   上のしっぽが、そのチームの丸を指す（--tail-x は setup.js）。さくせん盤・アプリ版と同じ形 */
+.team-row { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: stretch; gap: 4px; padding: 0 10px 0 2px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); }
+.team-row.is-open, .team-row:has(input:focus) { border-color: var(--accent); }
+.team-row input { min-width: 0; padding: 10px 0; border: 0; border-radius: 0; background: transparent; color: var(--ink); -webkit-appearance: none; appearance: none; }
+.team-row input:focus { outline: none; }
+.color-dot { display: grid; place-items: center; min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.color-dot .swatch { width: 24px; height: 24px; }
+.color-dot.is-open .swatch { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--accent); } /* 開いている丸は緑のふち */
+.swatch { position: relative; display: block; width: 26px; height: 26px; border: 2px solid var(--ls-line-strong); border-radius: 50%; }
 /* もう片方のチームと同じ色：選べるが見分けにくいので、少し薄くして斜めの線（白でも分かるように） */
-.chip.color { border-color: #c9d4cd; }
-.chip.color.is-taken { opacity: 0.6; }
-/* 幅の狭いスマホ（320px など）：色の丸4つが入りきるよう、少し小さく */
-@media (max-width: 349px) {
-  .chips.colors { gap: 2px; }
-  .chip.color { width: 24px; height: 24px; }
-}
-.chip.color.is-taken::after { content: ""; position: absolute; inset: 2px; border-radius: 50%; background: linear-gradient(to top right, transparent calc(50% - 1.5px), #7d8a82 calc(50% - 1.5px), #7d8a82 calc(50% + 1.5px), transparent calc(50% + 1.5px)); pointer-events: none; }
-.chip.color.is-custom { overflow: hidden; background: conic-gradient(#e5484d, #ffd23f, #2fbf71, #38bdf8, #6c47ff, #e5484d); }
-.chip.color.is-custom input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; font-size: 16px; }
+.swatch.is-taken { opacity: 0.6; }
+.swatch.is-taken::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(to top right, transparent calc(50% - 1px), #7d8a82 calc(50% - 1px), #7d8a82 calc(50% + 1px), transparent calc(50% + 1px)); pointer-events: none; }
+/* カスタム：虹色の輪（選んでいる間は、まんなかをその色で塗る） */
+.swatch.is-custom { overflow: hidden; border: 0; background: radial-gradient(circle, var(--c, transparent) 52%, transparent 53%), conic-gradient(#e5484d, #f5a524, #30a46c, #3e7bfa, #6c47ff, #e5484d); }
+.swatch.is-custom input { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.color-palette { position: relative; order: 4; grid-column: 1 / -1; display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); margin-top: 4px; padding: 4px; border-radius: 12px; background: var(--ls-accent-soft); --tail-x: 21px; }
+.color-palette[hidden] { display: none; }
+.color-palette::before { content: ""; position: absolute; top: -8px; left: calc(var(--tail-x) - 9px); border: 9px solid transparent; border-top: 0; border-bottom: 8px solid var(--ls-accent-soft); }
+.palette-item { display: grid; place-items: center; min-width: 0; min-height: 36px; padding: 0; border: 0; background: none; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.palette-item .swatch { width: min(26px, calc(100% - 8px)); height: auto; aspect-ratio: 1; }
+.palette-item[aria-pressed="true"] .swatch { box-shadow: 0 0 0 2px var(--ls-accent-soft), 0 0 0 4px var(--accent); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 /* ボタンは Q キット（ls-button）。押しやすいよう大きめ */
 .ls-button.is-block { min-height: 52px; font-size: 17px; font-weight: 800; }
@@ -401,8 +408,10 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
     --card: #1b211d;
   }
 
-  :root[data-ls-dark="auto"] .chip.color { border-color: rgba(255, 255, 255, 0.3); }
-  :root[data-ls-dark="auto"] .chip.color[aria-pressed="true"] { box-shadow: 0 0 0 2px #1b211d, 0 0 0 4px var(--accent); }
+  :root[data-ls-dark="auto"] .swatch { border-color: rgba(255, 255, 255, 0.3); }
+  :root[data-ls-dark="auto"] .color-palette { --palette-bg: #24302a; background: var(--palette-bg); }
+  :root[data-ls-dark="auto"] .color-palette::before { border-bottom-color: var(--palette-bg); }
+  :root[data-ls-dark="auto"] .palette-item[aria-pressed="true"] .swatch { box-shadow: 0 0 0 2px var(--palette-bg), 0 0 0 4px var(--accent); }
 }
 
 /* ---- PC など、横も高さもある画面 ----

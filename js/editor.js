@@ -387,7 +387,7 @@ function renderEditScore() {
         state[colorKey] = swatch.value;
         save();
         shareTeams();
-        renderColorChips();
+        renderTeamColors();
         side.style.setProperty("--team", swatch.value);
         side.style.setProperty("--team-ink", inkFor(swatch.value));
         renderEditEvents();
