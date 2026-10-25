@@ -215,21 +215,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .split-label { font-size: 13px; font-weight: 800; color: var(--ink-soft); }
 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
 .chip { min-height: 40px; padding: 0 6px; border: 2px solid var(--border); border-radius: 999px; background: var(--card); color: var(--ink); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
-.fx-line { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: center; }
-.fx-icon-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 52px; padding: 0 10px; font-size: 22px; }
-.fx-icon-btn.is-none { font-size: 13px; }
-.fx-icon-btn[aria-expanded="true"] { border-color: var(--accent); }
-/* 選べるアイコン：横に並べる。入りきらないときは折り返し、カスタム・なしもかくれないように（最後に並ぶ） */
-.fx-icons { display: flex; flex-wrap: wrap; gap: 5px; padding: 2px 0 4px; }
-.fx-icons[hidden] { display: none; }
-.fx-icons > * { flex: 0 0 auto; }
-.fx-icons .chip { width: 38px; }
-.fx-icons .fx-custom { width: 104px; min-height: 40px; padding: 0 8px; text-align: center; font-size: 16px; /* 16px 未満だと iPhone で画面が寄る */ }
-.fx-icons .chip.fx-none { width: auto; padding: 0 14px; }
-.fx-icons .fx-custom::placeholder { color: var(--ink-soft); font-size: 12px; } /* 打つ字は 16px（iPhone で画面が寄らない）、見本の字だけ小さく */
-.fx-icons .fx-custom.is-on { border-color: var(--accent); background: var(--ls-accent-soft); }
-.fx-icons .chip { padding: 0; font-size: 20px; }
-.fx-icons .chip[data-fx-icon=""] { font-size: 13px; }
+
 .chip[aria-checked="true"] { border-color: var(--accent); background: var(--ls-accent-soft); color: var(--ls-accent-ink); }
 
 /* 録った動画の一覧（押すと見返し、1本ずつ保存・共有） */

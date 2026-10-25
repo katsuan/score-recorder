@@ -279,19 +279,20 @@ document.querySelectorAll("[data-goal-fx]").forEach((b) =>
 const showFxLabel = () => {
   document.querySelectorAll("[data-fx-icon]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.fxIcon === state.fxIcon)));
   $("fxCustom").value = state.fxCustom;
-  $("fxCustom").classList.toggle("is-on", state.fxCustom !== "" && state.fxIcon === state.fxCustom);
+  $("fxCustom").classList.toggle("is-selected", state.fxCustom !== "" && state.fxIcon === state.fxCustom);
   $("fxText").value = state.fxText;
   $("fxIconNow").textContent = state.fxIcon || "なし";
-  $("fxIconBtn").classList.toggle("is-none", !state.fxIcon);
+  $("fxIconNow").classList.toggle("is-empty", !state.fxIcon);
   $("fxIconBtn").setAttribute("aria-label", `アイコンを選ぶ（いま：${state.fxIcon || "なし"}）`);
   showEditFxMeta();
 };
-// アイコンを押すと、選べるアイコンを横に並べて出す（もう一度押すとたたむ）
-const openFxPicker = (open) => {
-  $("fxIconPicker").hidden = !open;
-  $("fxIconBtn").setAttribute("aria-expanded", String(open));
-};
-$("fxIconBtn").addEventListener("click", () => openFxPicker($("fxIconPicker").hidden));
+// アイコンを押したとき・文字を入れているあいだは、下に選べるアイコンを出す（Q キットの pickField。ui.js は defer なので読みこみ終わってから）
+let fxPick = null;
+document.addEventListener("DOMContentLoaded", () => {
+  fxPick = window.LineShareUI?.pickField?.({ field: $("fxField"), button: $("fxIconBtn"), input: $("fxText"), picker: $("fxIconPicker") }) || null;
+  // Q キットが古い・読めないときは、押して開く・たたむだけ
+  if (!fxPick) $("fxIconBtn").addEventListener("click", () => ($("fxIconPicker").hidden = !$("fxIconPicker").hidden));
+});
 // 「撮った動画に」の「🎉 得点のエフェクト」の見出しの右：いまの字（⚽ GOAL!）か「出さない」
 const showEditFxMeta = () => {
   $("editFxMeta").textContent = [state.board ? "" : "得点板なし", state.goalFx ? fxLabel() : "演出なし"].filter(Boolean).join("・");
@@ -302,7 +303,6 @@ const firstChars = (text, n) => {
   if (window.Intl?.Segmenter) return [...new Intl.Segmenter("ja", { granularity: "grapheme" }).segment(t)].slice(0, n).map((x) => x.segment).join("");
   return Array.from(t).slice(0, n).join("");
 };
-// 試しに出す（点は入れない。演出の下の行は「（お試し）」）
 // ⭐ ナイスのエフェクト（出さない／出す／▶ 試す）
 document.querySelectorAll("[data-nice-fx]").forEach((b) =>
   b.addEventListener("click", () => {
@@ -318,6 +318,7 @@ const tryNice = () => {
   drawPreview();
 };
 $("tryNice").addEventListener("click", tryNice);
+// 試しに出す（点は入れない。演出の下の行は「（お試し）」）
 const tryFx = () => {
   goalFx = { side: "us", at: performance.now(), trial: true };
   drawPreview();
@@ -327,7 +328,8 @@ document.querySelectorAll("[data-fx-icon]").forEach((b) =>
     state.fxIcon = b.dataset.fxIcon;
     save();
     showFxLabel();
-    openFxPicker(false); // 選んだらたたむ（カスタムは打っている間は開いたまま）
+    // 選んだらたたむ（文字を入れているあいだ・カスタムは開いたまま）
+    if (document.activeElement !== $("fxText")) fxPick ? fxPick.close() : ($("fxIconPicker").hidden = true);
     tryFx();
   })
 );
