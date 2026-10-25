@@ -197,7 +197,9 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .next-btn { display: grid; gap: 2px; padding: 10px 14px; border: 2px solid var(--border); border-radius: 14px; background: var(--card); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
 .next-btn b { font-size: 15px; }
 .next-btn span { font-size: 12px; font-weight: 700; color: var(--ink-soft); }
-.next-btn.is-suggest { border-color: var(--accent); background: #eef7f0; }
+/* 共有のあとに目立たせる（うすい緑の地。字は地に合わせて濃く：暗い表示でも白い字のままにならないように） */
+.next-btn.is-suggest { border-color: var(--accent); background: #eef7f0; color: #1f3a28; }
+.next-btn.is-suggest span { color: #4b6455; }
 .next-btn:active { transform: scale(0.98); }
 .shared-note { color: var(--accent); font-weight: 800; text-align: center; }
 .playback { width: 100%; max-height: 50vh; border-radius: 10px; background: #000; }
@@ -417,6 +419,9 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
   }
 
   :root[data-ls-dark="auto"] .swatch { border-color: rgba(255, 255, 255, 0.3); }
+  /* 暗い表示：目立たせるボタンは、暗い緑の地に明るい字 */
+  :root[data-ls-dark="auto"] .next-btn.is-suggest { background: #1f3b29; color: #f1f7f2; }
+  :root[data-ls-dark="auto"] .next-btn.is-suggest span { color: #b9d3c1; }
   :root[data-ls-dark="auto"] .color-palette { --palette-bg: #24302a; background: var(--palette-bg); }
   :root[data-ls-dark="auto"] .color-palette::before { border-bottom-color: var(--palette-bg); }
   :root[data-ls-dark="auto"] .palette-item[aria-pressed="true"] .swatch { box-shadow: 0 0 0 2px var(--palette-bg), 0 0 0 4px var(--accent); }
