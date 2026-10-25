@@ -151,6 +151,36 @@ function drawNiceFxAt(w, h, c, p) {
   c.restore();
 }
 
+// ---- 何本目かの札：5分ごとに分けた書き出しで、各1本の最初の 2 秒、右上に「1本目（全3本）」（LINE などのサムネに出る）。
+// pieceTotal：全部で何本か（0＝出さない・-1＝本数が前もって分からないので「2本目」だけ）。アプリ版（PieceBadgeRenderer）と同じ絵 ----
+const PIECE_BADGE_MS = 2000;
+let pieceTotal = 0;
+// 何本目かの札を描く（分けていない・2 秒たったら描かない）
+function drawPieceBadge(w, h, c) {
+  if (!pieceTotal || performance.now() - clipStartedAt > PIECE_BADGE_MS) return;
+  const s = Math.min(w, h) / 720;
+  const label = pieceTotal > 0 ? `${clipNo}本目（全${pieceTotal}本）` : `${clipNo}本目`;
+  c.save();
+  c.font = `800 ${34 * s}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
+  const pw = c.measureText(label).width + 44 * s;
+  const ph = 64 * s;
+  const x = w - 20 * s - pw;
+  const y = 20 * s;
+  c.beginPath();
+  if (c.roundRect) c.roundRect(x, y, pw, ph, ph / 2);
+  else c.rect(x, y, pw, ph);
+  c.fillStyle = "rgba(12, 22, 16, 0.8)";
+  c.fill();
+  c.lineWidth = 3 * s;
+  c.strokeStyle = "rgba(255, 255, 255, 0.85)";
+  c.stroke();
+  c.fillStyle = "#ffffff";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillText(label, x + pw / 2, y + ph / 2 + 1 * s);
+  c.restore();
+}
+
 // ---- GOAL のエフェクト：＋1 のとき、画面の真ん中に得点したチームの色の帯と「⚽ GOAL!」を2秒ほど（動画にも入る）。アイコン・文字は変えられる ----
 const GOAL_FX_MS = 2200;
 let goalFx = null; // { side: "us"|"them", at: 時刻, score?: { us, them }（下の行に出すスコア。なければいまのスコア） }

@@ -157,10 +157,14 @@ function paintEditFrame(t = editVideo.currentTime) {
     editScreen.height = vh;
   }
   // 結果の札を出しているあいだは、札だけ（書き出しの最初か最後の 2 秒）
-  if (rendering && resultCard) return drawResultCard(vw, vh, editCtx, resultCard);
+  if (rendering && resultCard) {
+    drawResultCard(vw, vh, editCtx, resultCard);
+    return drawPieceBadge(vw, vh, editCtx); // 1本目の最初が札のときも「1本目」
+  }
   if (!renderOverlay) {
     editCtx.drawImage(editVideo, 0, 0, vw, vh);
     drawPieceTransition(vw, vh);
+    if (rendering) drawPieceBadge(vw, vh, editCtx);
     return;
   }
   const score = scoreAt(t);
@@ -178,6 +182,7 @@ function paintEditFrame(t = editVideo.currentTime) {
   drawGoalFx(vw, vh, editCtx);
   drawNiceFx(vw, vh, editCtx);
   drawPieceTransition(vw, vh);
+  if (rendering) drawPieceBadge(vw, vh, editCtx);
 }
 
 // ---- 書き出しのカクつきをなくす：動画の1コマが出るたびに描いて、その1コマを録る ----

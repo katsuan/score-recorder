@@ -59,7 +59,8 @@ function showHighlightSetting() {
 // 書き出す（共通）：pieces＝[{ src: 動画の URL, a: はじめの秒, b: 終わりの秒 }] を順に流して、canvas の絵と動画の音を1本に録る。
 // あいだを飛ばすときは録画を一時停止してつなぐ。流した時間だけかかる
 // result：結果の札に出すスコア { us, them }（入れるかどうか・どこには「💾 保存の設定」で決まる。resultCardPlace）
-async function renderPieces(pieces, { overlay, kind, title, result }) {
+// split・label：5分ごとに分けるか・動画の一覧に出す名前（LINE で送る用の書き出し。なければ「💾 保存の設定」のとおり）
+async function renderPieces(pieces, { overlay, kind, title, result, split, label }) {
   if (!window.MediaRecorder || !editScreen.captureStream) {
     notice("この端末のブラウザでは書き出せません");
     return;
@@ -82,7 +83,14 @@ async function renderPieces(pieces, { overlay, kind, title, result }) {
   let done = 0;
   let started = false;
   wipe = null;
-  const cardAt = result ? resultCardPlace(kind === "highlight" ? "highlight" : "full") : null;
+  // 結果の札。LINE で送る用（cut）は、元の動画の最後にもう札が入っていることがあるので、最初（サムネ）だけ
+  const place = result ? resultCardPlace(kind === "highlight" ? "highlight" : "full") : null;
+  const cardAt = kind === "cut" ? (place === "start" ? "start" : null) : place;
+  // 何本目かの札：5分ごとに分けるとき。1つの部分を流すだけなら本数が前もって分かるので「全◯本」も（場面のあいだで一時停止すると区切りがずれるので、そのときは「◯本目」だけ）
+  const splitting = split === undefined ? state.split : split;
+  const length = pieces.reduce((sum, p) => sum + (p.b - p.a), 0) + (cardAt ? RESULT_CARD_MS / 1000 : 0);
+  const count = Math.ceil(length / (SEGMENT_MS / 1000) - 0.01);
+  pieceTotal = !splitting || count < 2 ? 0 : pieces.length === 1 ? count : -1;
   for (const [index, { src, a, b }] of pieces.entries()) {
     if (!exporting) break;
     // つなぎ目の柄：次の部分があるときは終わりに入れ、前の部分があるときははじめに抜く（editor.js の wipe）
@@ -95,7 +103,7 @@ async function renderPieces(pieces, { overlay, kind, title, result }) {
     goalFx = null;
     if (!started) {
       frameSync = canSyncFrames(); // 動画のコマごとに描いて録る（カクつかない）。使えないブラウザはこれまでどおり
-      if (!beginRecording(editScreen, audioDest ? audioDest.stream.getAudioTracks() : [], kind, { manualFrames: frameSync })) {
+      if (!beginRecording(editScreen, audioDest ? audioDest.stream.getAudioTracks() : [], kind, { manualFrames: frameSync, ...(split === undefined ? {} : { split }), label })) {
         finishExport();
         notice("書き出しを始められませんでした", "この端末のブラウザでは書き出せないようです。ほかのブラウザ（Safari・Chrome）で開いてね。");
         return;
@@ -241,6 +249,38 @@ $("makeHighlight").addEventListener("click", () => {
   renderPieces(pieces, { overlay: false, kind: "highlight", title: "⚡ ハイライトを作っています…", result: takeEnd[lastTake] || { us: state.us, them: state.them } });
 });
 
+// ---- LINE で送る用（5分まで）：5分をこえる1本ができたとき、最初の5分・5分ごと・最後の5分を、あとから書き出す ----
+const CUT_SEC = SEGMENT_MS / 1000; // LINE の5分に少し余裕をもたせて 4分55秒（5分ごとに分けるときと同じ。確かめるときは ?segment=秒）
+// 切り出せる動画：ハイライト・切り出したものを除いた、いちばん新しい回が、5分をこえる1本だけのとき（1つ切り出したあとも、続けてほかも作れる）
+function cutSource() {
+  const own = clips.filter((c) => c.kind !== "highlight" && c.kind !== "cut");
+  if (!own.length) return null;
+  const last = Math.max(...own.map((c) => c.take));
+  const same = own.filter((c) => c.take === last);
+  const c = same.length === 1 ? same[0] : null;
+  return c && c.url && c.toExact - c.fromExact > CUT_SEC + 5 ? c : null;
+}
+// 保存の画面の「LINE で送る用（5分まで）」を、切り出せるときだけ出す
+function showCutRow() {
+  $("cutRow").hidden = !cutSource();
+}
+const CUT_LABELS = { first: "最初の5分", split: "5分ごと", last: "最後の5分" };
+document.querySelectorAll("[data-cut]").forEach((b) =>
+  b.addEventListener("click", () => {
+    const c = cutSource();
+    if (!c) return;
+    const d = c.toExact - c.fromExact;
+    const mode = b.dataset.cut;
+    const pieces =
+      mode === "first" ? [{ src: c.url, a: 0, b: CUT_SEC }] : mode === "last" ? [{ src: c.url, a: d - CUT_SEC, b: d }] : [{ src: c.url, a: 0, b: d }];
+    $("saveSheet").hidden = true;
+    $("playback").pause();
+    // 結果の札（最初に入れるとき）：撮った回なら止めたときのスコア、撮った動画にの書き出しなら入れた点の最後
+    const result = c.kind === "shot" ? takeEnd[c.take] || { us: state.us, them: state.them } : { us: state.us, them: state.them };
+    renderPieces(pieces, { overlay: false, kind: "cut", title: `✂️ ${CUT_LABELS[mode]}を書き出しています…`, result, split: mode === "split", label: CUT_LABELS[mode] });
+  })
+);
+
 // ---- 書き出し中の画面：動き（しま模様のバー・書き出しているところ）とプチ情報、画面を離れないように ----
 const EXPORT_TIPS = [
   "⚡ ハイライトに入れる長さ（何秒前〜何秒後）は、💾 保存の設定で変えられます",
@@ -304,6 +344,7 @@ function finishExport() {
   $("editor").classList.remove("is-exporting");
   wipe = null;
   resultCard = null;
+  pieceTotal = 0;
   frameSync = false;
   clearInterval(tipTimer);
   if (!exporting) return;

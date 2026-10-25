@@ -287,3 +287,14 @@ test("結果の札：はじめはハイライトの最初だけ。全部にも�
   run("state.board = true; state.resultCard = 'none';");
   assert.equal(run("resultCardPlace('highlight')"), null);
 });
+
+test("何本目かの札：5分ごとに分けた各1本の最初の 2 秒に「2本目（全3本）」。本数が分からないときは「2本目」、分けないときは出さない", () => {
+  const { run } = boot();
+  run("var texts = []; var ctx = new Proxy({ fillText: (t) => texts.push(t), measureText: () => ({ width: 100 }) }, { get: (o, k) => (k in o ? o[k] : () => {}), set: () => true });");
+  run("pieceTotal = 3; clipNo = 2; clipStartedAt = performance.now(); drawPieceBadge(1280, 720, ctx);");
+  assert.equal(run("texts.at(-1)"), "2本目（全3本）");
+  run("pieceTotal = -1; drawPieceBadge(1280, 720, ctx);");
+  assert.equal(run("texts.at(-1)"), "2本目");
+  run("texts = []; pieceTotal = 0; drawPieceBadge(1280, 720, ctx); pieceTotal = 3; clipStartedAt = performance.now() - 3000; drawPieceBadge(1280, 720, ctx);");
+  assert.equal(run("texts.length"), 0);
+});

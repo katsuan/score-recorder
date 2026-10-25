@@ -32,7 +32,7 @@
      送り先は config.js の gasWebAppUrl。電波がないときは送らずに使える（読めなくても止まらない） -->
 <script src="https://katsuan.github.io/line-share/config.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/log.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610260430">
+<link rel="stylesheet" href="style.css?v=202610260730">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -359,6 +359,17 @@
       <!-- 録った動画（5分ごとに分けたときは何本か）。押すと上で見返せる -->
       <div id="clipList" class="clip-list"></div>
       <p id="sharedNote" class="shared-note" hidden>✓ 共有できました</p>
+      <!-- LINE で送る用（5分まで）：5分をこえる1本ができたときだけ。最初の5分・5分ごと・最後の5分を、あとから書き出す（render.js の cutSource）。
+           ブラウザは流して録るので、最初・最後は約5分、5分ごとは動画の長さだけかかる -->
+      <div id="cutRow" class="split cut-row" hidden>
+        <span class="split-label">LINE で送る用（5分まで）</span>
+        <div class="seg" role="group" aria-label="LINE で送る用に書き出す">
+          <button class="chip" type="button" data-cut="first">✂️ 最初の5分</button>
+          <button class="chip" type="button" data-cut="split">5分ごと</button>
+          <button class="chip" type="button" data-cut="last">最後の5分 ✂️</button>
+        </div>
+        <p class="hint">トークで送れる動画は5分まで。書き出すのに、最初・最後は約5分、5分ごとは動画の長さだけかかります。</p>
+      </div>
       <!-- 得点ハイライト：撮っているあいだに ＋1 を押した時間の前後（はじめは 10秒前〜6秒後。変えられる）だけをつないで1本に（得点板はもう入っている） -->
       <div class="hl-range is-light" data-hl-range data-for="makeHighlight" hidden></div>
       <div class="transition-row is-light" data-transition-row data-for="makeHighlight" hidden><span>つなぎ目</span><div class="transition-chips" role="radiogroup" aria-label="ハイライトのつなぎ目"></div></div>
@@ -380,15 +391,15 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイルをこの順に読み、最後に入口の app.js（全部読んでから、最初の表示） -->
-<script src="js/page.js?v=202610260430"></script>
-<script src="js/store.js?v=202610260430"></script>
-<script src="js/draw.js?v=202610260430"></script>
-<script src="js/setup.js?v=202610260430"></script>
-<script src="js/studio.js?v=202610260430"></script>
-<script src="js/record.js?v=202610260430"></script>
-<script src="js/editor.js?v=202610260430"></script>
-<script src="js/render.js?v=202610260430"></script>
-<script src="app.js?v=202610260430"></script>
+<script src="js/page.js?v=202610260730"></script>
+<script src="js/store.js?v=202610260730"></script>
+<script src="js/draw.js?v=202610260730"></script>
+<script src="js/setup.js?v=202610260730"></script>
+<script src="js/studio.js?v=202610260730"></script>
+<script src="js/record.js?v=202610260730"></script>
+<script src="js/editor.js?v=202610260730"></script>
+<script src="js/render.js?v=202610260730"></script>
+<script src="app.js?v=202610260730"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

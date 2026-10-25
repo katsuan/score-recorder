@@ -31,12 +31,18 @@ function pickMimeType() {
 }
 
 // 1本ぶんの録画をはじめる。止まったら clips に足し、続けるなら次の1本、終わりなら保存のシート
+// 今回の録画の、いまの1本が何本目か・はじめた時刻（分けた各1本の最初に「1本目」の札を出すのに使う。draw.js の drawPieceBadge）
+let clipNo = 0;
+let clipStartedAt = 0;
 function startClip() {
+  clipNo += 1;
+  clipStartedAt = performance.now();
   const rec = new MediaRecorder(recordStream, { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: 6_000_000 });
   const parts = [];
   const fromExact = (Date.now() - startedAt) / 1000; // 得点ハイライトで、得点の時間を動画の中の時間に直すのに使う
   const from = Math.round(fromExact);
   const kind = recKind;
+  const label = recLabel;
   rec.addEventListener("dataavailable", (e) => e.data.size && parts.push(e.data));
   rec.addEventListener("stop", () => {
     activeRecs.delete(rec);
@@ -44,7 +50,7 @@ function startClip() {
     const blob = new Blob(parts, { type });
     const toExact = (Date.now() - startedAt) / 1000;
     const to = Math.round(toExact);
-    if (blob.size) clips.push({ blob, type, from, to, fromExact, toExact, kind, take, takeAt: startedAt, saved: false });
+    if (blob.size) clips.push({ blob, type, from, to, fromExact, toExact, kind, label, take, takeAt: startedAt, saved: false });
     // 録画を止めて、すべての1本が止まりきったら保存のシート（止まる順がずれても、録った順に並べる）
     if (!recording && !activeRecs.size) {
       clips.sort((a, b) => a.take - b.take || a.from - b.from);
@@ -60,7 +66,7 @@ function startClip() {
   }
   recorder = rec;
   clearTimeout(segmentTimer);
-  if (!state.split) return; // 分けないとき（はじめ）は、止めるまでこの1本
+  if (!recSplit) return; // 分けないとき（はじめ）は、止めるまでこの1本
   segmentTimer = setTimeout(() => {
     rec.stop(); // 5分ごとに分ける：いまの1本を閉じて、すぐ次の1本
     try {
@@ -96,9 +102,15 @@ function startRecording() {
 let recKind = "shot";
 // manualFrames：canvas を「描いたときだけ1コマ」録る（書き出しで、動画のコマごとに requestFrame する。editor.js の startFrameSync）
 // 始められたら true。この端末の MediaRecorder が断ったら（形式・canvas を録れないなど）何も変えずに false
-function beginRecording(canvas, audioTracks, kind = "shot", { manualFrames = false } = {}) {
+// split：5分ごとに分けるか（なければ「💾 保存の設定」のとおり）。label：動画の一覧に出す名前（✂️ 最初の5分 など）
+let recSplit = false;
+let recLabel = "";
+function beginRecording(canvas, audioTracks, kind = "shot", { manualFrames = false, split = state.split, label = "" } = {}) {
   try {
     recKind = kind;
+    recSplit = split;
+    recLabel = label;
+    clipNo = 0;
     recordStream = canvas.captureStream(manualFrames ? 0 : 30);
     audioTracks.forEach((t) => recordStream.addTrack(t));
     mimeType = pickMimeType();
@@ -197,7 +209,7 @@ function clipFileName(c, index, count) {
   const d = new Date(c.takeAt);
   const stamp = `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}-${pad2(d.getHours())}${pad2(d.getMinutes())}`;
   const ext = c.type.includes("mp4") ? "mp4" : "webm";
-  const tail = c.kind === "highlight" ? "-highlight" : count > 1 ? `-${index + 1}` : "";
+  const tail = c.kind === "highlight" ? "-highlight" : c.kind === "cut" ? `-cut${count > 1 ? `-${index + 1}` : ""}` : count > 1 ? `-${index + 1}` : "";
   return `score-${stamp}${tail}.${ext}`;
 }
 
@@ -235,6 +247,7 @@ const pickedIndexes = () => {
 // 保存の画面の動画の一覧（見る・保存・共有・ダウンロード・消す）を描きなおし、いちばん新しい動画を見られるようにする
 function renderClips() {
   showHighlightButton();
+  showCutRow();
   document.querySelectorAll("[data-pick]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.pick === pick)));
   const shown = pickedIndexes();
   const list = $("clipList");
@@ -248,6 +261,8 @@ function renderClips() {
       const label =
         c.kind === "highlight"
           ? `⚡ ハイライト　${clock(c.to - c.from)}${size}`
+          : c.kind === "cut"
+            ? `✂️ ${c.label}　${sameTake.length > 1 ? `${sameTake.indexOf(c) + 1}本目　` : ""}${clock(c.to - c.from)}${size}`
           : c.kind === "edit"
             ? `🎞 撮った動画に得点板をつけた動画　${sameTake.length > 1 ? `${sameTake.indexOf(c) + 1}本目　` : ""}${clock(c.from)}〜${clock(c.to)}${size}`
             : `${shotTakes().length > 1 ? `${takeNumber(c.take)}回目　` : ""}${sameTake.length > 1 ? `${sameTake.indexOf(c) + 1}本目　` : ""}${clock(c.from)}〜${clock(c.to)}${size}`;
