@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
-const FILES = ["core", "draw", "setup", "studio", "record", "editor", "render"];
+const FILES = ["js/page.js", "js/store.js", "js/draw.js", "js/setup.js", "js/studio.js", "js/record.js", "js/editor.js", "js/render.js"];
 
 // どんな使い方をしても止まらない、まねの部品（id ごとに1つ。書いた値は覚える）
 function fakeEl() {
@@ -64,7 +64,7 @@ function boot({ MediaRecorder } = {}) {
     Image: class {},
     console
   });
-  for (const f of FILES) vm.runInContext(fs.readFileSync(path.join(__dirname, `../js/${f}.js`), "utf8"), ctx, { filename: `${f}.js` });
+  for (const f of FILES) vm.runInContext(fs.readFileSync(path.join(__dirname, "..", f), "utf8"), ctx, { filename: f });
   return { ctx, run: (code) => vm.runInContext(code, ctx), asked, $el };
 }
 
@@ -205,4 +205,19 @@ test("動画の「保存・共有」は 📤 のまま、おくるんのマー�
   assert.ok(!/is-oqrn/.test(html + src));
   assert.match(html, />📤 まとめて保存・共有</);
   assert.match(src, /textContent: "📤 保存・共有"/);
+});
+
+// ファイルの名前の決まり（q-oqrn/docs/structure.md）：入口は app.js、部品は js/ に役わりの名前。
+// 前の名前（js/core.js・js/main.js）は、前の index.html を覚えているブラウザのために、新しいファイルを読むだけ
+test("index.html は新しい名前のファイルを読み、前の名前のファイルは新しいファイルを読むだけ", () => {
+  const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
+  const scripts = [...html.matchAll(/<script src="((?:js\/)?[a-z-]+\.js)\?v=(\d+)"/g)];
+  assert.deepEqual(scripts.map((m) => m[1]), [...FILES, "app.js"]);
+  const version = scripts[0][2];
+  for (const [old, next] of [["js/core.js", ["js/page.js", "js/store.js"]], ["js/main.js", ["app.js"]]]) {
+    const stub = fs.readFileSync(path.join(__dirname, "..", old), "utf8");
+    const loads = [...stub.matchAll(/src="([^"?]+)\?v=(\d+)"/g)];
+    assert.deepEqual(loads.map((m) => m[1]), next, old);
+    assert.ok(loads.every((m) => m[2] === version), `${old} の ?v= が index.html とちがう`);
+  }
 });

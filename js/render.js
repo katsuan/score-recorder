@@ -1,8 +1,26 @@
 // ろくが：書き出し（撮った動画に（得点板をつける）・⚡ ハイライトで共通）と、撮るときの ⚡ ハイライト。
-// 読み込む順は index.html（core → draw → setup → studio → record → editor → render → main）。
+// 読み込む順は index.html（page → store → draw → setup → studio → record → editor → render → app.js）。
 "use strict";
 
 // ---- 書き出し（共通）・⚡ ハイライト ----
+// ⚡ ハイライト：得点・⭐ ナイスプレーの何秒前から何秒後までを入れるか
+const HIGHLIGHT_BEFORE = 10;
+const HIGHLIGHT_AFTER = 6;
+// 時間（秒）のならびから、ハイライトに入れるところ [はじめ, 終わり] のならびを作る。近いものはひとつにつなぐ
+function highlightSpans(times, end) {
+  const spans = [];
+  [...times]
+    .sort((a, b) => a - b)
+    .forEach((t) => {
+      const a = Math.max(0, t - HIGHLIGHT_BEFORE);
+      const b = Math.min(end, t + HIGHLIGHT_AFTER);
+      const last = spans[spans.length - 1];
+      if (last && a <= last[1]) last[1] = Math.max(last[1], b);
+      else spans.push([a, b]);
+    });
+  return spans;
+}
+
 // 書き出す（共通）：pieces＝[{ src: 動画の URL, a: はじめの秒, b: 終わりの秒 }] を順に流して、canvas の絵と動画の音を1本に録る。
 // あいだを飛ばすときは録画を一時停止してつなぐ。流した時間だけかかる
 async function renderPieces(pieces, { overlay, kind, title }) {

@@ -39,7 +39,7 @@
 - 「次はどうする？」：「▶ 続きを撮る」（同じチーム・いまのスコアのまま。後半など）／「⟲ 同じチームで 0 - 0 から」（次の試合）／「🏠 はじめの画面へ」（チーム・色を変える）。共有がすむと「✓ 共有できました」と出て、0 - 0 からが目立つ
 - 動画は、どれを選んでも消えない。「1回目・2回目…」と並び、保存・共有したものには ✓。消すのは 🗑（確かめずにすぐ消し、トーストの「元に戻す」で戻せる）。はじめの画面からも「🎞 録った動画（◯本）」で開ける
 - 動画はこの端末の中だけ（サーバーには送らない）。ページを閉じる・更新すると消える
-- 利用状況の記録：おくるんと同じしくみ（Q キットの `shared/log.js` → おくるんの GAS → スプレッドシート「おくるん 利用状況」。道具の名前は `score-recorder`）。開いた（open）とエラーは log.js がひとりでに、使ったことは `js/core.js` の `logUse` が「send」に種類（kind）をつけて送る：`camera`（📹 カメラを開けた）・`pick-video`（🎞 動画を選んだ）・`shot`（録った。数は秒）・`export`／`highlight`（書き出し終えた。数は秒）・`share`（共有した。数は本数）。動画・チーム名・スコアは送らない。電波がないとき・部品が読めないときは送らずにそのまま使える。手元（localhost）では送らない
+- 利用状況の記録：おくるんと同じしくみ（Q キットの `shared/log.js` → おくるんの GAS → スプレッドシート「おくるん 利用状況」。道具の名前は `score-recorder`）。開いた（open）とエラーは log.js がひとりでに、使ったことは `js/page.js` の `logUse` が「send」に種類（kind）をつけて送る：`camera`（📹 カメラを開けた）・`pick-video`（🎞 動画を選んだ）・`shot`（録った。数は秒）・`export`／`highlight`（書き出し終えた。数は秒）・`share`（共有した。数は本数）。動画・チーム名・スコアは送らない。電波がないとき・部品が読めないときは送らずにそのまま使える。手元（localhost）では送らない
 
 ## はじめの画面
 
@@ -73,10 +73,15 @@
 
 ## ファイル
 
+ファイルの名前は Q のツール共通の決まり（q-oqrn の docs/structure.md）にそろえている。
+
 - index.html・style.css：画面
-- js/：動き（役ごとのファイル。index.html の順に読む。いちばん先の core.js の頭に、ファイルの一覧）
-  - core.js 共通の道具と state ／ draw.js 得点板・GOAL のエフェクトを描く ／ setup.js はじめの画面 ／ studio.js 撮る画面
-  - record.js 録画と保存の画面 ／ editor.js 撮った動画に（得点板をつける） ／ render.js 書き出し・⚡ ハイライト ／ main.js 最初の表示（全部読んでから）
+- app.js：入口（js/ を全部読んでから、最初の表示）
+- js/：動き（役ごとのファイル。index.html の順に読む。いちばん先の page.js の頭に、ファイルの一覧）
+  - page.js ページ全体で使う小さな道具 ／ store.js 覚えておくこと（state。端末に残す・さくせん盤とチーム名・色を分けあう）
+  - draw.js 得点板・GOAL のエフェクトを描く ／ setup.js はじめの画面 ／ studio.js 撮る画面
+  - record.js 録画と保存の画面 ／ editor.js 撮った動画に（得点板をつける） ／ render.js 書き出し・⚡ ハイライト
+- js/core.js・js/main.js：前の名前のファイル。前の index.html を覚えているブラウザ（LINE の中など）のために、新しいファイル（page.js・store.js／app.js）を読むだけ。**2026-11-25 ごろに消す**
 - tools/icon.py：アイコン・ロゴ・OGP（おくるんの tools/brandkit.py を使う。さくせん盤と同じピッチの緑に、Q はカメラのレンズの輪と録画中の赤いランプ）。tools/logo_ro.py：横ロゴの「Ro」（R の足が o のボールを蹴る）
 - 公開前に `python3 ../q-oqrn/tools/qstamp.py index.html`（読み込む CSS・JS に版の番号）
 - おくるんの一覧（line-share の data/hub-links.json の `key: "roqga"`）に載っている。はじめの画面のいちばん下に「📤 ろくがを紹介する」と仲間のアイコン列（line-share の shared/tool-share.js）

@@ -1,5 +1,5 @@
 // ろくが：はじめの画面（チーム名・色・スコア・左右の入れかえ・GOAL の設定・プレビュー・使い方のタブ）。
-// 読み込む順は index.html（core → draw → setup → studio → record → editor → render → main）。
+// 読み込む順は index.html（page → store → draw → setup → studio → record → editor → render → app.js）。
 "use strict";
 
 // ---- はじめの画面 ----

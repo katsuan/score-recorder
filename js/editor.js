@@ -1,5 +1,5 @@
 // ろくが：撮った動画に（得点板をつける）（撮っておいた動画に、得点の時間を入れる）。
-// 読み込む順は index.html（core → draw → setup → studio → record → editor → render → main）。
+// 読み込む順は index.html（page → store → draw → setup → studio → record → editor → render → app.js）。
 "use strict";
 
 // ---- 撮った動画に（得点板をつける）：撮っておいた動画に、得点板を付けて書き出す ----

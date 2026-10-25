@@ -1,5 +1,5 @@
 // ろくが：描く（得点板・GOAL のエフェクト）。撮る画面・プレビュー・撮った動画に（得点板をつける）で共通に使う。
-// 読み込む順は index.html（core → draw → setup → studio → record → editor → render → main）。
+// 読み込む順は index.html（page → store → draw → setup → studio → record → editor → render → app.js）。
 "use strict";
 
 // 得点板：左上に濃い札。[左のチームの色] 左のチーム 2 - 1 右のチーム [右のチームの色]。大きさは映像の高さに合わせる

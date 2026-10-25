@@ -1,0 +1,22 @@
+// ろくが：入口。はじめに一度だけ動かすこと（js/ のファイルを全部読んでから。最初の表示）。
+"use strict";
+
+showSetupScore();
+showHand();
+showSides();
+showGoalFxSetting();
+showFxLabel();
+renderTransitionChoices();
+renderColorChips();
+// プレビューは、字（M PLUS Rounded）を読みこんだあとにも描き直す
+drawPreview();
+document.fonts?.ready.then(drawPreview);
+// はじめて開いた人にだけ、使い方を3つ（Q キットの firstTip。「わかった」で消え、この端末では次から出さない）。
+// ui.js は defer なので、読みこみ終わってから
+document.addEventListener("DOMContentLoaded", () =>
+  window.LineShareUI?.firstTip(
+    "roqga",
+    ["チーム名と色を決める（さくせん盤と共通）", "📹 撮りながら：横にして撮り、点が入ったら ＋1", "🎞 撮った動画に：あとから得点板を入れて書き出す"],
+    document.querySelector(".teams")
+  )
+);
