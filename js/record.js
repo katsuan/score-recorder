@@ -68,6 +68,7 @@ function startClip() {
   }, SEGMENT_MS);
 }
 
+// 📹 録画ボタン：撮る画面の canvas と音で録画をはじめる（録れない端末・カメラがないときは知らせる）
 function startRecording() {
   if (!window.MediaRecorder || !screen.captureStream) {
     notice("この端末のブラウザでは録画できません");
@@ -114,6 +115,7 @@ function beginRecording(canvas, audioTracks, kind = "shot", { manualFrames = fal
   return true;
 }
 
+// 録画を止める（いまの1本を閉じると、保存の画面が出る）。時間の表示とボタンも元にもどす
 function stopRecording() {
   clearTimeout(segmentTimer);
   if (recording) {
@@ -177,6 +179,7 @@ function clipFileName(c, index, count) {
 
 // 保存のしかた：iPhone・iPad は共有から「ビデオを保存」で写真へ。共有できる端末は LINE などへ、できなければ ⬇️ で保存
 const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+// 保存の画面の、保存のしかたの案内（iPhone は「ビデオを保存」、ほかは共有かダウンロード）を出す
 function showSaveGuide() {
   const canShare = clips.length && navigator.canShare?.({ files: [clips[0].file] });
   $("saveGuide").hidden = !clips.length;
@@ -200,6 +203,7 @@ const pickedIndexes = () => {
   return [...earlier, ...chosen];
 };
 
+// 保存の画面の動画の一覧（見る・保存・共有・ダウンロード・消す）を描きなおし、いちばん新しい動画を見られるようにする
 function renderClips() {
   showHighlightButton();
   document.querySelectorAll("[data-pick]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.pick === pick)));
@@ -251,6 +255,7 @@ document.querySelectorAll("[data-pick]").forEach((b) =>
   })
 );
 
+// i 番目の動画を見返しの枠に入れ、一覧のその行に印をつける
 function showClip(i) {
   $("playback").src = clips[i].url;
   document.querySelectorAll(".clip").forEach((row) => row.classList.toggle("is-current", row.dataset.index === String(i)));
@@ -295,6 +300,7 @@ function markSaved(list) {
 }
 // 何回目の録画か（カメラで撮ったものだけで数える）
 const shotTakes = () => [...new Set(clips.filter((c) => c.kind === "shot").map((c) => c.take))].sort((a, b) => a - b);
+// その録画が、カメラで撮った何回目か（1 から）を返す
 const takeNumber = (t) => shotTakes().indexOf(t) + 1;
 
 // 共有がすんだら：「✓ 共有できました」と、「0 - 0 から撮りなおす」を目立たせる（次の試合へ）
@@ -304,6 +310,7 @@ function markShared() {
   $("restartSave").classList.add("is-suggest");
 }
 $("shareAll").addEventListener("click", () => shareFiles(pickedIndexes().map((i) => clips[i])));
+// 保存の画面を閉じる（見返しの動画も止める）
 const closeSaveSheet = () => {
   $("saveSheet").hidden = true;
   $("playback").pause();

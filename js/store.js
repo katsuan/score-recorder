@@ -7,6 +7,7 @@ const SAQSEN_KEY = "soccer:state"; // さくせん盤（同じ katsuan.github.io
 
 // 端末に残った中身は、ほかのツール（さくせん盤）や前の版が書いたものもあるので、形を確かめてから使う
 const isObj = (v) => Boolean(v) && typeof v === "object" && !Array.isArray(v);
+// 端末に残った中身（JSON）を読む。読めない・形がちがうときは {}
 const load = (key) => {
   try {
     const v = JSON.parse(localStorage.getItem(key));
@@ -20,6 +21,7 @@ const textOf = (v, max) => (typeof v === "string" ? [...v].slice(0, max).join(""
 // 点は 0〜999 の整数
 const scoreOf = (v) => Math.min(999, Math.max(0, Math.floor(Number(v)) || 0));
 const NAME_MAX = 20; // さくせん盤のチーム名と同じ
+// いまの state を端末に残す（残せなくても止めない）
 const save = () => {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(state));
@@ -39,6 +41,7 @@ const TEAM_COLORS = [
 // さくせん盤にまだなければ、ろくがで前に使ったもの → 初めの値（緑・白）
 const saqsen = load(SAQSEN_KEY);
 const saved = load(STORE_KEY);
+// 並べた色のうち、#rrggbb の形の最初のものを返す（なければ白）
 const pickHex = (...list) => list.find((c) => /^#[0-9a-f]{6}$/i.test(String(c || ""))) || "#ffffff";
 const state = {
   teamUs: textOf(saqsen.team, NAME_MAX) ?? textOf(saved.teamUs, NAME_MAX) ?? "",

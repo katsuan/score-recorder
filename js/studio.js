@@ -9,6 +9,7 @@ const screenCtx = screen.getContext("2d");
 let cameraStream = null;
 let wakeLock = null;
 
+// 📹 カメラを開いて、撮る画面に切りかえる（マイクが使えないときは映像だけ。使えないときは知らせる）
 async function openCamera() {
   $("setupError").hidden = true;
   showTeamColors(); // はじめの画面で変えた色を、＋1 のボタンにも
@@ -35,6 +36,7 @@ async function openCamera() {
 // はじめて撮る画面を開いたときだけ、ボタンの使い方を出す（「わかった」でこの端末では次から出さない）。
 // 縦の画面で「横向きにしてください」が出ているあいだは出さず、横向き（倒す）になってから
 const TIP_KEY = "roqga:tip-seen";
+// はじめて撮る画面を開いたときだけ、ボタンの使い方を出す（横向きになってから）
 function maybeShowTip() {
   let seen = false;
   try {
@@ -57,6 +59,7 @@ $("tipOk").addEventListener("click", () => {
 // 横向きにしてくださいの画面からも、はじめの画面へ
 $("rotateHome").addEventListener("click", closeCamera);
 
+// 撮る画面を閉じて、はじめの画面にもどる（録画中なら確かめてから止める）。カメラも止める
 async function closeCamera() {
   if (recording && !(await LineShareUI.ask({ title: "録画中です", text: "止めて戻りますか？", ok: "止めて戻る", danger: true }))) return;
   stopRecording();
@@ -85,6 +88,7 @@ async function keepScreenOn() {
 // 縦の画面のまま横に倒して撮るとき（画面の回転がオフ）："left"・"right"。横向きの画面なら null
 let turn = null;
 
+// カメラの映像と得点板・GOAL のエフェクトを、撮る画面の canvas に毎コマ描く（倒して撮るときは横に回す）
 function drawFrame() {
   if (!cameraStream) return;
   const vw = video.videoWidth || 1280;
@@ -143,6 +147,7 @@ window.matchMedia("(orientation: landscape)").addEventListener("change", (e) => 
 
 // ---- ＋1 の位置：まんなか・左よせ・右よせ（片手で持つ側に寄せる）。撮る画面の右上の小さな丸で、録画中も切りかえられる ----
 const HAND_NAMES = { center: "まんなか", left: "左よせ", right: "右よせ" };
+// ＋1 のまとまりの位置（まんなか・左よせ・右よせ）を撮る画面とボタンに出す
 function showHand() {
   $("studio").classList.toggle("hand-left", state.hand === "left");
   $("studio").classList.toggle("hand-right", state.hand === "right");
@@ -164,6 +169,7 @@ $("handToggle").addEventListener("click", () => {
 // 押しまちがいは、そのチームの −1 で直す（画面がごちゃつかないよう「元に戻す」ボタンは出さない）
 // 撮っているあいだに ＋1 を押した時間（得点ハイライト用）。[{ take, t: その回の録りはじめからの秒, key }]
 let liveGoals = [];
+// 点を変える（＋1・−1）。録画中は得点ハイライト用に時間を覚え、＋1 なら GOAL の演出。押したボタンを光らせる
 function changeScore(key, delta, button) {
   state[key] = Math.max(0, state[key] + delta);
   if (recording && recKind === "shot") {

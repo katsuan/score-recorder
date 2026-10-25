@@ -19,14 +19,18 @@
 // （ほかのファイルの関数を使うので、全部読んでから）。
 "use strict";
 
+// id から画面の部品を返す
 const $ = (id) => document.getElementById(id);
+// 数を2けたの文字にする（5 → "05"）
 const pad2 = (n) => String(n).padStart(2, "0");
+// 秒を「分:秒」の文字にする（65 → "1:05"）
 const clock = (sec) => `${Math.floor(sec / 60)}:${pad2(sec % 60)}`;
 // 明るい色か（白いユニフォームなど）。明るい色の上は濃い字にする（＋1 のボタン・GOAL の帯）
 const isLight = (hex) => {
   const n = parseInt(String(hex).replace("#", ""), 16) || 0;
   return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 > 0.62;
 };
+// 色の上にのせる字の色（明るい色なら黒、暗い色なら白）を返す
 const inkFor = (hex) => (isLight(hex) ? "#1a1a1a" : "#ffffff");
 // お知らせだけの窓（ボタンは「閉じる」1つ）
 const notice = (title, text) => LineShareUI.ask({ title, ...(text ? { text } : {}), ok: "閉じる", cancel: null });

@@ -96,6 +96,7 @@ async function renderPieces(pieces, { overlay, kind, title }) {
 // 動画の枠に src を入れて、読めたら true（読めなければ false。待ちつづけない）
 const loadVideo = (src) =>
   new Promise((resolve) => {
+    // 読めた（true）・読めなかった（false）ときに呼ぶ関数を作る。待つのをやめて結果を返す
     const done = (ok) => () => {
       editVideo.removeEventListener("loadeddata", onLoad);
       editVideo.removeEventListener("error", onError);
@@ -137,6 +138,7 @@ function highlightPieces() {
   });
   return pieces;
 }
+// 保存の画面の「⚡ 得点ハイライトを作る」を、作れる長さがあるときだけ、長さの目安つきで出す
 function showHighlightButton() {
   const total = highlightPieces().reduce((sum, p) => sum + (p.b - p.a), 0);
   $("makeHighlight").hidden = !total;
@@ -166,6 +168,7 @@ const EXPORT_TIPS = [
 let tipTimer = 0;
 let tipIndex = Math.floor(Math.random() * EXPORT_TIPS.length);
 let awayWhileExporting = false;
+// 書き出し中のプチ情報を、次のものにふわっと入れかえる
 function showTip() {
   const el = $("exportTip");
   el.classList.remove("is-in");
@@ -174,6 +177,7 @@ function showTip() {
   el.classList.add("is-in");
   tipIndex++;
 }
+// 書き出し中の画面（進みぐあい・プチ情報・書き出しているところの小さな映像）を出しはじめる
 function startExportWait() {
   awayWhileExporting = false;
   $("exportAway").hidden = true;
@@ -185,6 +189,7 @@ function startExportWait() {
   clearInterval(tipTimer);
   tipTimer = setInterval(showTip, 6000);
 }
+// 保存の画面から書き出しているとき、書き出しているところを小さな枠に写す
 function drawExportPeek() {
   const peek = $("exportPeek");
   if (peek.hidden || !editScreen.width) return;
@@ -205,6 +210,7 @@ window.addEventListener("beforeunload", (e) => {
   e.returnValue = "";
 });
 
+// 書き出しを終える（やめたときも）。画面をもどし、そこまでの動画を保存の画面に出す
 function finishExport() {
   $("editor").classList.remove("is-exporting");
   piecePlan = null;

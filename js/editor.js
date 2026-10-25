@@ -29,6 +29,7 @@ $("videoFile").addEventListener("change", (e) => {
   }
 });
 
+// 撮った動画にの画面で、選んだ動画を開く（入れた得点は消して、はじめのスコアから）
 async function openEditor(file) {
   // さっきの動画に点を入れていたら、別の動画にする前に確かめる（さっきの点は消える）
   if (editUrl && editEvents.length && !(await LineShareUI.ask({ title: "別の動画にしますか？", text: `さっきの動画に入れた得点（${editEvents.length}件）は消えます。`, ok: "別の動画にする", danger: true }))) return;
@@ -92,6 +93,7 @@ $("resumeEdit").addEventListener("click", showEditor);
 // ---- キーボードが出たとき（チーム名・エフェクトの文字を入れるとき）：画面の高さを見えているところに合わせ、動画を小さくする ----
 // iPhone はキーボードが出ると見える高さが縮むが、この画面（position: fixed・高さ 100dvh）はそのままで、ずれて崩れるため
 const editorEl = $("editor");
+// キーボードが出ているあいだ、撮った動画にの画面の高さを見えているところに合わせる
 function fitEditorToViewport() {
   const vv = window.visualViewport;
   if (!vv || editorEl.hidden) return;
@@ -181,13 +183,16 @@ function paintEditFrame(t = editVideo.currentTime) {
 let frameSync = false;
 let lastSyncFrameAt = 0; // 動画のコマの合図が最後に来た時刻（来ないときは drawEditFrame で描いて録る）
 const FRAME_SYNC_ON = new URLSearchParams(location.search).get("framesync") !== "0";
+// 動画のコマごとに描いて録れるブラウザか（requestVideoFrameCallback と requestFrame があるか）を返す
 const canSyncFrames = () =>
   FRAME_SYNC_ON &&
   typeof HTMLVideoElement !== "undefined" &&
   typeof HTMLVideoElement.prototype.requestVideoFrameCallback === "function" &&
   typeof window.CanvasCaptureMediaStreamTrack === "function" &&
   "requestFrame" in window.CanvasCaptureMediaStreamTrack.prototype;
+// 書き出し中、動画のコマが出るたびに1コマ描いて録る
 function startFrameSync() {
+  // 動画のコマが出たときに呼ばれる。そのコマを描いて録り、次のコマを待つ
   const onFrame = (now, meta) => {
     if (!rendering || !frameSync) return;
     lastSyncFrameAt = performance.now();
@@ -201,6 +206,7 @@ function startFrameSync() {
 // ⚡ ハイライトの書き出し中：つなぎ目の前後に柄（draw.js の drawTransition）。
 // piecePlan は render.js の renderPieces が、いま流している部分ごとに入れる（{ index, count, a, b }。つなぎ目がないときは null）
 let piecePlan = null;
+// ⚡ ハイライトの書き出し中、切り出した部分のはじめと終わりに、つなぎ目の柄を重ねる
 function drawPieceTransition(w, h, t) {
   if (!rendering || !piecePlan) return;
   const { index, count, a, b } = piecePlan;
@@ -253,6 +259,7 @@ document.querySelectorAll("[data-jump]").forEach((b) =>
 // PC：再生の操作（再生・位置・時間、10秒・速さ、ショートカットの案内）を動画のすぐ下へ。スマホ・タブレットでは操作の欄の中
 // （この条件は style.css の「PC など、横も高さもある画面」と同じ）
 const wideEditor = window.matchMedia("(min-width: 900px) and (min-height: 561px)");
+// 再生の操作の置き場所を、PC は動画のすぐ下、スマホ・タブレットは操作の欄の中にする
 function placeTransport() {
   const transport = $("editTransport");
   if (wideEditor.matches) $("editor").querySelector(".editor-stage").after(transport);
@@ -269,6 +276,7 @@ function jumpBy(sec) {
   editVideo.currentTime = Math.max(0, Math.min(d || Infinity, editVideo.currentTime + sec));
   editLastT = editVideo.currentTime; // 動かしただけでは GOAL を出さない
 }
+// ショートカットのキーで、ボタンを押したことにして光らせる
 function pressByKey(button) {
   if (!button) return;
   button.click();
@@ -318,6 +326,7 @@ const EXPORT_LABELS = { all: "📼 全部を書き出す", hl: "⚡ ハイライ
 function showExportRange() {
   const hasGoals = editEvents.some((ev) => ev.delta > 0 || ev.mark);
   if (!hasGoals && exportRange === "goals") exportRange = "all";
+  // 書き出す範囲（all・goals）の長さの合計（秒）を返す
   const len = (range) => exportSegments(range).reduce((sum, [a, b]) => sum + (b - a), 0);
   const lens = { all: len("all"), hl: len("goals") };
   const mode = chosenExport();
@@ -418,6 +427,7 @@ function renderEditGoalOnly() {
 }
 
 $("editMark").addEventListener("click", () => addEditEvent(null, 0, true));
+// いまの時間に得点（＋1・−1）か ⭐ ナイスを入れる。一覧を描きなおし、＋1 なら GOAL の演出
 function addEditEvent(key, delta, mark = false) {
   const ev = { t: editVideo.currentTime, key, delta, ...(mark ? { mark: true } : {}) };
   editEvents.push(ev);

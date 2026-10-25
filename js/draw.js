@@ -8,6 +8,7 @@ function drawScoreboard(w, h, ctx = screenCtx) {
   const s = Math.min(w, h) / 720; // 720p で 1
   const pad = 20 * s;
   const boxH = 64 * s;
+  // 得点板の字の形（太さと大きさ）を返す
   const font = (size, weight = 800) => `${weight} ${size}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
   // チーム名がないときは、名前の代わりにチームの色の丸
   // 左右（入れかえたときは them が左）。下の「Us」は左、「Them」は右のこと
@@ -75,6 +76,7 @@ const NEUTRAL_FX_COLOR = "#1f6b38"; // 得点板を出さないときの帯（�
 // エフェクトに出す字：アイコン＋文字（文字が空なら GOAL!）
 const fxLabel = () => [state.fxIcon, state.fxText.trim() || "GOAL!"].filter(Boolean).join(" ");
 
+// GOAL のエフェクト（帯と「⚽ GOAL!」）を、＋1 から GOAL_FX_MS のあいだ描く。終わったら消す
 function drawGoalFx(w, h, c = screenCtx) {
   if (!goalFx) return;
   const t = (performance.now() - goalFx.at) / GOAL_FX_MS;
@@ -94,6 +96,7 @@ function drawGoalFx(w, h, c = screenCtx) {
   const pop = t < 0.12 ? 1.35 - (0.35 * t) / 0.12 : 1;
   const bandH = 190 * s;
   const y = h / 2 - bandH / 2;
+  // エフェクトの字の形（太さと大きさ）を返す
   const font = (size) => `800 ${size}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
   c.save();
   c.globalAlpha = alpha;
@@ -143,6 +146,7 @@ const TRANSITIONS = [
   { id: "roqga", label: "RoQga", premium: false, draw: drawRoqgaWipe },
   { id: "none", label: "なし", premium: false, draw: null }
 ];
+// つなぎ目の柄を id から探す（ない・有料のものは、はじめの柄）
 const transitionOf = (id) => TRANSITIONS.find((tr) => tr.id === id && !tr.premium) || TRANSITIONS[0];
 
 const transitionLogo = new Image();
@@ -162,11 +166,14 @@ const wipeSlant = (h) => h * 0.22; // 斜めの辺の、上と下のずれ
 // 面の横の位置（面の左上が x）：入るときはだんだん遅く、抜けるときはだんだん速く
 function wipeOffset(p, w, h) {
   const slant = wipeSlant(h);
+  // はじめは速く、だんだんゆっくり（0〜1 → 0〜1）
   const easeOut = (x) => 1 - (1 - x) ** 3;
+  // はじめはゆっくり、だんだん速く（0〜1 → 0〜1）
   const easeIn = (x) => x ** 3;
   return p < 0.5 ? w + (-slant - w) * easeOut(p / 0.5) : -slant - (w + slant) * easeIn((p - 0.5) / 0.5);
 }
 let wipePanel = null; // 面の絵（大きさごとに 1 回だけ描く）
+// つなぎ目の RoQga の柄（チームの色の斜めの面とロゴ）を描いたキャンバスを返す。大きさと色が同じあいだは使い回す
 function roqgaPanel(w, h) {
   // 得点板の左右の並びのチームの色（⇄ で入れかえたときは them が左）
   const [leftColor, rightColor] = inOrder(state.colorUs, state.colorThem);
@@ -239,6 +246,7 @@ function roqgaPanel(w, h) {
   wipePanel = { key, canvas: cv };
   return cv;
 }
+// RoQga の柄を、進みぐあい p（0〜1）の位置に描く（右から入って、左へ抜ける）
 function drawRoqgaWipe(w, h, c, p) {
   c.drawImage(roqgaPanel(w, h), wipeOffset(p, w, h), 0);
 }

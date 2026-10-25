@@ -56,6 +56,7 @@ function setTeamColor(key, hex) {
   showTeamColors();
   drawPreview();
 }
+// はじめの画面のチームの色の丸（緑・黄・白とカスタム）を、いまの色で描きなおす
 function renderColorChips() {
   document.querySelectorAll("[data-colors]").forEach((box) => {
     const key = box.dataset.colors;
@@ -98,6 +99,7 @@ function showTeamColors() {
     el.querySelector(".side-name").textContent = (key === "us" ? state.teamUs : state.teamThem).trim() || sideName(key);
   });
 }
+// 左右の入れかえを、はじめの画面・撮る画面・ボタンの読み上げに出す
 function showSides() {
   showTeamColors();
   document.querySelector(".teams").classList.toggle("is-swapped", state.swapped);
@@ -144,6 +146,7 @@ document.querySelectorAll("[data-board]").forEach((b) =>
     drawPreview();
   })
 );
+// 「得点板を出す」「GOAL の演出」の選んでいるほうと、たたんだ見出しの小さな字を出す
 const showGoalFxSetting = () => {
   document.querySelectorAll("[data-board]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.board === "on") === state.board)));
   document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
@@ -231,6 +234,7 @@ $("tryGoal").addEventListener("click", tryFx);
 const preview = $("preview");
 const previewCtx = preview.getContext("2d");
 let previewLoop = 0;
+// はじめの画面のプレビュー（芝の絵に、動画と同じ得点板とエフェクト）を描く。エフェクトが出ているあいだは描きつづける
 function drawPreview() {
   const c = previewCtx;
   const w = preview.width;
