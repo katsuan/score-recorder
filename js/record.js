@@ -174,6 +174,11 @@ function showSaved() {
   // 撮った動画にの書き出しのあとは「次はどうする？」（撮る画面向け）は出さず、閉じるだけ
   openSaveSheet(!exportMode);
   exportMode = false;
+  // 画面を離れて止まったときは、そう知らせる（studio.js）
+  if (stoppedByLeaving) {
+    stoppedByLeaving = false;
+    $("saveInfo").textContent = `画面を離れたので、そこで録画を止めました。${$("saveInfo").textContent}`;
+  }
 }
 
 // 保存の画面を出す。withNextShot：撮る画面のあとの「次はどうする？」を出すか（出さないときは「閉じる」だけ）

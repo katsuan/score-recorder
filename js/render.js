@@ -291,9 +291,10 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") awayWhileExporting = true;
   else if (awayWhileExporting) $("exportAway").hidden = false;
 });
-// 書き出し中にページを閉じる・更新しようとしたら、ブラウザの確かめる画面を出す
+// 書き出し中・録画中・まだ保存していない動画があるときに、ページを閉じる・更新する・戻ろうとしたら、ブラウザの確かめる画面を出す
+// （動画はページの中にしかないので、閉じると消える。iPhone の Safari では出ないこともある）
 window.addEventListener("beforeunload", (e) => {
-  if (!exporting) return;
+  if (!exporting && !recording && !clips.some((c) => !c.saved)) return;
   e.preventDefault();
   e.returnValue = "";
 });

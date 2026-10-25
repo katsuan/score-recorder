@@ -59,10 +59,19 @@ $("tipOk").addEventListener("click", () => {
 // 横向きにしてくださいの画面からも、はじめの画面へ
 $("rotateHome").addEventListener("click", closeCamera);
 
+// 録画中にほかのアプリ・タブに切りかえたら、そこまでで録画を止める（ブラウザは画面を離れるとカメラの映像が止まり、
+// 止まった絵のまま録りつづけてしまうため）。もどったら保存の画面に、そこまでの動画と「画面を離れたので止めました」。アプリ版と同じ
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "hidden" || !recording || recKind !== "shot") return;
+  stopRecording(true);
+  stoppedByLeaving = true;
+});
+let stoppedByLeaving = false;
+
 // 撮る画面を閉じて、はじめの画面にもどる（録画中なら確かめてから止める）。カメラも止める
 async function closeCamera() {
   if (recording && !(await LineShareUI.ask({ title: "録画中です", text: "止めて戻りますか？", ok: "止めて戻る", danger: true }))) return;
-  stopRecording();
+  stopRecording(true); // カメラを止めるので、結果の札は待たずにすぐ止める
   cameraStream?.getTracks().forEach((t) => t.stop());
   cameraStream = null;
   wakeLock?.release?.().catch(() => {});
