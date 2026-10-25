@@ -515,7 +515,7 @@ function savedFlowSteps() {
   if (card === "start") steps.push({ key: "cardStart", ms: 1800, label: "結果の札（最初の 2 秒。LINE などのサムネになる）" });
   steps.push({ key: "match0", ms: 1200, label: state.board ? "試合（左上に得点板）" : "試合（得点板なし）" });
   steps.push({ key: "goal", ms: state.goalFx ? GOAL_FX_MS : 900, label: state.goalFx ? "＋1 のところで GOAL の演出" : "＋1（演出なし）" });
-  if (state.niceFx) steps.push({ key: "nice", ms: NICE_FX_MS, label: "⭐ ナイスのところで、上に小さく「⭐ ナイス！」" });
+  if (state.niceFx) steps.push({ key: "nice", ms: NICE_FX_MS, label: "⭐ ナイスのところで、得点板の下に小さく「⭐ ナイス！」" });
   if (transitionOf(state.transition).draw) steps.push({ key: "wipe", ms: TRANSITION_SEC * 1000, label: "つなぎ目の柄（ハイライトの場面と場面のあいだ）" });
   steps.push({ key: "match1", ms: 1200, label: "次の場面" });
   if (card === "end") steps.push({ key: "cardEnd", ms: 1800, label: "結果の札（最後の 2 秒）" });

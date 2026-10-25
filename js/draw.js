@@ -88,7 +88,7 @@ function resultCardPlace(kind) {
   return kind === "highlight" || state.resultOnFull ? state.resultCard : null;
 }
 
-// ---- ⭐ ナイスのエフェクト：⭐ ナイスを押したとき、上のまん中に小さく「⭐ ナイス！」の札がぽんと出て、まわりに小さな星が散る（1.4 秒。動画にも入る）。
+// ---- ⭐ ナイスのエフェクト：⭐ ナイスを押したとき、得点板のすぐ下（左上）に小さく「⭐ ナイス！」の札がぽんと出て、まわりに小さな星が散る（1.4 秒。動画にも入る）。
 // GOAL より控えめ。「👀 プレビュー・得点板と演出」で出さないにもできる。アプリ版（NiceRenderer）と同じ絵・同じ動き ----
 const NICE_FX_MS = 1400;
 let niceFx = null; // { at: 時刻 }（出していなければ null）
@@ -107,14 +107,15 @@ function drawNiceFxAt(w, h, c, p) {
   const s = Math.min(w, h) / 720;
   const alpha = p < 0.1 ? p / 0.1 : p > 0.75 ? (1 - p) / 0.25 : 1; // 出てくる・とどまる・消える
   const pop = p < 0.15 ? 1.3 - (0.3 * p) / 0.15 : 1; // はじめに少し大きく出て、元の大きさに
-  const cx = w / 2;
-  const cy = h * 0.17;
   const label = "⭐ ナイス！";
   c.save();
   c.globalAlpha = alpha;
   c.font = `800 ${34 * s * pop}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
   const pw = c.measureText(label).width + 44 * s * pop;
   const ph = 64 * s * pop;
+  // 得点板のすぐ下（左上。得点板は左 20・上 20・高さ 64）。大きく出るときも左上の角は動かさない
+  const cx = 20 * s + pw / 2;
+  const cy = (20 + 64 + 12) * s + ph / 2;
   // 札：濃い地に金色のふち
   c.beginPath();
   if (c.roundRect) c.roundRect(cx - pw / 2, cy - ph / 2, pw, ph, ph / 2);
