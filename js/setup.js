@@ -149,7 +149,14 @@ document.querySelectorAll("[data-board]").forEach((b) =>
 // 「得点板を出す」「GOAL の演出」の選んでいるほうと、たたんだ見出しの小さな字を出す
 const showGoalFxSetting = () => {
   document.querySelectorAll("[data-board]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.board === "on") === state.board)));
-  // ---- 保存の設定：5分をこえる動画を1本のままか、5分ごとに分けるか ----
+  document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
+  // エフェクトを出さないときは、アイコン・文字の設定も出さない
+  $("fxLabelRow").hidden = !state.goalFx;
+  // たたんだ見出しに小さく：得点板を出さないときは「得点板なし」、GOAL のエフェクトを出すときは「ON」
+  $("fxMeta").textContent = [state.board ? "" : "得点板なし", state.goalFx ? "演出ON" : ""].filter(Boolean).join("・");
+  showEditFxMeta();
+};
+// ---- 保存の設定：5分をこえる動画を1本のままか、5分ごとに分けるか ----
 document.querySelectorAll("[data-split]").forEach((b) =>
   b.addEventListener("click", () => {
     state.split = b.dataset.split === "on";
@@ -164,20 +171,12 @@ function showSplitSetting() {
 }
 // LINE の中で開いているときは、Safari・Chrome で開きなおす道を出す（LINE の openExternalBrowser=1）
 function showLineHint() {
-  if (!/\bLine\//i.test(navigator.userAgent) || !$("lineHint")) return;
+  if (!inLine || !$("lineHint")) return;
   const url = new URL(location.href);
   url.searchParams.set("openExternalBrowser", "1");
   $("openOutside").href = url.href;
   $("lineHint").hidden = false;
 }
-
-document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
-  // エフェクトを出さないときは、アイコン・文字の設定も出さない
-  $("fxLabelRow").hidden = !state.goalFx;
-  // たたんだ見出しに小さく：得点板を出さないときは「得点板なし」、GOAL のエフェクトを出すときは「ON」
-  $("fxMeta").textContent = [state.board ? "" : "得点板なし", state.goalFx ? "演出ON" : ""].filter(Boolean).join("・");
-  showEditFxMeta();
-};
 document.querySelectorAll("[data-goal-fx]").forEach((b) =>
   b.addEventListener("click", () => {
     state.goalFx = b.dataset.goalFx === "on";

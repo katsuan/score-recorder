@@ -21,6 +21,8 @@
 
 // id から画面の部品を返す
 const $ = (id) => document.getElementById(id);
+// LINE の中のブラウザで開いているか（LINE の中では、保存するとページが開きなおされ、録った動画が消えることがある）
+const inLine = /\bLine\//i.test(globalThis.navigator?.userAgent || "");
 // 数を2けたの文字にする（5 → "05"）
 const pad2 = (n) => String(n).padStart(2, "0");
 // 秒を「分:秒」の文字にする（65 → "1:05"）

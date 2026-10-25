@@ -48,12 +48,12 @@ async function renderPieces(pieces, { overlay, kind, title }) {
   wipe = null;
   for (const [index, { src, a, b }] of pieces.entries()) {
     if (!exporting) break;
-    // つなぎ目の柄：切り出した部分が2つ以上のときだけ（editor.js の drawPieceTransition）
-    piecePlan = pieces.length > 1 ? { index, count: pieces.length, a, b } : null;
+    // つなぎ目の柄：次の部分があるときは終わりに入れ、前の部分があるときははじめに抜く（editor.js の wipe）
+    const hasNext = index < pieces.length - 1;
     const half = Math.min(TRANSITION_SEC / 2, (b - a) / 2);
     if (editVideo.src !== src && !(await loadVideo(src))) continue; // 読めない動画は飛ばす
     await seekTo(a);
-    if (piecePlan) warmTransition(editVideo.videoWidth, editVideo.videoHeight); // 柄の絵を先に作っておく（はじめのつなぎ目で止まらない）
+    if (pieces.length > 1) warmTransition(editVideo.videoWidth, editVideo.videoHeight); // 柄の絵を先に作っておく（はじめのつなぎ目で止まらない）
     editLastT = a;
     goalFx = null;
     if (!started) {
@@ -66,7 +66,7 @@ async function renderPieces(pieces, { overlay, kind, title }) {
       if (frameSync) {
         // 録りはじめにすぐ1コマ（最初のコマが出るまで録画に何も来ないと、重い動画で録画がうまく始まらないことがある）
         paintEditFrame();
-        recordStream?.getVideoTracks()[0]?.requestFrame?.();
+        pushFrame();
         startFrameSync();
       }
       started = true;
@@ -87,20 +87,19 @@ async function renderPieces(pieces, { overlay, kind, title }) {
         $("exportBar").style.width = `${Math.min(100, (now / total) * 100)}%`;
         drawExportPeek();
         // 次の部分があるときは、終わりの half 秒で柄を入れはじめ、おおいきったら次へ
-        if (piecePlan && index < pieces.length - 1 && !wipe?.hold && wipe?.dir !== "in" && t >= b - half) wipe = { dir: "in", from: performance.now(), half };
-        const last = !piecePlan || index === pieces.length - 1;
-        if (!exporting || (last ? t >= b - 0.05 : wipeCovered()) || editVideo.ended) {
+        if (hasNext && wipe?.dir !== "in" && t >= b - half) wipe = { dir: "in", from: performance.now(), half };
+        if (!exporting || (hasNext ? wipeCovered() : t >= b - 0.05) || editVideo.ended) {
           clearInterval(iv);
           resolve();
         }
       }, 50);
     });
     editVideo.pause();
-    if (piecePlan && index < pieces.length - 1) {
+    if (hasNext) {
       // おおいきった絵を1コマ録ってから止める（次の部分は、この絵から始まる）
       wipe = { hold: true };
       paintEditFrame();
-      recordStream?.getVideoTracks()[0]?.requestFrame?.();
+      pushFrame();
     }
     if (recorder?.state === "recording") recorder.pause();
     done += b - a;
@@ -242,7 +241,6 @@ window.addEventListener("beforeunload", (e) => {
 // 書き出しを終える（やめたときも）。画面をもどし、そこまでの動画を保存の画面に出す
 function finishExport() {
   $("editor").classList.remove("is-exporting");
-  piecePlan = null;
   wipe = null;
   frameSync = false;
   clearInterval(tipTimer);

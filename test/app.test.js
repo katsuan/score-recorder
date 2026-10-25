@@ -29,7 +29,7 @@ function fakeEl() {
   return proxy;
 }
 
-function boot({ MediaRecorder } = {}) {
+function boot({ MediaRecorder, userAgent = "test" } = {}) {
   const els = new Map();
   const $el = (id) => {
     if (!els.has(id)) els.set(id, fakeEl());
@@ -38,6 +38,7 @@ function boot({ MediaRecorder } = {}) {
   const asked = [];
   const document = fakeEl();
   document.getElementById = $el;
+  document.fonts = { ready: Promise.resolve() };
   const window = fakeEl();
   window.MediaRecorder = MediaRecorder;
   window.LineShareUI = { ask: (o) => (asked.push(o), Promise.resolve(false)), toast: () => {} };
@@ -46,11 +47,11 @@ function boot({ MediaRecorder } = {}) {
     window,
     LineShareUI: window.LineShareUI,
     localStorage: { getItem: () => null, setItem: () => {} },
-    location: { search: "" },
-    navigator: { userAgent: "test", platform: "", maxTouchPoints: 0 },
+    location: { search: "", href: "https://katsuan.github.io/score-recorder/" },
+    navigator: { userAgent, platform: "", maxTouchPoints: 0 },
     MediaRecorder,
     URLSearchParams,
-    URL: { createObjectURL: () => "blob:x", revokeObjectURL: () => {} },
+    URL: Object.assign(class extends URL {}, { createObjectURL: () => "blob:x", revokeObjectURL: () => {} }),
     Blob,
     File: class {},
     performance,
@@ -67,6 +68,18 @@ function boot({ MediaRecorder } = {}) {
   for (const f of FILES) vm.runInContext(fs.readFileSync(path.join(__dirname, "..", f), "utf8"), ctx, { filename: f });
   return { ctx, run: (code) => vm.runInContext(code, ctx), asked, $el };
 }
+
+test("入口の app.js まで読んでも止まらない（js/ の関数が、ほかの関数の中に入ってしまっていないか）", () => {
+  const { ctx } = boot();
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8"), ctx, { filename: "app.js" });
+});
+
+test("LINE の中では「Safari・Chrome で開く」に openExternalBrowser=1 をつける", () => {
+  const { run, $el } = boot({ userAgent: "Mozilla/5.0 (iPhone) Line/14.0.0" });
+  run("showLineHint()");
+  assert.equal($el("lineHint").hidden, false);
+  assert.match(String($el("openOutside").href), /openExternalBrowser=1/);
+});
 
 test("js/ を全部読んでも止まらない", () => {
   const { run } = boot();

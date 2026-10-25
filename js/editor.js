@@ -138,14 +138,11 @@ function drawEditFrame() {
   if ($("editor").hidden && !rendering) return;
   if (!(rendering && frameSync)) {
     paintEditFrame();
-  } else if (wipeProgress() !== null) {
-    // つなぎ目の柄が出ているあいだは、動画のコマを待たずに画面の描き直しごとに描いて録る（柄が時計どおりになめらかに動く）
+  } else if (wipeProgress() !== null || (!editVideo.paused && performance.now() - lastSyncFrameAt > 200)) {
+    // つなぎ目の柄が出ているあいだは、動画のコマを待たずに画面の描き直しごとに描いて録る（柄が時計どおりになめらかに動く）。
+    // 安全策：動画のコマの合図が 0.2 秒来ないときも、ここで描いて録る（何も録れないことがないように）
     paintEditFrame();
-    recordStream?.getVideoTracks()[0]?.requestFrame?.();
-  } else if (!editVideo.paused && performance.now() - lastSyncFrameAt > 200) {
-    // 安全策：動画のコマの合図が 0.2 秒来ないときは、ここで描いて録る（何も録れないことがないように）
-    paintEditFrame();
-    recordStream?.getVideoTracks()[0]?.requestFrame?.();
+    pushFrame();
   }
   requestAnimationFrame(drawEditFrame);
 }
@@ -203,7 +200,7 @@ function startFrameSync() {
     // つなぎ目の柄が出ているあいだは drawEditFrame が描いて録る（ここでも録ると、コマの間隔がばらつく）
     if (wipeProgress() === null) {
       paintEditFrame(meta.mediaTime);
-      recordStream?.getVideoTracks()[0]?.requestFrame?.();
+      pushFrame();
     }
     editVideo.requestVideoFrameCallback(onFrame);
   };
@@ -211,15 +208,13 @@ function startFrameSync() {
 }
 
 // ⚡ ハイライトの書き出し中：つなぎ目の前後に柄（draw.js の drawTransition）。
-// piecePlan は render.js の renderPieces が、いま流している部分ごとに入れる（{ index, count, a, b }。つなぎ目がないときは null）
-let piecePlan = null;
-// いま出ている柄の動き（render.js の renderPieces が入れる）。null（出ていない）・{ hold: true }（画面をおおったまま）・
+// いま出ている柄の動き（render.js の renderPieces が、切り出した部分が2つ以上のときだけ入れる）。null（出ていない）・{ hold: true }（画面をおおったまま）・
 // { dir: "in"（入ってくる）か "out"（抜けていく）, from: 始めた時刻, half: 秒 }。
 // 柄は動画の時間ではなく時計で動かす（動画のコマは、次の部分の頭出しの直後などに間があいたり詰まったりして、柄がかくつくため）
 let wipe = null;
 // 柄の進みぐあい p（0〜1。0.5 で画面をおおう）を返す。出ていなければ null
 function wipeProgress() {
-  if (!rendering || !piecePlan || !wipe) return null;
+  if (!rendering || !wipe) return null;
   if (wipe.hold) return 0.5;
   const k = Math.min(1, (performance.now() - wipe.from) / (wipe.half * 1000));
   if (wipe.dir === "out" && k >= 1) return null; // 抜けきった

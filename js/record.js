@@ -21,6 +21,8 @@ let segmentTimer = 0;
 let recordStream = null;
 const activeRecs = new Set(); // まだ止まりきっていない録画（区切った直後は、前の1本と次の1本が少し重なる）
 let mimeType = "";
+// canvas の録画に、いま描いた1コマを送る（書き出しで「描いたときだけ1コマ」録るとき。そうでなければ何もしない）
+const pushFrame = () => recordStream?.getVideoTracks()[0]?.requestFrame?.();
 
 // この端末で録れる形式（iPhone は mp4、Android・パソコンは webm のことが多い）
 function pickMimeType() {
@@ -178,8 +180,6 @@ function clipFileName(c, index, count) {
   return `score-${stamp}${tail}.${ext}`;
 }
 
-// LINE の中のブラウザで開いているか（LINE の中では、保存するとページが開きなおされ、録った動画が消えることがある）
-const inLine = /\bLine\//i.test(navigator.userAgent);
 // 保存のしかた：iPhone・iPad は共有から「ビデオを保存」で写真へ。共有できる端末は LINE などへ、できなければ ⬇️ で保存
 const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 // 保存の画面の、保存のしかたの案内（iPhone は「ビデオを保存」、ほかは共有かダウンロード）を出す
@@ -193,7 +193,10 @@ function showSaveGuide() {
       : "⬇️ で端末に保存。";
   $("saveGuide").textContent += "ページを閉じると消えます。";
   // LINE の中では、1本保存するとページが開きなおされ、残りが消えることがある
-  if (inLine && clips.length > 1) $("saveGuide").textContent += "LINE の中では1本ずつ保存すると残りが消えることがあるので、「まとめて保存・共有」で。";
+  if (inLine && clips.length > 1)
+    $("saveGuide").textContent += canShare
+      ? "LINE の中では1本ずつ保存すると残りが消えることがあるので、「まとめて保存・共有」で。"
+      : "LINE の中では1本保存すると残りが消えることがあります。Safari・Chrome で撮るのがおすすめです。";
 }
 
 // state の「どれを残すか」に合う動画（clips の番号）
