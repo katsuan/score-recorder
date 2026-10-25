@@ -48,6 +48,9 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .mid-score { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .swap { width: 30px; height: 30px; padding: 0; border: 2px solid var(--border); border-radius: 50%; background: var(--card); color: var(--ink); font: inherit; font-size: 14px; font-weight: 800; line-height: 1; cursor: pointer; }
 .swap:active { transform: scale(0.94); }
+/* 見た目は 30px の丸のまま、押せるところは 44px に */
+.swap { position: relative; }
+.swap::after { content: ""; position: absolute; inset: -7px; }
 /* 撮る画面の ＋1 も左右を入れかえる */
 /* たたんだ欄（プレビュー・GOAL のエフェクト） */
 /* プレビューの開閉は Q キット（ls-fold）。見出しの右に、エフェクトが ON かどうか */
@@ -66,6 +69,10 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .team-row.is-open, .team-row:has(input:focus) { border-color: var(--accent); }
 .team-row input { min-width: 0; padding: 10px 0; border: 0; border-radius: 0; background: transparent; color: var(--ink); -webkit-appearance: none; appearance: none; }
 .team-row input:focus { outline: none; }
+/* 320px ほどの幅：丸と右の余白を少しつめて、「チーム名」が切れないように */
+@media (max-width: 340px) {
+  .team-row { grid-template-columns: 28px minmax(0, 1fr); gap: 2px; padding-right: 4px; }
+}
 .color-dot { display: grid; place-items: center; min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer; -webkit-appearance: none; appearance: none; }
 .color-dot .swatch { width: 24px; height: 24px; }
 .color-dot.is-open .swatch { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--accent); } /* 開いている丸は緑のふち */
@@ -93,7 +100,8 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .score-step b { text-align: center; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .score-step button { height: 40px; border: 2px solid var(--border); border-radius: 10px; background: var(--card); color: var(--ink); font: inherit; font-size: 18px; font-weight: 800; cursor: pointer; }
 .score-step button:active { transform: scale(0.94); }
-.score-edit { margin-top: -4px; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.score-edit { margin-top: -14px; margin-bottom: -10px; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.score-edit .link { min-height: 44px; padding: 0 8px; } /* 押せるところは 44px（見た目の間は前と同じ） */
 .hint { font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
 .error { color: #c2410c; font-size: 13px; font-weight: 700; }
 .link { border: 0; background: none; color: var(--ink-soft); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; }

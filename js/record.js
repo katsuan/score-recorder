@@ -79,7 +79,7 @@ function startRecording() {
   }
   // カメラが使えていないとき（許可していない・ほかのアプリが使っている）は録画しない
   if (!cameraStream) {
-    notice("カメラが使えません", "🏠 から、もう一度「カメラを開く」を押して、カメラとマイクを許可してください。");
+    notice("カメラが使えません", "🏠 から、もう一度「カメラを開く」を押して、カメラとマイクを許可してね。");
     return;
   }
   if (!beginRecording(screen, cameraStream.getAudioTracks())) {
@@ -251,7 +251,7 @@ function renderClips() {
   const earlier = clips.length - now.length;
   $("shareAll").hidden = files.length < 2 || !navigator.canShare?.({ files });
   $("saveInfo").textContent = [
-    now.length > 1 ? `トークで送れるよう、5分ずつ ${now.length}本に分けました。` : now.length ? "" : "録れませんでした。もう一度お試しください。",
+    now.length > 1 ? `トークで送れるよう、5分ずつ ${now.length}本に分けました。` : now.length ? "" : "録れませんでした。もう一度撮ってみてね。",
     // 1本のままで5分をこえたら：LINE のトークでは送れないことがある（🏠 の「💾 保存の設定」で分けられる）
     now.length === 1 && now[0].to - now[0].from > 300 ? "5分をこえているので、LINE のトークでは送れないことがあります（はじめの画面の「💾 保存の設定」で5分ごとに分けられます）。" : "",
     earlier ? `前の動画（${earlier}本）も下にあります。` : ""

@@ -34,3 +34,16 @@ test("明るい地に決めたところは、暗い表示でも字が濃いま�
   const bad = rules.filter((r) => light.test(r.body) && /color:\s*var\(--ink(?:-soft)?\)/.test(r.body) && !/--ink:\s*#/.test(r.body));
   assert.deepStrictEqual(bad.map((r) => r.selector), []);
 });
+
+// 押せるところは 44px 以上（ux.md の C3）。⇄ は見た目 30px の丸なので、まわりに透明の押せるところを足す
+test("⇄ と「スコアを変える」は 44px 押せる", () => {
+  const after = rules.find((r) => r.selector === ".swap::after");
+  assert.ok(after && /inset:\s*-7px/.test(after.body), ".swap::after で 30px + 7px×2 = 44px");
+  const link = rules.find((r) => r.selector === ".score-edit .link");
+  assert.ok(link && /min-height:\s*44px/.test(link.body));
+});
+
+// 320px の幅で、チーム名の欄の「チーム名」が「チーム:」のように切れていた
+test("320px ほどの幅では、チーム名の欄の丸と余白をつめる", () => {
+  assert.match(css, /@media \(max-width: 340px\)\s*\{\s*\.team-row \{[^}]*grid-template-columns:\s*28px/);
+});

@@ -254,3 +254,17 @@ test("つなぎ目の柄は時計で動く：入ってきておおい、おお�
   run("wipe.from = performance.now() - 1000;");
   assert.equal(run("wipeProgress()"), null);
 });
+
+// 言葉の決まり（ux.md の G1）：画面の文は「〜してください」「お試しください」より「〜してね」
+test("画面の文に「〜してください」「お試しください」を使わない", () => {
+  const root = path.join(__dirname, "..");
+  const files = ["index.html", "app.js", ...fs.readdirSync(path.join(root, "js")).map((f) => `js/${f}`)];
+  const bad = [];
+  for (const f of files) {
+    fs.readFileSync(path.join(root, f), "utf8").split("\n").forEach((line, i) => {
+      const code = line.replace(/\/\/.*$/, "").replace(/<!--.*?-->/g, "");
+      if (/してください|お試しください/.test(code)) bad.push(`${f}:${i + 1}`);
+    });
+  }
+  assert.deepStrictEqual(bad, []);
+});

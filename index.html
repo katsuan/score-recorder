@@ -32,7 +32,7 @@
      送り先は config.js の gasWebAppUrl。電波がないときは送らずに使える（読めなくても止まらない） -->
 <script src="https://katsuan.github.io/line-share/config.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/log.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610251700">
+<link rel="stylesheet" href="style.css?v=202610251830">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -112,7 +112,7 @@
       </div>
     </div>
     <div class="split">
-      <span class="split-label">得点のエフェクト（＋1 のとき、チームの色の帯と文字）</span>
+      <span class="split-label">得点のエフェクト（＋1 で出る帯と文字）</span>
       <div class="seg" role="radiogroup" aria-label="得点のエフェクト">
         <button class="chip" type="button" role="radio" data-goal-fx="off">出さない</button>
         <button class="chip" type="button" role="radio" data-goal-fx="on">出す</button>
@@ -168,8 +168,8 @@
   <!-- 録った動画があるときだけ：保存の画面をもう一度開く（はじめの画面にもどっても、0 - 0 から撮りなおすまで残っている） -->
   <button id="openSaved" class="ls-button is-block" type="button" hidden></button>
   <p id="setupError" class="error" hidden></p>
-  <p class="hint" data-mode-only="shoot">動画はこの端末の中だけ。撮っているあいだは、ほかのアプリに切りかえないでください。</p>
-  <p class="hint" data-mode-only="later" hidden>動画はこの端末の中だけ。書き出すあいだは、ほかのアプリに切りかえないでください。</p>
+  <p class="hint" data-mode-only="shoot">動画はこの端末の中だけ。撮っているあいだは、ほかのアプリに切りかえないでね。</p>
+  <p class="hint" data-mode-only="later" hidden>動画はこの端末の中だけ。書き出すあいだは、ほかのアプリに切りかえないでね。</p>
   <!-- 「📤 ろくがを紹介する」と仲間のアイコン列：おくるんで紹介カードを送る窓口（line-share/shared/tool-share.js。中身は line-share/data/hub-links.json） -->
   <div data-tool-share></div>
 </main>
@@ -208,7 +208,7 @@
   </div>
   <!-- 縦の画面のとき：横向きにしてもらうか、画面の回転をオフにしたまま横に倒して撮る（倒す向きを選ぶ） -->
   <div id="rotate" class="rotate">
-    <p>スマホを横向きにしてください</p>
+    <p>スマホを横向きにしてね</p>
     <p class="rotate-sub">画面の回転をオフにしているときは、倒す向きを選ぶと、縦の画面のまま横向きで撮れます</p>
     <div class="turn-choices">
       <button class="turn-btn" type="button" data-turn="left"><span class="phone is-left" aria-hidden="true"></span>左に倒す</button>
@@ -294,7 +294,7 @@
   <p id="exportProg" class="export-prog"></p>
   <!-- 画面を離れないように（ブラウザは、ほかのアプリ・タブに切りかえると動画が止まり、書き出しも止まる） -->
   <p class="export-stay"><span class="stay-icon" aria-hidden="true">📵</span><b>終わるまで、この画面のままで</b><small>ほかのアプリ・タブに切りかえたり、画面を消したりすると止まることがあります</small></p>
-  <p id="exportAway" class="export-away" hidden>⚠️ さっき画面を離れたので、そのあいだの動画が止まっているかもしれません。おかしいときは、書き出しなおしてください。</p>
+  <p id="exportAway" class="export-away" hidden>⚠️ さっき画面を離れたので、そのあいだの動画が止まっているかもしれません。おかしいときは、書き出しなおしてね。</p>
   <!-- プチ情報：待っているあいだに、ろくがの使い方をひとこと（6秒ごとに入れかわる） -->
   <p id="exportTip" class="export-tip" aria-live="polite"></p>
   <button id="exportCancel" class="ls-button is-block" type="button">やめる</button>
@@ -344,15 +344,15 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイルをこの順に読み、最後に入口の app.js（全部読んでから、最初の表示） -->
-<script src="js/page.js?v=202610251700"></script>
-<script src="js/store.js?v=202610251700"></script>
-<script src="js/draw.js?v=202610251700"></script>
-<script src="js/setup.js?v=202610251700"></script>
-<script src="js/studio.js?v=202610251700"></script>
-<script src="js/record.js?v=202610251700"></script>
-<script src="js/editor.js?v=202610251700"></script>
-<script src="js/render.js?v=202610251700"></script>
-<script src="app.js?v=202610251700"></script>
+<script src="js/page.js?v=202610251830"></script>
+<script src="js/store.js?v=202610251830"></script>
+<script src="js/draw.js?v=202610251830"></script>
+<script src="js/setup.js?v=202610251830"></script>
+<script src="js/studio.js?v=202610251830"></script>
+<script src="js/record.js?v=202610251830"></script>
+<script src="js/editor.js?v=202610251830"></script>
+<script src="js/render.js?v=202610251830"></script>
+<script src="app.js?v=202610251830"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
