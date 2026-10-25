@@ -167,13 +167,16 @@ function paintEditFrame(t = editVideo.currentTime) {
   state.us = score.us;
   state.them = score.them;
   if (state.goalFx && t > editLastT && t - editLastT < 1) {
-    const passed = editEvents.find((ev) => ev.delta > 0 && ev.t > editLastT && ev.t <= t);
+    const passed = editEvents.find((ev) => ev.delta > 0 && !ev.mark && ev.t > editLastT && ev.t <= t);
     if (passed) goalFx = { side: passed.key, at: performance.now() };
   }
+  // ⭐ ナイスの時間を通ったら、⭐ ナイスのエフェクト
+  if (state.niceFx && t > editLastT && t - editLastT < 1 && editEvents.some((ev) => ev.mark && ev.t > editLastT && ev.t <= t)) niceFx = { at: performance.now() };
   editLastT = t;
   editCtx.drawImage(editVideo, 0, 0, vw, vh);
   drawScoreboard(vw, vh, editCtx); // 「得点板：出さない」のときは描かない（draw.js）
   drawGoalFx(vw, vh, editCtx);
+  drawNiceFx(vw, vh, editCtx);
   drawPieceTransition(vw, vh);
 }
 
@@ -452,6 +455,7 @@ function addEditEvent(key, delta, mark = false) {
   // ＋1 で GOAL の演出、−1 は点をへらすので消す（撮る画面・アプリと同じ。止めているときも出す）
   if (delta > 0 && !mark && state.goalFx) goalFx = { side: key, at: performance.now() };
   if (delta < 0) goalFx = null;
+  if (mark && state.niceFx) niceFx = { at: performance.now() }; // ⭐ ナイスのエフェクト
   editLastT = editVideo.currentTime; // 押したところを通ったと見なして、二重に出さない
   renderEditEvents();
   // 一覧へは自動で動かさない（続けて ＋1 を押せるように、ボタンを画面に残す）

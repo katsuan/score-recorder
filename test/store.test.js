@@ -92,3 +92,8 @@ test("結果の札：はじめは最初・ハイライトだけ。知らない�
   assert.deepEqual([state.resultCard, state.resultOnFull], ["start", false]);
   assert.equal(boot({ "roqga:state": JSON.stringify({ resultCard: "end", resultOnFull: true }) }).state.resultCard, "end");
 });
+
+test("⭐ ナイスのエフェクト：はじめは出す。出さないにしたら覚える", () => {
+  assert.equal(boot({}).state.niceFx, true);
+  assert.equal(boot({ "roqga:state": JSON.stringify({ niceFx: false }) }).state.niceFx, false);
+});

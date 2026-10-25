@@ -125,6 +125,7 @@ function drawFrame() {
   c.restore();
   drawScoreboard(w, h);
   drawGoalFx(w, h);
+  drawNiceFx(w, h);
   if (resultCard) drawResultCard(w, h, screenCtx, resultCard); // 止める前の 2 秒（結果の札を最後に入れるとき）
   requestAnimationFrame(drawFrame);
 }
@@ -209,6 +210,7 @@ $("markLive").addEventListener("click", () => {
     return;
   }
   liveGoals.push({ take, t: (Date.now() - startedAt) / 1000, key: null, mark: true });
+  if (state.niceFx) niceFx = { at: performance.now() }; // ⭐ ナイスのエフェクト（動画にも入る）
   navigator.vibrate?.(20);
   flash($("markLive"));
 });

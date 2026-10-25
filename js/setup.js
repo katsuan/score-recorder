@@ -210,6 +210,8 @@ document.querySelectorAll("[data-board]").forEach((b) =>
 const showGoalFxSetting = () => {
   document.querySelectorAll("[data-board]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.board === "on") === state.board)));
   document.querySelectorAll("[data-goal-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.goalFx === "on") === state.goalFx)));
+  document.querySelectorAll("[data-nice-fx]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.niceFx === "on") === state.niceFx)));
+  $("tryNice").disabled = !state.niceFx;
   // エフェクトを出さないときは、アイコン・文字の設定も出さない
   $("fxLabelRow").hidden = !state.goalFx;
   // たたんだ見出しに小さく：得点板を出さないときは「得点板なし」、GOAL のエフェクトを出すときは「ON」
@@ -301,6 +303,21 @@ const firstChars = (text, n) => {
   return Array.from(t).slice(0, n).join("");
 };
 // 試しに出す（点は入れない。演出の下の行は「（お試し）」）
+// ⭐ ナイスのエフェクト（出さない／出す／▶ 試す）
+document.querySelectorAll("[data-nice-fx]").forEach((b) =>
+  b.addEventListener("click", () => {
+    state.niceFx = b.dataset.niceFx === "on";
+    save();
+    showGoalFxSetting();
+    if (state.niceFx) tryNice();
+  })
+);
+// ⭐ ナイスのエフェクトを試しに出す（プレビュー。撮った動画にの画面では動画の上）
+const tryNice = () => {
+  niceFx = { at: performance.now() };
+  drawPreview();
+};
+$("tryNice").addEventListener("click", tryNice);
 const tryFx = () => {
   goalFx = { side: "us", at: performance.now(), trial: true };
   drawPreview();
@@ -377,9 +394,10 @@ function drawPreview() {
   drawPitch(c, w, h);
   drawScoreboard(w, h, c);
   drawGoalFx(w, h, c);
+  drawNiceFx(w, h, c);
   drawStudioMock(c, w, h);
   $("previewCaption").textContent = "撮っているときの画面（録画中）。＋1 の位置は、撮る画面の右上の ●●● で変えられます。";
-  if (goalFx && $("studio").hidden) previewLoop = requestAnimationFrame(drawPreview);
+  if ((goalFx || niceFx) && $("studio").hidden) previewLoop = requestAnimationFrame(drawPreview);
 }
 
 // 📹 撮る画面の見本：録画中の赤い枠・時間、右上の ●●●、＋1／−1・⭐ ナイス・録画ボタン（＋1 の位置の設定どおり。撮る画面の style.css と同じ並び）
@@ -497,6 +515,7 @@ function savedFlowSteps() {
   if (card === "start") steps.push({ key: "cardStart", ms: 1800, label: "結果の札（最初の 2 秒。LINE などのサムネになる）" });
   steps.push({ key: "match0", ms: 1200, label: state.board ? "試合（左上に得点板）" : "試合（得点板なし）" });
   steps.push({ key: "goal", ms: state.goalFx ? GOAL_FX_MS : 900, label: state.goalFx ? "＋1 のところで GOAL の演出" : "＋1（演出なし）" });
+  if (state.niceFx) steps.push({ key: "nice", ms: NICE_FX_MS, label: "⭐ ナイスのところで、上に小さく「⭐ ナイス！」" });
   if (transitionOf(state.transition).draw) steps.push({ key: "wipe", ms: TRANSITION_SEC * 1000, label: "つなぎ目の柄（ハイライトの場面と場面のあいだ）" });
   steps.push({ key: "match1", ms: 1200, label: "次の場面" });
   if (card === "end") steps.push({ key: "cardEnd", ms: 1800, label: "結果の札（最後の 2 秒）" });
@@ -523,6 +542,7 @@ function drawSavedFlow(c, w, h) {
       if (!goalFx || goalFx.flowStep !== flowStart + i) goalFx = { side: "us", at: performance.now() - p * GOAL_FX_MS, flowStep: flowStart + i };
       drawGoalFx(w, h, c);
     }
+    if (step.key === "nice") drawNiceFxAt(w, h, c, p);
     if (step.key === "wipe") drawTransition(w, h, c, p);
   }
   $("previewCaption").textContent = `⚡ ハイライトの見本：${step.label}`;

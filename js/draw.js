@@ -88,6 +88,68 @@ function resultCardPlace(kind) {
   return kind === "highlight" || state.resultOnFull ? state.resultCard : null;
 }
 
+// ---- ⭐ ナイスのエフェクト：⭐ ナイスを押したとき、上のまん中に小さく「⭐ ナイス！」の札がぽんと出て、まわりに小さな星が散る（1.4 秒。動画にも入る）。
+// GOAL より控えめ。「👀 プレビュー・得点板と演出」で出さないにもできる。アプリ版（NiceRenderer）と同じ絵・同じ動き ----
+const NICE_FX_MS = 1400;
+let niceFx = null; // { at: 時刻 }（出していなければ null）
+// ⭐ ナイスのエフェクトを、押してから NICE_FX_MS のあいだ描く。終わったら消す
+function drawNiceFx(w, h, c = screenCtx) {
+  if (!niceFx) return;
+  const p = (performance.now() - niceFx.at) / NICE_FX_MS;
+  if (p >= 1) {
+    niceFx = null;
+    return;
+  }
+  drawNiceFxAt(w, h, c, p);
+}
+// ⭐ ナイスのエフェクトの、進みぐあい p（0〜1）のときの絵を描く
+function drawNiceFxAt(w, h, c, p) {
+  const s = Math.min(w, h) / 720;
+  const alpha = p < 0.1 ? p / 0.1 : p > 0.75 ? (1 - p) / 0.25 : 1; // 出てくる・とどまる・消える
+  const pop = p < 0.15 ? 1.3 - (0.3 * p) / 0.15 : 1; // はじめに少し大きく出て、元の大きさに
+  const cx = w / 2;
+  const cy = h * 0.17;
+  const label = "⭐ ナイス！";
+  c.save();
+  c.globalAlpha = alpha;
+  c.font = `800 ${34 * s * pop}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
+  const pw = c.measureText(label).width + 44 * s * pop;
+  const ph = 64 * s * pop;
+  // 札：濃い地に金色のふち
+  c.beginPath();
+  if (c.roundRect) c.roundRect(cx - pw / 2, cy - ph / 2, pw, ph, ph / 2);
+  else c.rect(cx - pw / 2, cy - ph / 2, pw, ph);
+  c.fillStyle = "rgba(12, 22, 16, 0.8)";
+  c.fill();
+  c.lineWidth = 3 * s;
+  c.strokeStyle = "#ffd64a";
+  c.stroke();
+  c.fillStyle = "#ffe082";
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillText(label, cx, cy + 1 * s);
+  // まわりに散る小さな星（6つ。札のふちから外へ）
+  const ease = 1 - (1 - p) ** 3;
+  c.fillStyle = "#ffd64a";
+  for (let i = 0; i < 6; i += 1) {
+    const a = ((i * 60 + 30) * Math.PI) / 180;
+    const x = cx + Math.cos(a) * (pw / 2 + 50 * s * ease);
+    const y = cy + Math.sin(a) * (ph / 2 + 40 * s * ease);
+    const r = 9 * s * (1 - p * 0.5);
+    c.globalAlpha = alpha * (1 - p);
+    c.beginPath();
+    // 4つのとがりの星
+    for (let j = 0; j < 8; j += 1) {
+      const rr = j % 2 === 0 ? r : r * 0.35;
+      const aa = (j * Math.PI) / 4;
+      c.lineTo(x + Math.cos(aa) * rr, y + Math.sin(aa) * rr);
+    }
+    c.closePath();
+    c.fill();
+  }
+  c.restore();
+}
+
 // ---- GOAL のエフェクト：＋1 のとき、画面の真ん中に得点したチームの色の帯と「⚽ GOAL!」を2秒ほど（動画にも入る）。アイコン・文字は変えられる ----
 const GOAL_FX_MS = 2200;
 let goalFx = null; // { side: "us"|"them", at: 時刻 }

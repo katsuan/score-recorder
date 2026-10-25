@@ -64,6 +64,7 @@ const state = {
   // ＋1 のとき「GOAL!」のエフェクトを動画に入れるか。はじめは出す（ON）。
   // 前は「はじめは出さない」で OFF が覚えられているので、fxV（この決まりの版）が 2 でなければ、いちどだけ ON にする
   goalFx: saved.fxV === 2 ? saved.goalFx !== false : true,
+  niceFx: saved.niceFx !== false, // ⭐ ナイスのエフェクトを出すか（はじめは出す）
   fxV: 2,
   // ⚡ ハイライトのつなぎ目の柄（draw.js の TRANSITIONS の id）。はじめは RoQga
   transition: textOf(saved.transition, 40) ?? "roqga",
