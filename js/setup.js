@@ -541,7 +541,7 @@ function drawSavedFlow(c, w, h) {
     drawScoreboard(w, h, c, { score });
     if (step.key === "goal" && state.goalFx) {
       // GOAL の演出：この場面のはじめから出す（drawGoalFx は時刻で動くので、はじめた時刻を合わせる）
-      if (!goalFx || goalFx.flowStep !== flowStart + i) goalFx = { side: "us", at: performance.now() - p * GOAL_FX_MS, flowStep: flowStart + i };
+      if (!goalFx || goalFx.flowStep !== flowStart + i) goalFx = { side: "us", at: performance.now() - p * GOAL_FX_MS, flowStep: flowStart + i, score: after };
       drawGoalFx(w, h, c);
     }
     if (step.key === "nice") drawNiceFxAt(w, h, c, p);

@@ -153,7 +153,7 @@ function drawNiceFxAt(w, h, c, p) {
 
 // ---- GOAL のエフェクト：＋1 のとき、画面の真ん中に得点したチームの色の帯と「⚽ GOAL!」を2秒ほど（動画にも入る）。アイコン・文字は変えられる ----
 const GOAL_FX_MS = 2200;
-let goalFx = null; // { side: "us"|"them", at: 時刻 }
+let goalFx = null; // { side: "us"|"them", at: 時刻, score?: { us, them }（下の行に出すスコア。なければいまのスコア） }
 const NEUTRAL_FX_COLOR = "#1f6b38"; // 得点板を出さないときの帯（つなぎ目の柄と同じ芝の緑）
 
 
@@ -193,7 +193,8 @@ function drawGoalFx(w, h, c = screenCtx) {
   c.fillRect(0, y - 5 * s, w, 5 * s);
   c.fillRect(0, y + bandH, w, 5 * s);
   // GOAL! と、下にチーム名・新しいスコア（下の行がないとき＝得点板なしは、GOAL! を帯のまんなかに）
-  const [left, right] = inOrder(state.us, state.them);
+  // 下の行のスコア：見本などで決めた点があればそれ（goalFx.score）、なければいまのスコア
+  const [left, right] = goalFx.score ? inOrder(goalFx.score.us, goalFx.score.them) : inOrder(state.us, state.them);
   const sub = goalFx.trial ? "（お試し）" : team ? `${left} - ${right}` : "";
   c.translate(w / 2, h / 2 - (sub ? 18 * s : 0));
   c.scale(pop, pop);
