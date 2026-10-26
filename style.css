@@ -479,6 +479,8 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .mode-card .pt::before { display: inline-block; width: 1.3em; font-weight: 800; }
 .mode-card .pt.is-good::before { content: "✓"; color: #5cc27a; }
 .mode-card .pt.is-bad { opacity: 0.75; }
+/* 段の中の補足（2行目に小さく。✓・✕ の幅だけ下げる） */
+.mode-card .pt-note { display: block; padding-left: 1.3em; font-style: normal; font-size: 11px; opacity: 0.8; }
 .mode-card .pt.is-bad::before { content: "✕"; color: #ff8a80; }
 .mode-card em { font-style: normal; font-size: 12px; font-weight: 800; color: #ffd54a; }
 .mode-card em:empty { display: none; }

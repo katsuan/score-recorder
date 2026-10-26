@@ -617,7 +617,7 @@ $("editModeChip").addEventListener("click", () => {
 function showModeLength() {
   const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
   $("quickLen").textContent = d ? `約 ${clock(Math.ceil(d))} で完成` : "";
-  $("slowLen").textContent = d ? `入れる時間＋約 ${clock(Math.ceil(d))}` : "";
+  $("slowLen").textContent = d ? `記録時間＋約 ${clock(Math.ceil(d))}` : "";
 }
 ["loadedmetadata", "durationchange"].forEach((type) => editVideo.addEventListener(type, showModeLength));
 $("slowStart").addEventListener("click", () => {
