@@ -18,6 +18,8 @@ let audioCtx = null;
 let audioDest = null;
 let editRate = state.editRate; // 得点を入れるときの再生の速さ（端末に覚えておく。書き出しはいつも 1×）
 let exportRange = "all"; // 書き出す範囲：all（全部）／goals（⚡ ハイライト＝得点・⭐ の前後だけ）
+let modeChosen = true; // 新しく選んだ動画で、点の入れ方（見ながら記録／じっくり記録）を選んだか
+let quick = false; // 見ながら記録のあいだ
 
 $("pickVideo").addEventListener("click", () => $("videoFile").click());
 $("videoFile").addEventListener("change", (e) => {
@@ -45,6 +47,7 @@ async function openEditor(file) {
   showRate();
   editBase = { us: state.us, them: state.them };
   editLastT = 0;
+  modeChosen = false; // まず点の入れ方を選ぶ
   goalFx = null;
   renderEditScore();
   renderEditEvents();
@@ -62,6 +65,7 @@ function showEditor() {
   renderEditScore(); // チーム名・色は、はじめの画面で変えているかもしれない
   renderEditEvents();
   $("editFxBody").append($("fxControls")); // エフェクトの設定を、この画面の「🎉 得点のエフェクト」へ
+  showModePick();
   $("setup").hidden = true;
   $("editor").hidden = false;
   requestAnimationFrame(drawEditFrame);
@@ -271,7 +275,10 @@ editVideo.addEventListener("loadedmetadata", () => {
   );
   editVideo.currentTime = 1e101;
 });
-$("editPlay").addEventListener("click", () => (editVideo.paused ? editVideo.play().catch(() => {}) : editVideo.pause()));
+$("editPlay").addEventListener("click", () => {
+  if (quick) return toggleQuickPause(); // 見ながら記録：一時停止すると録画も止まる
+  editVideo.paused ? editVideo.play().catch(() => {}) : editVideo.pause();
+});
 // 速さ：0.5×〜4× を少しずつ（点の場面を探すとき速く、見きわめるとき遅く）
 const showRate = () => ($("editRateLabel").textContent = `${editRate}×`);
 $("editRate").addEventListener("input", (e) => {
@@ -319,6 +326,8 @@ document.addEventListener("keydown", (e) => {
   if (e.key === " " || e.code === "Space") {
     if (e.target.closest?.("button, summary")) return; // ボタンにフォーカスがあるときは、そのボタンを押す
     $("editPlay").click();
+  } else if (quick && /^Arrow/.test(e.key)) {
+    return; // 見ながら記録のあいだは、位置・速さを変えない
   } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
     jumpBy((e.key === "ArrowLeft" ? -1 : 1) * (e.shiftKey ? 2 : 10));
   } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
@@ -473,11 +482,8 @@ function addEditEvent(key, delta, mark = false) {
 }
 
 // 入れた得点の一覧：時間（押すとそこへ）・どちらのチーム・そのあとのスコア・✕（消す）
-// 動画の位置のバーの上の印：点（GOAL のアイコン。−1 で取り消した点は出さない）と ⭐ ナイス。押すとその少し前（3 秒前）へ
-function renderSeekMarks() {
-  const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
-  if (!d) return $("editMarks").replaceChildren();
-  // ＋1 を順に入れ、−1 はそのチームのいちばん新しい ＋1 を消す（ハイライトに入る場面と同じ）
+// 入れた点（−1 で取り消したものは除く）と ⭐ ナイス：[{ t, key, mark }]。＋1 を順に入れ、−1 はそのチームのいちばん新しい ＋1 を消す（ハイライトに入る場面と同じ）
+function effectiveMarks() {
   const goals = [];
   editEvents.forEach((ev) => {
     if (ev.mark) return;
@@ -487,7 +493,13 @@ function renderSeekMarks() {
       if (i >= 0) goals.splice(i, 1);
     }
   });
-  const marks = [...goals.map((g) => ({ t: g.t, icon: state.fxIcon || "⚽", name: "点" })), ...editEvents.filter((ev) => ev.mark).map((ev) => ({ t: ev.t, icon: "⭐", name: "ナイス" }))];
+  return [...goals.map((g) => ({ t: g.t, key: g.key, mark: false })), ...editEvents.filter((ev) => ev.mark).map((ev) => ({ t: ev.t, key: null, mark: true }))];
+}
+// 動画の位置のバーの上の印：点（GOAL のアイコン。−1 で取り消した点は出さない）と ⭐ ナイス。押すとその少し前（3 秒前）へ
+function renderSeekMarks() {
+  const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
+  if (!d) return $("editMarks").replaceChildren();
+  const marks = effectiveMarks().map((m) => ({ t: m.t, icon: m.mark ? "⭐" : state.fxIcon || "⚽", name: m.mark ? "ナイス" : "点" }));
   $("editMarks").replaceChildren(
     ...marks.map((m) => {
       const b = Object.assign(document.createElement("button"), { type: "button", className: "seek-mark", textContent: m.icon });
@@ -576,3 +588,122 @@ const seekTo = (t) =>
     editVideo.addEventListener("seeked", resolve, { once: true });
     editVideo.currentTime = t;
   });
+
+
+// ---- 点の入れ方を選ぶ：▶ 見ながら記録（1倍で1回流しながら、同時に書き出す）／✏️ じっくり記録（いまの形。あとで書き出す） ----
+// 新しく選んだ動画を開いたときだけ出す（「🎞 さっきの動画にもどる」では出さない）
+function showModePick() {
+  $("editor").classList.toggle("is-choosing", !modeChosen);
+  $("editModePick").hidden = modeChosen;
+  showModeLength();
+  showModeChip();
+}
+// 見出しのよこに、いまの記録のしかた。じっくり記録のときは押すと選びなおせる（点はそのまま）
+function showModeChip() {
+  const chip = $("editModeChip");
+  chip.hidden = !modeChosen;
+  chip.classList.toggle("is-quick", quick);
+  chip.textContent = quick ? "● 見ながら記録中" : "✏️ じっくり記録";
+  chip.disabled = quick;
+  chip.setAttribute("aria-label", quick ? "見ながら記録中" : "じっくり記録（押すと記録のしかたを選びなおす）");
+}
+$("editModeChip").addEventListener("click", () => {
+  if (quick) return;
+  editVideo.pause();
+  modeChosen = false;
+  showModePick();
+});
+// 長さの目安：見ながら記録は動画の長さで完成。じっくり記録は、点を入れる時間＋書き出しに動画の長さ
+function showModeLength() {
+  const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
+  $("quickLen").textContent = d ? `この動画は ${clock(Math.ceil(d))}。約 ${clock(Math.ceil(d))} で完成` : "";
+  $("slowLen").textContent = d ? `点を入れる時間＋書き出しに約 ${clock(Math.ceil(d))}` : "";
+}
+["loadedmetadata", "durationchange"].forEach((type) => editVideo.addEventListener(type, showModeLength));
+$("slowStart").addEventListener("click", () => {
+  modeChosen = true;
+  showModePick();
+});
+$("quickStart").addEventListener("click", () => {
+  modeChosen = true;
+  showModePick();
+  startQuick();
+});
+
+// 見ながら記録をはじめる：はじめから 1× で流し、得点板つきの絵と動画の音を、そのまま録る（撮った動画にの書き出しと同じ録り方）。
+// 点を入れると、その場で得点板・GOAL の演出が入る。一時停止すると録画も止まる。見終わる・「■ ここまでで保存」で保存の画面へ
+async function startQuick() {
+  if (!window.MediaRecorder || !editScreen.captureStream) return notice("この端末のブラウザでは書き出せません", "「✏️ じっくり記録」で点を入れて、ほかのブラウザで書き出してね。");
+  ensureAudio();
+  await audioCtx?.resume().catch(() => {});
+  editVideo.pause();
+  await seekTo(0);
+  editVideo.playbackRate = 1;
+  editLastT = 0;
+  goalFx = null;
+  exporting = true;
+  rendering = true;
+  renderOverlay = true;
+  exportMode = true; // 保存の画面は「閉じる」だけ（撮った動画にの画面にもどる）
+  frameSync = canSyncFrames();
+  // 5分ごとには分けない（一時停止で区切りがずれるため）。5分をこえたら、保存の画面の「LINE で送る用」で
+  if (!beginRecording(editScreen, audioDest ? audioDest.stream.getAudioTracks() : [], "edit", { manualFrames: frameSync, split: false, clock: () => editVideo.currentTime })) {
+    exporting = rendering = false;
+    return notice("書き出しを始められませんでした", "この端末のブラウザでは書き出せないようです。ほかのブラウザ（Safari・Chrome）で開いてね。");
+  }
+  if (frameSync) {
+    paintEditFrame();
+    pushFrame();
+    startFrameSync();
+  }
+  quick = true;
+  showModeChip();
+  $("editor").classList.add("is-quick");
+  $("quickBar").hidden = false;
+  $("editSeek").disabled = true;
+  await keepScreenOn();
+  requestAnimationFrame(drawEditFrame);
+  quickTick = setInterval(showQuickTime, 500);
+  showQuickTime();
+  await editVideo.play().catch(() => {});
+}
+let quickTick = 0;
+// 記録中の時間（動画の時間）と、一時停止しているか
+function showQuickTime() {
+  const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
+  $("quickTime").textContent = `${editVideo.paused ? "一時停止中 " : "記録中 "}${clock(Math.floor(editVideo.currentTime))} / ${clock(Math.ceil(d))}`;
+}
+// 一時停止・再開（録画も止める・つづける）
+function toggleQuickPause() {
+  if (editVideo.paused) {
+    if (recorder?.state === "paused") recorder.resume();
+    editVideo.play().catch(() => {});
+  } else {
+    editVideo.pause();
+    if (recorder?.state === "recording") recorder.pause();
+  }
+  showQuickTime();
+}
+// 見ながら記録を終える：結果の札（全部にも入れるとき、最後に）を録ってから止め、保存の画面へ。
+// 入れた点・⭐ は、保存の画面の「⚡ 得点ハイライトを作る」にも使う（撮りながらと同じ）
+async function finishQuick() {
+  if (!quick) return;
+  quick = false;
+  clearInterval(quickTick);
+  editVideo.pause();
+  if (recorder?.state === "paused") recorder.resume();
+  if (resultCardPlace("full")) await recordCard(scoreAt(Infinity)); // 撮りはじめには結果が分からないので、最初を選んでいても最後に
+  effectiveMarks().forEach((m) => liveGoals.push({ take, t: m.t, key: m.key, ...(m.mark ? { mark: true } : {}) }));
+  $("editor").classList.remove("is-quick");
+  showModeChip(); // 終わったあとは、じっくり記録として直したり書き出したりできる
+  $("quickBar").hidden = true;
+  $("editSeek").disabled = false;
+  editVideo.playbackRate = editRate;
+  finishExport(); // 録画を止める → 保存の画面
+}
+$("quickStop").addEventListener("click", finishQuick);
+editVideo.addEventListener("ended", () => quick && finishQuick());
+// 見ながら記録のあいだに画面を離れたら、一時停止する（ブラウザは画面を離れると動画が止まり、止まった絵のまま録ってしまうため）
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden" && quick && !editVideo.paused) toggleQuickPause();
+});

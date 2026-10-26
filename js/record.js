@@ -39,7 +39,8 @@ function startClip() {
   clipStartedAt = performance.now();
   const rec = new MediaRecorder(recordStream, { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: 6_000_000 });
   const parts = [];
-  const fromExact = (Date.now() - startedAt) / 1000; // 得点ハイライトで、得点の時間を動画の中の時間に直すのに使う
+  const now = () => (recClock ? recClock() : (Date.now() - startedAt) / 1000);
+  const fromExact = now(); // 得点ハイライトで、得点の時間を動画の中の時間に直すのに使う
   const from = Math.round(fromExact);
   const kind = recKind;
   const label = recLabel;
@@ -48,7 +49,7 @@ function startClip() {
     activeRecs.delete(rec);
     const type = rec.mimeType || parts[0]?.type || "video/webm";
     const blob = new Blob(parts, { type });
-    const toExact = (Date.now() - startedAt) / 1000;
+    const toExact = now();
     const to = Math.round(toExact);
     if (blob.size) clips.push({ blob, type, from, to, fromExact, toExact, kind, label, take, takeAt: startedAt, saved: false });
     // 録画を止めて、すべての1本が止まりきったら保存のシート（止まる順がずれても、録った順に並べる）
@@ -103,13 +104,16 @@ let recKind = "shot";
 // manualFrames：canvas を「描いたときだけ1コマ」録る（書き出しで、動画のコマごとに requestFrame する。editor.js の startFrameSync）
 // 始められたら true。この端末の MediaRecorder が断ったら（形式・canvas を録れないなど）何も変えずに false
 // split：5分ごとに分けるか（なければ「💾 保存の設定」のとおり）。label：動画の一覧に出す名前（✂️ 最初の5分 など）
+// clock：録った動画の中の時間（秒）を返す関数（なければ、録りはじめからの時計。見ながら記録は動画の時間：一時停止のあいだは進まない）
 let recSplit = false;
 let recLabel = "";
-function beginRecording(canvas, audioTracks, kind = "shot", { manualFrames = false, split = state.split, label = "" } = {}) {
+let recClock = null;
+function beginRecording(canvas, audioTracks, kind = "shot", { manualFrames = false, split = state.split, label = "", clock = null } = {}) {
   try {
     recKind = kind;
     recSplit = split;
     recLabel = label;
+    recClock = clock;
     clipNo = 0;
     recordStream = canvas.captureStream(manualFrames ? 0 : 30);
     audioTracks.forEach((t) => recordStream.addTrack(t));

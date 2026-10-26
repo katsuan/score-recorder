@@ -466,3 +466,32 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .key-hint kbd { display: inline-block; min-width: 1.6em; margin-right: 2px; padding: 0 4px; border: 1px solid rgba(255, 255, 255, 0.3); border-bottom-width: 2px; border-radius: 5px; background: rgba(255, 255, 255, 0.08); color: #fff; font: inherit; font-size: 11px; text-align: center; }
 /* キーで押したボタンも、押せたことが分かるように光らせる */
 .edit-side button.is-key, .mark-wide.is-key { animation: hit 0.45s ease-out; }
+
+/* ---- 撮った動画に：点の入れ方を選ぶ（見ながら記録／じっくり記録）と、見ながら記録のあいだ ---- */
+.edit-mode-pick { display: grid; gap: 10px; }
+.edit-mode-title { margin: 0; font-size: 15px; font-weight: 800; }
+.mode-card { display: grid; gap: 4px; padding: 14px 16px; border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 16px; background: rgba(255, 255, 255, 0.06); color: #fff; font: inherit; text-align: left; cursor: pointer; }
+.mode-card.is-primary { border-color: #5cc27a; background: rgba(92, 194, 122, 0.16); }
+.mode-card b { font-size: 16px; }
+.mode-card span { font-size: 12px; font-weight: 700; opacity: 0.8; line-height: 1.5; }
+.mode-card em { font-style: normal; font-size: 13px; font-weight: 800; color: #ffd54a; }
+.mode-card em:empty { display: none; }
+/* 選んでいるあいだは、ほかの操作を出さない */
+.editor.is-choosing .editor-side > :not(#editModePick), .editor.is-choosing #editTransport { display: none !important; }
+/* 見ながら記録のあいだ：速さ・10秒・位置を動かす・書き出しの欄は出さない（1倍で1回流しながら録るため） */
+.quick-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 2px solid #e5484d; border-radius: 14px; background: rgba(229, 72, 77, 0.12); }
+.quick-time { font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.quick-time::before { content: "● "; color: #e5484d; }
+.editor.is-quick .editor-controls2, .editor.is-quick .key-hint, .editor.is-quick #editFxFold,
+.editor.is-quick .export-mode-title, .editor.is-quick .export-modes, .editor.is-quick #exportModeHint, .editor.is-quick [data-hl-range],
+.editor.is-quick [data-transition-row], .editor.is-quick #editExport, .editor.is-quick .editor-hint { display: none !important; }
+.editor.is-quick .edit-seek { pointer-events: none; }
+.editor.is-quick .seek-mark, .editor.is-quick .edit-events li > button:first-child { pointer-events: none; opacity: 0.6; }
+.mode-points { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; font-size: 12px; font-weight: 700; line-height: 1.5; }
+.mode-points li::before { display: inline-block; width: 1.4em; font-weight: 800; }
+.mode-points .is-good::before { content: "✓"; color: #5cc27a; }
+.mode-points .is-bad { opacity: 0.75; }
+.mode-points .is-bad::before { content: "✕"; color: #ff8a80; }
+/* 見出しのよこの、いまの記録のしかた */
+.mode-chip { flex: 0 0 auto; margin-left: auto; padding: 3px 10px; border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 999px; background: none; color: #fff; font: inherit; font-size: 12px; font-weight: 800; white-space: nowrap; cursor: pointer; }
+.mode-chip.is-quick { border-color: #e5484d; background: rgba(229, 72, 77, 0.18); cursor: default; }

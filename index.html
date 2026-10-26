@@ -32,7 +32,7 @@
      送り先は config.js の gasWebAppUrl。電波がないときは送らずに使える（読めなくても止まらない） -->
 <script src="https://katsuan.github.io/line-share/config.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/log.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610261100">
+<link rel="stylesheet" href="style.css?v=202610261300">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -271,12 +271,44 @@
   <div class="editor-bar">
     <button id="editBack" class="small" type="button">← 戻る</button>
     <span class="editor-title">🎞 撮った動画に得点板をつける</span>
+    <!-- いまの記録のしかた（見ながら記録中／じっくり記録）。じっくり記録のときは押すと選びなおせる -->
+    <button id="editModeChip" class="mode-chip" type="button" hidden></button>
   </div>
   <!-- 動画：枠は動画の縦横比で大きさを決める（行がふえても縮まない。動画は枠の中にまるごと入れる） -->
   <div class="editor-stage"><canvas id="editScreen" class="edit-screen"></canvas></div>
   <video id="editVideo" class="src-video" playsinline preload="auto"></video>
   <!-- 操作：この欄の中だけ上下に動く（動画は動かない） -->
   <div class="editor-side">
+  <!-- 動画を選んだら、まず点の入れ方を2つから選ぶ（長さの目安つき。editor.js の showModePick）。
+       ▶ 見ながら記録：1倍で1回流しながら、同時に書き出す（見終わったら完成。一時停止はできる。速さ・戻しはなし）
+       ✏️ じっくり記録：速さ・10秒戻しで点を入れて、あとで書き出す（書き出しで、もう1回流す） -->
+  <div id="editModePick" class="edit-mode-pick" hidden>
+    <p class="edit-mode-title">どうやって点を入れる？</p>
+    <button id="quickStart" class="mode-card is-primary" type="button">
+      <b>▶ 見ながら記録（すぐできる）</b>
+      <ul class="mode-points">
+        <li class="is-good">見終わったら完成（流しながら同時に書き出す）</li>
+        <li class="is-good">一時停止はできる</li>
+        <li class="is-bad">速さを変える・戻すはできない（1倍で1回）</li>
+        <li class="is-bad">入れた点は、あとから時間を直せない</li>
+      </ul>
+      <em id="quickLen"></em>
+    </button>
+    <button id="slowStart" class="mode-card" type="button">
+      <b>✏️ じっくり記録</b>
+      <ul class="mode-points">
+        <li class="is-good">速さ（0.5〜4×）・10秒戻しで、点の場面を探せる</li>
+        <li class="is-good">入れた点を、一覧で直す・消すができる</li>
+        <li class="is-bad">書き出しで、もう1回1倍で流す（そのあいだ待つ）</li>
+      </ul>
+      <em id="slowLen"></em>
+    </button>
+  </div>
+  <!-- 見ながら記録のあいだ：記録中の時間と「■ ここまでで保存」。▶／⏸ は一時停止（録画も止まる） -->
+  <div id="quickBar" class="quick-bar" hidden>
+    <span id="quickTime" class="quick-time"></span>
+    <button id="quickStop" class="ls-button" type="button">■ ここまでで保存</button>
+  </div>
   <!-- 再生の操作（再生・位置・時間、10秒・速さ）。スマホでは操作の欄の中、PC では動画のすぐ下（editor.js の placeTransport） -->
   <div id="editTransport" class="editor-transport">
   <div class="editor-controls">
@@ -395,15 +427,15 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイルをこの順に読み、最後に入口の app.js（全部読んでから、最初の表示） -->
-<script src="js/page.js?v=202610261100"></script>
-<script src="js/store.js?v=202610261100"></script>
-<script src="js/draw.js?v=202610261100"></script>
-<script src="js/setup.js?v=202610261100"></script>
-<script src="js/studio.js?v=202610261100"></script>
-<script src="js/record.js?v=202610261100"></script>
-<script src="js/editor.js?v=202610261100"></script>
-<script src="js/render.js?v=202610261100"></script>
-<script src="app.js?v=202610261100"></script>
+<script src="js/page.js?v=202610261300"></script>
+<script src="js/store.js?v=202610261300"></script>
+<script src="js/draw.js?v=202610261300"></script>
+<script src="js/setup.js?v=202610261300"></script>
+<script src="js/studio.js?v=202610261300"></script>
+<script src="js/record.js?v=202610261300"></script>
+<script src="js/editor.js?v=202610261300"></script>
+<script src="js/render.js?v=202610261300"></script>
+<script src="app.js?v=202610261300"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

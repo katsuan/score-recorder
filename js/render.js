@@ -218,7 +218,8 @@ function highlightPieces() {
   const pieces = [];
   const takes = [...new Set(liveGoals.map((g) => g.take))].sort((a, b) => a - b);
   takes.forEach((t) => {
-    const own = clips.filter((c) => c.take === t && c.kind === "shot" && c.url).sort((a, b) => a.fromExact - b.fromExact);
+    // 撮った回と、見ながら記録で書き出した回（どちらも、録った時間が得点の時間とそろっている）
+    const own = clips.filter((c) => c.take === t && (c.kind === "shot" || c.kind === "edit") && c.url).sort((a, b) => a.fromExact - b.fromExact);
     if (!own.length) return;
     const end = own[own.length - 1].toExact;
     highlightSpans(liveGoals.filter((g) => g.take === t).map((g) => g.t), end).forEach(([a, b]) =>
