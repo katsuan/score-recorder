@@ -24,7 +24,7 @@ function highlightSpans(times, end) {
 // 変えたら、長さの目安・作るボタンも出しなおす
 function renderHighlightRange() {
   document.querySelectorAll("[data-hl-range]").forEach((box) => {
-    const title = Object.assign(document.createElement("span"), { className: "split-label", textContent: "⚡ ハイライトに入れる長さ（得点・⭐ を押した時間から）" });
+    const title = Object.assign(document.createElement("span"), { className: "split-label", textContent: "⚡ ハイライトに入れる長さ（押した時間の前後）" });
     // [−] 10秒前 [＋] の1組を作る
     const stepper = (key, word) => {
       const wrap = Object.assign(document.createElement("div"), { className: "hl-step" });
