@@ -16,7 +16,7 @@ let exporting = false;
 let exportMode = false; // 書き出しの録画が終わったら、保存の画面を「閉じるだけ」にする
 let audioCtx = null;
 let audioDest = null;
-let editRate = 1; // 得点を入れるときの再生の速さ（書き出しはいつも 1×）
+let editRate = state.editRate; // 得点を入れるときの再生の速さ（端末に覚えておく。書き出しはいつも 1×）
 let exportRange = "all"; // 書き出す範囲：all（全部）／goals（⚡ ハイライト＝得点・⭐ の前後だけ）
 
 $("pickVideo").addEventListener("click", () => $("videoFile").click());
@@ -39,9 +39,9 @@ async function openEditor(file) {
   editVideo.load();
   editEvents = [];
   exportRange = "all";
-  editRate = 1;
-  editVideo.playbackRate = 1;
-  $("editRate").value = "1";
+  // 見る速さは、前に選んだまま（load で 1× にもどるので、そのあとで入れる）
+  editVideo.playbackRate = editRate;
+  $("editRate").value = String(editRate);
   showRate();
   editBase = { us: state.us, them: state.them };
   editLastT = 0;
@@ -55,6 +55,10 @@ async function openEditor(file) {
 function showEditor() {
   // 撮る画面の ⚡ ハイライトを作ると、この動画の枠に録った動画を入れているので、さっきの動画にもどす
   if (editUrl && editVideo.src !== editUrl) editVideo.src = editUrl;
+  // 見る速さは、前に選んだまま（動画を入れかえると 1× にもどるため、開くたびに入れる）
+  editVideo.playbackRate = editRate;
+  $("editRate").value = String(editRate);
+  showRate();
   renderEditScore(); // チーム名・色は、はじめの画面で変えているかもしれない
   renderEditEvents();
   $("editFxBody").append($("fxControls")); // エフェクトの設定を、この画面の「🎉 得点のエフェクト」へ
@@ -273,6 +277,8 @@ const showRate = () => ($("editRateLabel").textContent = `${editRate}×`);
 $("editRate").addEventListener("input", (e) => {
   editRate = Number(e.target.value);
   editVideo.playbackRate = editRate;
+  state.editRate = editRate; // 次に開いたとき・別の動画にしたときも、この速さ
+  save();
   showRate();
 });
 // 10秒もどる・進む（速く流して得点を通りすぎたとき）。動かしただけでは GOAL を出さない

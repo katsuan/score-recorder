@@ -78,6 +78,8 @@ const state = {
   hlBefore: hlSecondsOf(saved.hlBefore, 10),
   hlAfter: hlSecondsOf(saved.hlAfter, 6),
   split: saved.split === true,
+  // 撮った動画にで、点を入れながら見る速さ（0.5〜4 の 0.25 きざみ。はじめは 1）。別の動画にしても・開きなおしても同じ速さ（書き出しはいつも 1×）
+  editRate: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4].includes(saved.editRate) ? saved.editRate : 1,
   // 結果の札：どこに入れるか（none・start・end。はじめは start＝LINE などのサムネに結果）と、試合全部にも入れるか（はじめはハイライトだけ）
   resultCard: ["none", "start", "end"].includes(saved.resultCard) ? saved.resultCard : "start",
   resultOnFull: saved.resultOnFull === true, // 5分をこえる動画を5分ごとに分けるか（LINE のトークで送るとき）。はじめは1本のまま

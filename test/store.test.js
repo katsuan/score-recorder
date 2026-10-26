@@ -97,3 +97,10 @@ test("⭐ ナイスのエフェクト：はじめは出す。出さないにし�
   assert.equal(boot({}).state.niceFx, true);
   assert.equal(boot({ "roqga:state": JSON.stringify({ niceFx: false }) }).state.niceFx, false);
 });
+
+test("撮った動画にの見る速さ：はじめは 1。覚えた速さ（0.5〜4 の 0.25 きざみ）はそのまま、ほかの値は 1", () => {
+  assert.equal(boot({}).state.editRate, 1);
+  assert.equal(boot({ "roqga:state": JSON.stringify({ editRate: 2.5 }) }).state.editRate, 2.5);
+  assert.equal(boot({ "roqga:state": JSON.stringify({ editRate: 9 }) }).state.editRate, 1);
+  assert.equal(boot({ "roqga:state": JSON.stringify({ editRate: "2" }) }).state.editRate, 1);
+});
