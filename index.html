@@ -32,7 +32,7 @@
      送り先は config.js の gasWebAppUrl。電波がないときは送らずに使える（読めなくても止まらない） -->
 <script src="https://katsuan.github.io/line-share/config.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/log.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610261000">
+<link rel="stylesheet" href="style.css?v=202610261100">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -281,7 +281,11 @@
   <div id="editTransport" class="editor-transport">
   <div class="editor-controls">
     <button id="editPlay" class="play-btn" type="button" aria-label="再生">▶</button>
-    <input id="editSeek" class="edit-seek" type="range" min="0" max="1000" value="0" aria-label="動画の位置">
+    <!-- 動画の位置のバー。すぐ上に、点（GOAL のアイコン）と ⭐ ナイスの場面を小さく。押すとその少し前へ（editor.js の renderSeekMarks） -->
+    <div class="seek-wrap">
+      <div id="editMarks" class="seek-marks" aria-label="点とナイスの場面"></div>
+      <input id="editSeek" class="edit-seek" type="range" min="0" max="1000" value="0" aria-label="動画の位置">
+    </div>
     <span id="editTime" class="edit-time">0:00 / 0:00</span>
   </div>
   <!-- 10秒もどる・進む（速く流して得点を通りすぎたとき）と、速さ（0.5×〜4× を少しずつ。書き出しはいつも 1×） -->
@@ -391,15 +395,15 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイルをこの順に読み、最後に入口の app.js（全部読んでから、最初の表示） -->
-<script src="js/page.js?v=202610261000"></script>
-<script src="js/store.js?v=202610261000"></script>
-<script src="js/draw.js?v=202610261000"></script>
-<script src="js/setup.js?v=202610261000"></script>
-<script src="js/studio.js?v=202610261000"></script>
-<script src="js/record.js?v=202610261000"></script>
-<script src="js/editor.js?v=202610261000"></script>
-<script src="js/render.js?v=202610261000"></script>
-<script src="app.js?v=202610261000"></script>
+<script src="js/page.js?v=202610261100"></script>
+<script src="js/store.js?v=202610261100"></script>
+<script src="js/draw.js?v=202610261100"></script>
+<script src="js/setup.js?v=202610261100"></script>
+<script src="js/studio.js?v=202610261100"></script>
+<script src="js/record.js?v=202610261100"></script>
+<script src="js/editor.js?v=202610261100"></script>
+<script src="js/render.js?v=202610261100"></script>
+<script src="app.js?v=202610261100"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

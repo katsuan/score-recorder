@@ -473,8 +473,39 @@ function addEditEvent(key, delta, mark = false) {
 }
 
 // 入れた得点の一覧：時間（押すとそこへ）・どちらのチーム・そのあとのスコア・✕（消す）
+// 動画の位置のバーの上の印：点（GOAL のアイコン。−1 で取り消した点は出さない）と ⭐ ナイス。押すとその少し前（3 秒前）へ
+function renderSeekMarks() {
+  const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
+  if (!d) return $("editMarks").replaceChildren();
+  // ＋1 を順に入れ、−1 はそのチームのいちばん新しい ＋1 を消す（ハイライトに入る場面と同じ）
+  const goals = [];
+  editEvents.forEach((ev) => {
+    if (ev.mark) return;
+    if (ev.delta > 0) goals.push(ev);
+    else {
+      const i = goals.map((g) => g.key).lastIndexOf(ev.key);
+      if (i >= 0) goals.splice(i, 1);
+    }
+  });
+  const marks = [...goals.map((g) => ({ t: g.t, icon: state.fxIcon || "⚽", name: "点" })), ...editEvents.filter((ev) => ev.mark).map((ev) => ({ t: ev.t, icon: "⭐", name: "ナイス" }))];
+  $("editMarks").replaceChildren(
+    ...marks.map((m) => {
+      const b = Object.assign(document.createElement("button"), { type: "button", className: "seek-mark", textContent: m.icon });
+      b.style.setProperty("--p", String(Math.min(1, Math.max(0, m.t / d))));
+      b.setAttribute("aria-label", `${clock(Math.floor(m.t))} の${m.name}へ`);
+      b.addEventListener("click", () => {
+        editVideo.currentTime = Math.max(0, m.t - 3); // 少し前から見られるように
+        editLastT = editVideo.currentTime;
+      });
+      return b;
+    })
+  );
+}
+["loadedmetadata", "durationchange"].forEach((type) => editVideo.addEventListener(type, renderSeekMarks));
+
 function renderEditEvents() {
   showExportRange();
+  renderSeekMarks();
   const afters = scoresAfterEvents();
   $("editEvents").replaceChildren(
     ...editEvents.map((ev, index) => {

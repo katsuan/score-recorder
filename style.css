@@ -265,6 +265,11 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .src-video { position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; } /* 絵は canvas に描くので、元の動画は見せない。opacity 0 だと、重い動画でブラウザがコマを出さなくなり、コマごとの合図（requestVideoFrameCallback）も来ないので 0.01 */
 .editor-controls { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
 .play-btn { width: 44px; height: 44px; border: 0; border-radius: 50%; background: #fff; color: #1a1a1a; font-size: 18px; cursor: pointer; }
+/* 動画の位置のバーと、その上の点・⭐ の印（小さな絵文字。バーのつまみの幅 16px の内側に並べる） */
+.seek-wrap { position: relative; min-width: 0; padding-top: 16px; }
+.seek-marks { position: absolute; left: 0; right: 0; top: 0; height: 16px; }
+.seek-mark { position: absolute; top: 0; left: calc(8px + (100% - 16px) * var(--p)); transform: translateX(-50%); width: 20px; height: 18px; padding: 0; border: 0; background: none; font-size: 13px; line-height: 16px; cursor: pointer; }
+.seek-mark:focus-visible { outline: 2px solid #fff; border-radius: 4px; }
 .edit-seek { width: 100%; accent-color: #5cc27a; }
 .edit-time { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .edit-score { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

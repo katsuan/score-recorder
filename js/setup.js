@@ -285,6 +285,7 @@ const showFxLabel = () => {
   $("fxIconNow").classList.toggle("is-empty", !state.fxIcon);
   $("fxIconBtn").setAttribute("aria-label", `アイコンを選ぶ（いま：${state.fxIcon || "なし"}）`);
   showEditFxMeta();
+  if (!$("editor").hidden) renderSeekMarks(); // 撮った動画にの位置のバーの印も、いまのアイコンに
 };
 // アイコンを押したとき・文字を入れているあいだは、下に選べるアイコンを出す（Q キットの pickField。ui.js は defer なので読みこみ終わってから）
 let fxPick = null;
