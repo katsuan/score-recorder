@@ -619,7 +619,7 @@ function showModeLength() {
   $("quickLen").textContent = d ? `約 ${clock(Math.ceil(d))} で完成` : "";
   $("slowLen").textContent = d ? `記録時間＋約 ${clock(Math.ceil(d))}` : "";
   // ハイライトは別に書き出す（流した時間だけかかる）：1シーン（得点・⭐ ナイス）あたり、ハイライトに入れる長さ（何秒前＋何秒後）
-  document.querySelectorAll("[data-hl-each]").forEach((el) => (el.textContent = d ? `${el.dataset.hlPre}1シーン約${state.hlBefore + state.hlAfter}秒` : ""));
+  document.querySelectorAll("[data-hl-each]").forEach((el) => (el.textContent = d ? `${el.dataset.hlPre}\n＋1シーン約${state.hlBefore + state.hlAfter}秒` : ""));
 }
 ["loadedmetadata", "durationchange"].forEach((type) => editVideo.addEventListener(type, showModeLength));
 $("slowStart").addEventListener("click", () => {

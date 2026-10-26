@@ -484,7 +484,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .mode-card .pt-note { display: block; padding-left: 1.3em; font-style: normal; font-size: 11px; opacity: 0.8; }
 .mode-card .pt.is-bad::before { content: "✕"; color: #ff8a80; }
 .mode-card em { font-style: normal; font-size: 12px; font-weight: 800; color: #ffd54a; }
-.mode-card em .pt-note { padding-left: 0; color: #fff; font-weight: 700; }
+.mode-card em .pt-note { padding-left: 0; color: #fff; font-weight: 700; white-space: pre-line; } /* 「ハイライトを作るなら」で行を分ける */
 /* 選んでいるあいだは、ほかの操作を出さない */
 .editor.is-choosing .editor-side > :not(#editModePick), .editor.is-choosing #editTransport { display: none !important; }
 /* 見ながら記録のあいだ：速さ・10秒・位置を動かす・書き出しの欄は出さない（1倍で1回流しながら録るため） */
