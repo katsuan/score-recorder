@@ -616,8 +616,8 @@ $("editModeChip").addEventListener("click", () => {
 // 長さの目安：見ながら記録は動画の長さで完成。じっくり記録は、点を入れる時間＋書き出しに動画の長さ
 function showModeLength() {
   const d = Number.isFinite(editVideo.duration) ? editVideo.duration : 0;
-  $("quickLen").textContent = d ? `この動画は ${clock(Math.ceil(d))}。約 ${clock(Math.ceil(d))} で完成` : "";
-  $("slowLen").textContent = d ? `点を入れる時間＋書き出しに約 ${clock(Math.ceil(d))}` : "";
+  $("quickLen").textContent = d ? `約 ${clock(Math.ceil(d))} で完成` : "";
+  $("slowLen").textContent = d ? `入れる時間＋約 ${clock(Math.ceil(d))}` : "";
 }
 ["loadedmetadata", "durationchange"].forEach((type) => editVideo.addEventListener(type, showModeLength));
 $("slowStart").addEventListener("click", () => {
