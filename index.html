@@ -32,7 +32,7 @@
      送り先は config.js の gasWebAppUrl。電波がないときは送らずに使える（読めなくても止まらない） -->
 <script src="https://katsuan.github.io/line-share/config.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/log.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610261400">
+<link rel="stylesheet" href="style.css?v=202610261430">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -284,22 +284,26 @@
        ✏️ じっくり記録：速さ・10秒戻しで点を入れて、あとで書き出す（書き出しで、もう1回流す） -->
   <div id="editModePick" class="edit-mode-pick" hidden>
     <p class="edit-mode-title">どうやって点を入れる？</p>
-    <!-- 左右に並べて、同じ段に同じことがら（完成のしかた → かかる時間 → 再生の操作 → あとで直す）を置き、横に見くらべられるように -->
+    <!-- 左右に並べて、同じ段に同じことがら（完成 → 時間 → 一時停止 → 再生の速さ → 時間を戻す → あとで直す）を置き、横に見くらべられるように -->
     <button id="quickStart" class="mode-card is-primary" type="button">
       <b>▶ 見ながら記録</b>
       <small>すぐできる</small>
       <span class="pt is-good">見終わったら完成</span>
       <em id="quickLen"></em>
-      <span class="pt is-mid">一時停止だけ（1倍）</span>
-      <span class="pt is-bad">あとで時間は直せない</span>
+      <span class="pt is-good">一時停止できる</span>
+      <span class="pt is-bad">速さは 1倍だけ</span>
+      <span class="pt is-bad">戻せない</span>
+      <span class="pt is-bad">あとで直せない</span>
     </button>
     <button id="slowStart" class="mode-card" type="button">
       <b>✏️ じっくり記録</b>
       <small>あとで書き出す</small>
-      <span class="pt is-bad">書き出しでもう1回流す</span>
+      <span class="pt is-bad">もう1回流して完成</span>
       <em id="slowLen"></em>
-      <span class="pt is-good">速さ・戻しも使える</span>
-      <span class="pt is-good">一覧で直す・消す</span>
+      <span class="pt is-good">一時停止できる</span>
+      <span class="pt is-good">速さ 0.5〜4倍</span>
+      <span class="pt is-good">10秒戻せる</span>
+      <span class="pt is-good">あとで直せる（一覧）</span>
     </button>
   </div>
   <!-- 見ながら記録のあいだ：記録中の時間と「■ ここまでで保存」。▶／⏸ は一時停止（録画も止まる） -->
@@ -425,15 +429,15 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイルをこの順に読み、最後に入口の app.js（全部読んでから、最初の表示） -->
-<script src="js/page.js?v=202610261400"></script>
-<script src="js/store.js?v=202610261400"></script>
-<script src="js/draw.js?v=202610261400"></script>
-<script src="js/setup.js?v=202610261400"></script>
-<script src="js/studio.js?v=202610261400"></script>
-<script src="js/record.js?v=202610261400"></script>
-<script src="js/editor.js?v=202610261400"></script>
-<script src="js/render.js?v=202610261400"></script>
-<script src="app.js?v=202610261400"></script>
+<script src="js/page.js?v=202610261430"></script>
+<script src="js/store.js?v=202610261430"></script>
+<script src="js/draw.js?v=202610261430"></script>
+<script src="js/setup.js?v=202610261430"></script>
+<script src="js/studio.js?v=202610261430"></script>
+<script src="js/record.js?v=202610261430"></script>
+<script src="js/editor.js?v=202610261430"></script>
+<script src="js/render.js?v=202610261430"></script>
+<script src="app.js?v=202610261430"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>
