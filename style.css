@@ -471,7 +471,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .edit-mode-pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 8px; }
 .edit-mode-title { grid-column: 1 / -1; margin: 0; font-size: 15px; font-weight: 800; }
 /* 2枚のカードの段をそろえる（subgrid。使えないブラウザでは、それぞれの中で上から並ぶ） */
-.mode-card { display: grid; grid-row: span 7; grid-template-rows: subgrid; align-content: start; gap: 4px; padding: 12px 10px; border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 16px; background: rgba(255, 255, 255, 0.06); color: #fff; font: inherit; text-align: left; cursor: pointer; }
+.mode-card { display: grid; grid-row: span 6; grid-template-rows: subgrid; align-content: start; gap: 4px; padding: 12px 10px; border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 16px; background: rgba(255, 255, 255, 0.06); color: #fff; font: inherit; text-align: left; cursor: pointer; }
 .mode-card.is-primary { border-color: #5cc27a; background: rgba(92, 194, 122, 0.16); }
 .mode-card b { font-size: 15px; }
 .mode-card small { font-size: 12px; font-weight: 800; opacity: 0.75; }
@@ -480,6 +480,7 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .mode-card .pt.is-good::before { content: "✓"; color: #5cc27a; }
 .mode-card .pt.is-bad { opacity: 0.75; }
 .mode-card .pt.is-bad::before { content: "✕"; color: #ff8a80; }
+.mode-card .pt.is-mid::before { content: "△"; color: #ffd54a; }
 .mode-card em { font-style: normal; font-size: 12px; font-weight: 800; color: #ffd54a; }
 .mode-card em:empty { display: none; }
 /* 選んでいるあいだは、ほかの操作を出さない */
