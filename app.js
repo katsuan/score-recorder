@@ -17,6 +17,9 @@ drawPreview();
 document.fonts?.ready.then(drawPreview);
 // はじめて開いた人にだけ、使い方を3つ（Q キットの firstTip。「わかった」で消え、この端末では次から出さない）。
 // ui.js は defer なので、読みこみ終わってから
+// くみあわせの「ろくがで撮る」（?match=）から来たときは、その2チームを入れる（Q キットを読みおえてから。いまのチーム名がちがえば確かめる）
+const pendingMatch = typeof takeMatchParam === "function" ? takeMatchParam() : null;
+document.addEventListener("DOMContentLoaded", () => pendingMatch && window.LineShareUI && takeMatch(pendingMatch));
 document.addEventListener("DOMContentLoaded", () =>
   window.LineShareUI?.firstTip(
     "roqga",

@@ -99,3 +99,68 @@ const shareTeams = () => {
 
 // 左右の並び（⇄ で入れかえたときは them が左）。us・them の順にわたすと、[左, 右] で返す
 const inOrder = (us, them) => (state.swapped ? [them, us] : [us, them]);
+
+// ---- くみあわせ（トーナメント・総当たり）の「ろくがで撮る」（?match=）：2チームの名前と色を受けとる ----
+
+// ?match= の中身（{ t, o, c, oc }。base64url の JSON）を読む。{ teamUs, teamThem, colorUs, colorThem } を返す。読めない・チーム名がないときは null
+function readMatchLink(text) {
+  if (typeof text !== "string" || !text || text.length > 4000) return null;
+  let d = null;
+  try {
+    const binary = atob(text.replace(/-/g, "+").replace(/_/g, "/"));
+    d = JSON.parse(new TextDecoder().decode(Uint8Array.from(binary, (c) => c.charCodeAt(0))));
+  } catch {
+    return null;
+  }
+  if (!isObj(d)) return null;
+  const teamUs = textOf(d.t, NAME_MAX) ?? "";
+  const teamThem = textOf(d.o, NAME_MAX) ?? "";
+  if (!teamUs.trim() && !teamThem.trim()) return null;
+  const hex = (v) => (/^#[0-9a-f]{6}$/i.test(String(v || "")) ? String(v).toLowerCase() : "");
+  return { teamUs, teamThem, colorUs: hex(d.c), colorThem: hex(d.oc) };
+}
+
+// 開いた URL の ?match= を読んで、URL からは消す。なければ null
+function takeMatchParam() {
+  const q = new URLSearchParams(location.search);
+  if (!q.has("match")) return null;
+  const m = readMatchLink(q.get("match"));
+  q.delete("match");
+  history.replaceState(null, "", location.pathname + (q.toString() ? `?${q}` : ""));
+  return m;
+}
+
+/**
+ * くみあわせから受けとった2チームを入れる（左＝ホーム・右＝アウェイ）。ちがうチームなら点は 0 - 0 に。
+ * いまのチーム名がちがうときは確かめてから。入れたら「元に戻す」つきで知らせる。チーム名・色はさくせん盤にも
+ */
+async function takeMatch(m) {
+  const same = state.teamUs === m.teamUs && state.teamThem === m.teamThem;
+  if (!same && (state.teamUs || state.teamThem)) {
+    const ok = await LineShareUI.ask({ title: "くみあわせの試合を入れますか？", text: `${m.teamUs || "左のチーム"} 対 ${m.teamThem || "右のチーム"}。いまのチーム名・色・点は置きかわります。`, ok: "入れる" });
+    if (!ok) return;
+  }
+  const before = { teamUs: state.teamUs, teamThem: state.teamThem, colorUs: state.colorUs, colorThem: state.colorThem, us: state.us, them: state.them, swapped: state.swapped };
+  // 入れたあと・元に戻したあとに、はじめの画面と、さくせん盤との分けあいをそろえる
+  const show = () => {
+    save();
+    shareTeams();
+    $("teamUs").value = state.teamUs;
+    $("teamThem").value = state.teamThem;
+    renderColorChips();
+    showSides();
+    drawPreview();
+  };
+  Object.assign(state, { teamUs: m.teamUs, teamThem: m.teamThem, swapped: false });
+  if (m.colorUs) state.colorUs = m.colorUs;
+  if (m.colorThem) state.colorThem = m.colorThem;
+  if (!same) Object.assign(state, { us: 0, them: 0 });
+  show();
+  LineShareUI.toast("くみあわせの試合を入れました", {
+    actionLabel: "元に戻す",
+    onAction: () => {
+      Object.assign(state, before);
+      show();
+    }
+  });
+}

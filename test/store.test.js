@@ -15,9 +15,9 @@ function boot(store) {
     getItem: (k) => (k in mem ? mem[k] : null),
     setItem: (k, v) => (mem[k] = String(v))
   };
-  const ctx = vm.createContext({ localStorage, document: {} });
+  const ctx = vm.createContext({ localStorage, document: {}, atob, TextDecoder });
   vm.runInContext(code, ctx);
-  return { state: vm.runInContext("state", ctx), shareTeams: vm.runInContext("shareTeams", ctx), mem };
+  return { state: vm.runInContext("state", ctx), shareTeams: vm.runInContext("shareTeams", ctx), mem, ctx };
 }
 
 test("なにも残っていなければ初めの値", () => {
@@ -103,4 +103,12 @@ test("撮った動画にの見る速さ：はじめは 1。覚えた速さ（0.5
   assert.equal(boot({ "roqga:state": JSON.stringify({ editRate: 2.5 }) }).state.editRate, 2.5);
   assert.equal(boot({ "roqga:state": JSON.stringify({ editRate: 9 }) }).state.editRate, 1);
   assert.equal(boot({ "roqga:state": JSON.stringify({ editRate: "2" }) }).state.editRate, 1);
+});
+
+const b64 = (v) => Buffer.from(JSON.stringify(v), "utf8").toString("base64url");
+test("くみあわせの「ろくがで撮る」（?match=）：2チームの名前と色を読む。形がちがえば null", () => {
+  const { ctx } = boot({});
+  const read = vm.runInContext("readMatchLink", ctx);
+  assert.deepEqual(JSON.parse(JSON.stringify(read(b64({ t: "FC 青", o: XSS, c: "#1E63D6", oc: "red" })))), { teamUs: "FC 青", teamThem: XSS.slice(0, 20), colorUs: "#1e63d6", colorThem: "" });
+  for (const bad of ["%%%", b64([1]), b64({ t: "", o: "" }), b64({ t: 5 }), ""]) assert.equal(read(bad), null, bad);
 });
