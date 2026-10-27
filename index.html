@@ -32,7 +32,7 @@
      送り先は config.js の gasWebAppUrl。電波がないときは送らずに使える（読めなくても止まらない） -->
 <script src="https://katsuan.github.io/line-share/config.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/log.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610262100">
+<link rel="stylesheet" href="style.css?v=202610271258">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -192,14 +192,14 @@
     </div>
   </details>
   <!-- LINE の中で開いているとき：保存は Safari・Chrome のほうが確か（LINE の中では、保存するとページが開きなおされ、録った動画が消えることがある） -->
-  <p id="lineHint" class="guide" hidden>LINE の中で開いています。保存すると録った動画が消えることがあるので、<a id="openOutside" href="#">Safari・Chrome で開く</a>のがおすすめです。</p>
+  <p id="lineHint" class="guide" hidden>LINE 版では、保存すると録った動画が消えることがあるので、<a id="openOutside" href="#">Safari・Chrome で開く</a>のがおすすめです。</p>
   <button id="openCamera" class="ls-button is-primary is-block" type="button" data-mode-only="shoot">📹 カメラを開く</button>
   <!-- 撮った動画に（得点板をつける）：端末の動画を選ぶ（動画はこの端末の中だけで使う） -->
   <button id="pickVideo" class="ls-button is-primary is-block" type="button" data-mode-only="later" hidden>🎞 動画を選ぶ</button>
   <!-- 撮った動画にの画面から「← 戻る」でもどっても、選んだ動画と入れた点は残す。ここから続きにもどれる（editor.js の showResume） -->
   <button id="resumeEdit" class="ls-button is-block" type="button" hidden>🎞 さっきの動画にもどる</button>
   <input id="videoFile" type="file" accept="video/*" hidden>
-  <!-- 録った動画があるときだけ：保存の画面をもう一度開く（はじめの画面にもどっても、0 - 0 から撮りなおすまで残っている） -->
+  <!-- 録った動画があるときだけ：保存の画面をもう一度開く（はじめの画面にもどっても、0 - 0 から撮っても残っている。消すのは動画の行の 🗑） -->
   <button id="openSaved" class="ls-button is-block" type="button" hidden></button>
   <p id="setupError" class="error" hidden></p>
   <p class="hint" data-mode-only="shoot">動画はこの端末の中だけ。撮っているあいだは、ほかのアプリに切りかえないでね。</p>
@@ -429,15 +429,15 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイルをこの順に読み、最後に入口の app.js（全部読んでから、最初の表示） -->
-<script src="js/page.js?v=202610262100"></script>
-<script src="js/store.js?v=202610262100"></script>
-<script src="js/draw.js?v=202610262100"></script>
-<script src="js/setup.js?v=202610262100"></script>
-<script src="js/studio.js?v=202610262100"></script>
-<script src="js/record.js?v=202610262100"></script>
-<script src="js/editor.js?v=202610262100"></script>
-<script src="js/render.js?v=202610262100"></script>
-<script src="app.js?v=202610262100"></script>
+<script src="js/page.js?v=202610271258"></script>
+<script src="js/store.js?v=202610271258"></script>
+<script src="js/draw.js?v=202610271258"></script>
+<script src="js/setup.js?v=202610271258"></script>
+<script src="js/studio.js?v=202610271258"></script>
+<script src="js/record.js?v=202610271258"></script>
+<script src="js/editor.js?v=202610271258"></script>
+<script src="js/render.js?v=202610271258"></script>
+<script src="app.js?v=202610271258"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

@@ -232,8 +232,8 @@ function showSaveGuide() {
   // LINE の中では、1本保存するとページが開きなおされ、残りが消えることがある
   if (inLine && clips.length > 1)
     $("saveGuide").textContent += canShare
-      ? "LINE の中では1本ずつ保存すると残りが消えることがあるので、「まとめて保存・共有」で。"
-      : "LINE の中では1本保存すると残りが消えることがあります。Safari・Chrome で撮るのがおすすめです。";
+      ? "LINE 版では1本ずつ保存すると残りが消えることがあるので、「📤 まとめて保存・共有」で。"
+      : "LINE 版では1本保存すると残りが消えることがあります。Safari・Chrome で撮るのがおすすめです。";
 }
 
 // state の「どれを残すか」に合う動画（clips の番号）
@@ -292,8 +292,8 @@ function renderClips() {
   $("shareAll").hidden = files.length < 2 || !navigator.canShare?.({ files });
   $("saveInfo").textContent = [
     now.length > 1 ? `トークで送れるよう、5分ずつ ${now.length}本に分けました。` : now.length ? "" : "録れませんでした。もう一度撮ってみてね。",
-    // 1本のままで5分をこえたら：LINE のトークでは送れないことがある（🏠 の「💾 保存の設定」で分けられる）
-    now.length === 1 && now[0].to - now[0].from > 300 ? "5分をこえているので、LINE のトークでは送れないことがあります（はじめの画面の「💾 保存の設定」で5分ごとに分けられます）。" : "",
+    // 1本のままで5分をこえたら：LINE のトークでは送れないことがある（同じ画面の「LINE で送る用」（cutRow）で5分までを作れる）
+    now.length === 1 && now[0].to - now[0].from > 300 ? "5分をこえているので、LINE のトークでは送れないことがあります。下の「LINE で送る用」で、5分までの動画を作れます。" : "",
     earlier ? `前の動画（${earlier}本）も下にあります。` : ""
   ].filter(Boolean).join("");
   if (shown.length) showClip(shown[shown.length - 1]);
