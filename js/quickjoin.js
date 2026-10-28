@@ -215,6 +215,86 @@ function mp4Joinable(infos) {
   return infos.every((m) => key(m) === first);
 }
 
+// ---- 切る ----
+// コマごとの時刻（デコードの順の時刻 dts）
+const mp4Dts = (t) => {
+  const out = new Array(t.durations.length);
+  let at = 0;
+  t.durations.forEach((d, i) => ((out[i] = at), (at += d)));
+  return out;
+};
+
+// キーフレームの見える時刻（秒・小さい順）。ここでなら作り直さずに切れる
+function mp4KeyTimes(info) {
+  const t = info.tracks.find((x) => x.kind === "vide");
+  const dts = mp4Dts(t);
+  const times = [];
+  dts.forEach((d, i) => (!t.sync || t.sync[i]) && times.push((d + t.offsets[i] - t.mediaTime) / t.timescale));
+  return times.sort((a, b) => a - b);
+}
+
+// 動画の from 秒〜to 秒（どちらもキーフレームの時刻か、はじめ・終わり。to は Infinity でもよい）だけを取り出した目次を作る（buildMp4 に渡せる形）
+function mp4Slice(info, from, to = Infinity) {
+  const video = info.tracks.find((x) => x.kind === "vide");
+  const keyIndex = (sec) => {
+    // その時刻にいちばん近いキーフレームの番号
+    const dts = mp4Dts(video);
+    let best = 0;
+    let gap = Infinity;
+    dts.forEach((d, i) => {
+      if (video.sync && !video.sync[i]) return;
+      const g = Math.abs((d + video.offsets[i] - video.mediaTime) / video.timescale - sec);
+      if (g < gap) (gap = g), (best = i);
+    });
+    return best;
+  };
+  const vFrom = from > 0 ? keyIndex(from) : 0;
+  const vTo = to < Infinity ? keyIndex(to) : video.durations.length;
+  const tracks = info.tracks.map((t) => {
+    let i0;
+    let i1;
+    let mediaTime;
+    if (t === video) {
+      i0 = vFrom;
+      i1 = vTo;
+      mediaTime = from > 0 ? t.offsets[i0] : t.mediaTime;
+    } else {
+      // 音：コマのまん中が [from, to) に入るもの
+      const dts = mp4Dts(t);
+      const mid = (i) => (dts[i] + t.durations[i] / 2 - t.mediaTime) / t.timescale;
+      i0 = 0;
+      while (i0 < dts.length && mid(i0) < from) i0++;
+      i1 = i0;
+      while (i1 < dts.length && mid(i1) < to) i1++;
+      mediaTime = from > 0 ? 0 : t.mediaTime;
+    }
+    const chunks = [];
+    t.chunks.forEach((c) => {
+      const a = Math.max(c.first, i0);
+      const b = Math.min(c.first + c.count, i1);
+      if (a >= b) return;
+      let skip = 0;
+      for (let k = c.first; k < a; k++) skip += t.sizes[k];
+      let size = 0;
+      for (let k = a; k < b; k++) size += t.sizes[k];
+      chunks.push({ offset: c.offset + skip, first: a - i0, count: b - a, size });
+    });
+    const durations = t.durations.slice(i0, i1);
+    return {
+      ...t,
+      durations,
+      offsets: t.offsets.slice(i0, i1),
+      sizes: t.sizes.slice(i0, i1),
+      sync: t.sync ? t.sync.slice(i0, i1) : null,
+      chunks,
+      mediaTime,
+      seconds: Math.max(0, (durations.reduce((s, d) => s + d, 0) - mediaTime) / t.timescale)
+    };
+  });
+  const end = Math.min(to, info.seconds);
+  return { tracks, seconds: Math.max(0, end - from) };
+}
+
 // ---- 書く ----
 // 箱を作る（中身は Uint8Array か数の並び）
 function mp4Box(type, ...parts) {
@@ -339,4 +419,4 @@ function buildMp4(list) {
   return new Blob([ftyp, moov, mdat, ...pieces], { type: "video/mp4" });
 }
 
-if (typeof module !== "undefined") module.exports = { parseMoov, readMp4, mp4Joinable, buildMp4, mp4Boxes, mp4Box };
+if (typeof module !== "undefined") module.exports = { parseMoov, readMp4, mp4Joinable, buildMp4, mp4Boxes, mp4Box, mp4KeyTimes, mp4Slice };

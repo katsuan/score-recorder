@@ -45,38 +45,69 @@ $("mergeFiles").addEventListener("change", async (e) => {
       LineShareUI.toast(`「${file.name}」は読めませんでした`);
       continue;
     }
-    mergeItems.push({ id: ++mergeSeq, file, url, name: file.name, duration, mp4: await readMp4(file) });
+    const mp4 = await readMp4(file);
+    mergeItems.push({ id: ++mergeSeq, file, url, name: file.name, duration, mp4, keys: mp4 ? mp4KeyTimes(mp4) : null });
   }
   renderMerge();
 });
 
-// 区切り（part）ごとの部分：[[{ src, a, b }], …]。動画の途中で切らない：4分55秒に収まるところまで動画を詰める（1本で5分をこえる動画だけ、その中を時間で切る）
+// 切る時刻：from 秒から limit 秒までのうち、いちばん遅いキーフレーム（作り直さずに切れる所）。なければ from+limit（流してつなぐときだけ使える）
+function mergeCutAt(m, from, limit) {
+  let best = null;
+  for (const k of m.keys || []) if (k > from + 0.5 && k <= from + limit + 0.01) best = k;
+  return best === null ? { t: from + limit, exact: false } : { t: best, exact: true };
+}
+
+// 区切り（part）ごとの部分：[[{ src, a, b, item }], …]。
+// 途中で切らない：4分55秒に収まるところまで動画を詰める（1本で5分をこえる動画だけ、その中を切る）。5分ごとに切る：つないだ時間で 4分55秒ごと。
+// 切るところは、作り直さずに切れるキーフレームにそろえる（そろえられない所があれば inexact）
 function mergeParts() {
   const max = SEGMENT_MS / 1000;
-  const all = mergeItems.map((m) => ({ src: m.url, a: 0, b: m.duration, item: m }));
-  if (mergeSplit !== "video") return [all];
   const parts = [];
   let part = [];
   let len = 0;
-  all.forEach((p) => {
-    const d = p.b - p.a;
-    if (d > max) {
-      // 1本で5分をこえる：いまの part を閉じて、その動画を時間で切る
-      if (part.length) parts.push(part);
-      for (let a = 0; a < d - 0.5; a += max) parts.push([{ src: p.src, a, b: Math.min(d, a + max), item: p.item }]);
-      part = [];
-      len = 0;
-      return;
+  let inexact = false;
+  const close = () => {
+    if (part.length) parts.push(part);
+    part = [];
+    len = 0;
+  };
+  const add = (m, a, b) => {
+    part.push({ src: m.url, a, b, item: m });
+    len += b - a;
+  };
+  for (const m of mergeItems) {
+    const d = m.duration;
+    if (mergeSplit === "none") {
+      add(m, 0, d);
+      continue;
     }
-    if (len + d > max && part.length) {
-      parts.push(part);
-      part = [];
-      len = 0;
+    if (mergeSplit === "video") {
+      if (d <= max) {
+        if (len + d > max) close();
+        add(m, 0, d);
+        continue;
+      }
+      close(); // 1本で5分をこえる：その動画だけで切る
     }
-    part.push(p);
-    len += d;
-  });
-  if (part.length) parts.push(part);
+    // いまの part の残りに入るところまで入れ、あふれたら切って次の part へ
+    let a = 0;
+    while (d - a > max - len + 0.01) {
+      const cut = mergeCutAt(m, a, max - len);
+      if (cut.t - a < 1 && part.length) {
+        close(); // 入るところがほとんどない：次の part から
+        continue;
+      }
+      inexact ||= !cut.exact;
+      add(m, a, cut.t);
+      close();
+      a = cut.t;
+    }
+    add(m, a, d);
+    if (mergeSplit === "video") close();
+  }
+  close();
+  parts.inexact = inexact;
   return parts;
 }
 
@@ -84,12 +115,11 @@ function mergeParts() {
 function mergeSlowReason() {
   const max = SEGMENT_MS / 1000;
   const total = mergeItems.reduce((sum, m) => sum + m.duration, 0);
-  const parted = total > max && mergeSplit !== "none";
+  const parts = mergeParts();
   if (transitionOf(state.mergeTransition).draw) return "つなぎ目の柄を入れるので";
-  if (parted && mergeSplit === "time") return "5分ごとに切るので";
-  if (parted && state.mergeBadge) return "「1/3」の札を入れるので";
-  if (mergeSplit === "video" && mergeItems.some((m) => m.duration > max)) return "5分をこえる動画を切るので";
+  if (parts.length > 1 && state.mergeBadge) return `「1/${parts.length}」の札を入れるので`;
   if (!window.Blob || !mp4Joinable(mergeItems.map((m) => m.mp4))) return "そのまま並べられない動画（形式がちがうなど）があるので";
+  if (parts.inexact) return "そのままでは切れないところがあるので";
   return null;
 }
 
@@ -135,21 +165,21 @@ function renderMerge() {
     : slow
       ? `🔗 ${mergeItems.length}本をつないで書き出す（約 ${clock(Math.ceil(total))}）`
       : `🔗 ${mergeItems.length}本をつなぐ（すぐ終わります）`;
-  // 「1/3」の札：分けるときだけ選べる
-  const parted = total > SEGMENT_MS / 1000 && mergeSplit !== "none";
-  $("mergeBadgeRow").hidden = !parted;
-  document.querySelectorAll("[data-merge-badge]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.mergeBadge === "on") === state.mergeBadge)));
   // 分けたときの見本：part ごとの長さ
   const parts = mergeParts();
   const max = SEGMENT_MS / 1000;
+  // 「1/4」の札：分けるときだけ選べる（見出しの数は、いまの本数）
+  $("mergeBadgeRow").hidden = parts.length < 2;
+  $("mergeBadgeLabel").textContent = `分けた各1本の最初に「1/${Math.max(2, parts.length)}」の札`;
+  document.querySelectorAll("[data-merge-badge]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.mergeBadge === "on") === state.mergeBadge)));
   $("mergePlan").textContent =
     !mergeItems.length || total <= max
       ? ""
-      : mergeSplit === "video"
-        ? parts.map((p, i) => `${i + 1}/${parts.length}　${clock(Math.ceil(p.reduce((s, x) => s + x.b - x.a, 0)))}`).join("　・　")
-        : mergeSplit === "time"
+      : mergeSplit === "none"
+        ? "5分をこえるので、LINE のトークでは送れないことがあります"
+        : mergeSplit === "time" && slow
           ? `4分55秒ごとに、約 ${Math.ceil(total / max)}本に分けます（動画の途中でも切れます）`
-          : "5分をこえるので、LINE のトークでは送れないことがあります";
+          : parts.map((p, i) => `${i + 1}/${parts.length}　${clock(Math.max(1, Math.round(p.reduce((s, x) => s + x.b - x.a, 0))))}`).join("　・　");
   // 待ち時間の目安（流しながら録るときは、つないだ長さぶんかかる）。長いときはアプリをすすめる
   $("mergeNote").textContent =
     mergeItems.length < 2
@@ -179,8 +209,13 @@ async function mergeQuick(parts, label) {
   try {
     const made = [];
     for (const part of parts) {
-      const blob = buildMp4(part.map((p) => ({ file: p.item.file, info: p.item.mp4 })));
-      const want = part.reduce((s, p) => s + p.item.mp4.seconds, 0);
+      // 動画の一部だけのときは、キーフレームで切って取り出す
+      const list = part.map((p) => ({
+        file: p.item.file,
+        info: p.a > 0.01 || p.b < p.item.duration - 0.05 ? mp4Slice(p.item.mp4, p.a, p.b < p.item.duration - 0.05 ? p.b : Infinity) : p.item.mp4
+      }));
+      const blob = buildMp4(list);
+      const want = list.reduce((s, x) => s + x.info.seconds, 0);
       const url = URL.createObjectURL(blob);
       const got = await probeDuration(url);
       URL.revokeObjectURL(url);
@@ -217,7 +252,9 @@ $("mergeExport").addEventListener("click", async () => {
     if (await mergeQuick(parts, label)) return;
     LineShareUI.toast("そのままではつなげなかったので、流しながら作ります");
   }
-  const pieces = parts.flat();
+  // 5分ごとに切る：流しながら 4分55秒ごとに録りなおす。ほかは part の区切りで別の動画にする
+  const timed = mergeSplit === "time";
+  const pieces = timed ? mergeItems.map((m) => ({ src: m.url, a: 0, b: m.duration })) : parts.flat();
   // 各 part のはじめの部分の番号（0 番は入れない）
   const starts = new Set();
   let n = 0;
@@ -231,9 +268,9 @@ $("mergeExport").addEventListener("click", async () => {
     overlay: false,
     kind: "merge",
     title: `🔗 ${mergeItems.length}本をつないでいます…`,
-    split: mergeSplit === "time",
+    split: timed,
     label,
-    partStarts: mergeSplit === "video" ? starts : null,
+    partStarts: timed ? null : starts,
     transition: state.mergeTransition,
     badge: state.mergeBadge
   });
