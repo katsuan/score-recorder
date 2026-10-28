@@ -134,8 +134,12 @@ function renderMerge() {
   $("mergeList").replaceChildren(
     ...mergeItems.map((m, i) => {
       const li = Object.assign(document.createElement("li"), { className: "merge-item" });
-      const name = Object.assign(document.createElement("span"), { className: "merge-name", textContent: m.name });
-      name.append(Object.assign(document.createElement("small"), { textContent: clock(Math.round(m.duration)) }));
+      // ファイル名（iPhone では IMG_1234.MOV や長い記号の名前で、せまい画面では見分けにくい）は出さず、長さと撮った日時（ファイルの日時）で見分ける
+      const d = new Date(m.file.lastModified);
+      const when = Number.isFinite(d.getTime()) && m.file.lastModified ? `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${pad2(d.getMinutes())}` : "";
+      const name = Object.assign(document.createElement("span"), { className: "merge-name", textContent: clock(Math.round(m.duration)) });
+      if (when) name.append(Object.assign(document.createElement("small"), { textContent: when }));
+      name.title = m.name;
       // ボタン（↑・↓・✕）を作る
       const btn = (text, label, disabled, onClick) => {
         const b = Object.assign(document.createElement("button"), { type: "button", textContent: text, disabled });
