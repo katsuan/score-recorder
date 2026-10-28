@@ -7,6 +7,9 @@
 
 // 前に作りなおしの途中でタブが落ちた端末では使わない（riskCrashed。page.js）
 const quickBadgeCrashed = riskCrashed("badge");
+// うまくいかなかったわけ（画面の「くわしく」に出す。どこで止まったかを知るため）
+let quickBadgeWhy = "";
+const badgeNo = (why) => ((quickBadgeWhy = why), null);
 const quickBadgeReady = () => !quickBadgeCrashed && typeof VideoEncoder === "function" && typeof VideoDecoder === "function" && typeof VideoFrame === "function";
 
 const concatBytes = (a, b) => {
@@ -88,19 +91,20 @@ function displayTransform(track, w, h) {
 // 動画 info の from 秒〜to 秒（キーフレームの時刻か終わり）を、札を入れた最初の部分と、そのままの残りに分ける。
 // 返すのは [{ file, info }]（buildMp4 にそのまま渡せる）。できなければ null
 async function quickBadgePieces(file, info, keys, from, to, label) {
-  if (!quickBadgeReady()) return null;
+  quickBadgeWhy = "";
+  if (!quickBadgeReady()) return badgeNo("WebCodecs がない");
   let decoder = null;
   let encoder = null;
   riskBegin("badge");
   try {
     const video0 = info.tracks.find((t) => t.kind === "vide");
     const codec = videoCodecOf(video0);
-    if (!codec) return null;
+    if (!codec) return badgeNo("映像の形式が読めない");
     const until = keys.find((k) => k >= from + PIECE_BADGE_MS / 1000 - 0.01 && k < to - 0.01) ?? to;
     const head = mp4Slice(info, from, until);
     const v = head.tracks.find((t) => t.kind === "vide");
     const n = v.sizes.length;
-    if (!n) return null;
+    if (!n) return badgeNo("コマがない");
     const ts = v.timescale;
     const dts = mp4Dts(v);
     const pts = dts.map((d, i) => d + v.offsets[i]);
@@ -127,8 +131,8 @@ async function quickBadgePieces(file, info, keys, from, to, label) {
       framerate: Math.round(n / Math.max(seconds, 0.1)),
       ...(codec.avc ? { avc: { format: "avc" } } : { hevc: { format: "hevc" } })
     };
-    if (!(await VideoDecoder.isConfigSupported(decodeConfig)).supported) return null;
-    if (!(await VideoEncoder.isConfigSupported(encodeConfig)).supported) return null;
+    if (!(await VideoDecoder.isConfigSupported(decodeConfig)).supported) return badgeNo(`読めない形式 ${codec.codec}`);
+    if (!(await VideoEncoder.isConfigSupported(encodeConfig)).supported) return badgeNo(`作れない形式 ${codec.codec}`);
 
     // 札の絵（見える向きで描き、コマの向きに写して重ねる）
     const t = displayTransform(video0, codec.width, codec.height);
@@ -182,16 +186,19 @@ async function quickBadgePieces(file, info, keys, from, to, label) {
     }
     await decoder.flush();
     await encoder.flush();
-    if (failed || out.length !== n || !description || !out[0].key) return null;
+    if (failed) return badgeNo(`作る途中で止まった ${codec.codec}（${failed.message || failed}）`);
+    if (out.length !== n) return badgeNo(`コマの数が合わない ${out.length}/${n}`);
+    if (!description) return badgeNo(`設定が返ってこない ${codec.codec}`);
+    if (!out[0].key) return badgeNo("最初がキーフレームでない");
     // 作りなおしたコマは見える順に並ぶ（B フレームなし）。デコードの時刻はもとのまま、見える時刻はもとの見える時刻を小さい順に
     const sorted = [...pts].sort((x, y) => x - y);
     const offsets = sorted.map((p, j) => p - dts[j]);
-    if (offsets.some((o) => o < 0) || out.some((o, j) => j && o.ts <= out[j - 1].ts)) return null;
+    if (offsets.some((o) => o < 0) || out.some((o, j) => j && o.ts <= out[j - 1].ts)) return badgeNo("コマの順が入れかわる");
     // 設定（SPS・PPS）の入れ方：コーデックの設定（stsd）はもとのまま1つにして、作りなおしたところの頭に新しい設定を、
     // そのあとのそのままのところの頭にもとの設定を、コマの中に入れる（設定を2つ並べる書き方は、Mac の Chrome の H.264 で止まったため）
     const mine = paramSets(description, codec.avc);
     const theirs = paramSets(codec.description, codec.avc);
-    if (mine.lengthSize !== theirs.lengthSize) return null;
+    if (mine.lengthSize !== theirs.lengthSize) return badgeNo("設定の書き方がちがう");
     out[0].b = concatBytes(mine.prefix, out[0].b);
     const blob = new Blob(out.map((o) => o.b));
     const sizes = out.map((o) => o.b.length);
@@ -217,11 +224,49 @@ async function quickBadgePieces(file, info, keys, from, to, label) {
       pieces.push({ file, info: { ...rest, tracks: rest.tracks.map((x) => (x === rv ? fixed : x)) } });
     }
     return pieces;
-  } catch {
-    return null;
+  } catch (e) {
+    return badgeNo(`止まった（${e?.message || e}）`);
   } finally {
     // 読む側・作る側は、うまくいってもいかなくても閉じる（閉じないとメモリが残る）
     for (const c of [decoder, encoder]) if (c && c.state !== "closed") c.close();
     riskEnd("badge");
+  }
+}
+
+// できた動画（blob）を WebCodecs で、頭から at 秒（作りなおしたところとそのままのところのつなぎ目）のあと数コマまで読めるか確かめる。
+// <video> で流して確かめられない端末（iPhone の省電力モードなどで、だまって流せない）のときに使う
+async function quickBadgeDecodes(blob, at) {
+  let decoder = null;
+  try {
+    const info = await readMp4(blob);
+    const v = info?.tracks.find((t) => t.kind === "vide");
+    const codec = v && videoCodecOf(v);
+    if (!codec) return false;
+    const dts = mp4Dts(v);
+    const junction = dts.findIndex((d) => d >= at * v.timescale - 1);
+    if (junction < 0) return false;
+    const n = Math.min(v.sizes.length, junction + 4);
+    // コマごとの置き場所
+    const where = [];
+    v.chunks.forEach((c) => {
+      let o = c.offset;
+      for (let k = 0; k < c.count; k++) (where[c.first + k] = o), (o += v.sizes[c.first + k]);
+    });
+    let failed = null;
+    let got = 0;
+    decoder = new VideoDecoder({ output: (f) => (f.close(), (got += 1)), error: (e) => (failed = e) });
+    decoder.configure({ codec: codec.codec, description: codec.description, codedWidth: codec.width, codedHeight: codec.height });
+    const us = (x) => Math.round((x / v.timescale) * 1e6);
+    for (let i = 0; i < n && !failed; i++) {
+      while (!failed && decoder.decodeQueueSize > 2) await new Promise((r) => setTimeout(r, 5));
+      const data = new Uint8Array(await blob.slice(where[i], where[i] + v.sizes[i]).arrayBuffer());
+      decoder.decode(new EncodedVideoChunk({ type: i === 0 || (v.sync && v.sync[i]) ? "key" : "delta", timestamp: us(dts[i] + v.offsets[i]), data }));
+    }
+    await decoder.flush();
+    return !failed && got === n;
+  } catch {
+    return false;
+  } finally {
+    if (decoder && decoder.state !== "closed") decoder.close();
   }
 }
