@@ -123,7 +123,7 @@ function mergeSlowReason() {
   const total = mergeItems.reduce((sum, m) => sum + m.duration, 0);
   const parts = mergeParts();
   if (transitionOf(state.mergeTransition).draw) return "つなぎ目の柄を入れるので";
-  if (parts.length > 1 && state.mergeBadge) return `「1/${parts.length}」の札を入れるので`;
+  if (parts.length > 1 && state.mergeBadge && !quickBadgeReady()) return `「1/${parts.length}」の札を入れるので`;
   if (!window.Blob || !mp4Joinable(mergeItems.map((m) => m.mp4))) return "そのまま並べられない動画（形式がちがうなど）があるので";
   if (parts.inexact) return "そのままでは切れないところがあるので";
   return null;
@@ -196,7 +196,9 @@ function renderMerge() {
     mergeItems.length < 2
       ? ""
       : !slow
-        ? "動画を作り直さずに並べるので、すぐ終わります（画質もそのまま）。"
+        ? parts.length > 1 && state.mergeBadge
+          ? "札が出る最初の数秒だけ作りなおし、あとはそのまま並べるので、すぐ終わります（できない端末では、流しながら作ります）。"
+          : "動画を作り直さずに並べるので、すぐ終わります（画質もそのまま）。"
         : `${slow}、流しながら作ります。つないだ長さぶん（約 ${clock(Math.ceil(total))}）かかるので、そのあいだ画面はそのままで。${total > 30 * 60 ? "30分をこえるときは、アプリのほうが速く、とちゅうで止まりにくいです。" : ""}`;
 }
 document.querySelectorAll("[data-merge-split]").forEach((b) =>
@@ -213,24 +215,60 @@ document.querySelectorAll("[data-merge-badge]").forEach((b) =>
   })
 );
 
+// できた動画を、at 秒（札を入れて作りなおしたところと、そのままのところのつなぎ目）の少し前から流して、こえて映りつづけるか確かめる。
+// この端末で読めない書き方なら false（流してつなぐ）
+const mergePlayable = (blob, at) =>
+  new Promise((resolve) => {
+    const v = document.createElement("video");
+    v.muted = true;
+    v.playsInline = true;
+    v.preload = "auto";
+    const url = URL.createObjectURL(blob);
+    const done = (ok) => {
+      clearTimeout(timer);
+      v.pause();
+      v.removeAttribute("src");
+      v.load();
+      URL.revokeObjectURL(url);
+      resolve(ok);
+    };
+    const timer = setTimeout(() => done(false), 8000);
+    v.addEventListener("error", () => done(false), { once: true });
+    v.addEventListener("loadedmetadata", () => (v.currentTime = Math.max(0, at - 0.4)), { once: true });
+    v.addEventListener("seeked", () => v.play().catch(() => done(false)), { once: true });
+    v.addEventListener("timeupdate", () => v.currentTime >= Math.min(at + 0.5, v.duration - 0.05) && done(!v.error && v.videoWidth > 0));
+    v.src = url;
+  });
+
 // 作り直さずに並べる：part ごとに1本の mp4 を作り、長さが合っているか確かめてから保存の画面へ。うまくいかなければ false（流してつなぐ）
 async function mergeQuick(parts, label) {
   $("mergeExport").disabled = true;
   $("mergeNote").textContent = "つないでいます…";
   try {
     const made = [];
-    for (const part of parts) {
+    const badge = state.mergeBadge && parts.length > 1;
+    for (const [pi, part] of parts.entries()) {
       // 動画の一部だけのときは、キーフレームで切って取り出す
+      const end = (p) => (p.b < p.item.duration - 0.05 ? p.b : Infinity);
       const list = part.map((p) => ({
         file: p.item.file,
-        info: p.a > 0.01 || p.b < p.item.duration - 0.05 ? mp4Slice(p.item.mp4, p.a, p.b < p.item.duration - 0.05 ? p.b : Infinity) : p.item.mp4
+        info: p.a > 0.01 || end(p) < Infinity ? mp4Slice(p.item.mp4, p.a, end(p)) : p.item.mp4
       }));
+      // 「1/3」の札：最初の動画の、札が出るところだけ作りなおす（できなければ流してつなぐ）
+      if (badge) {
+        const p = part[0];
+        $("mergeNote").textContent = `「${pi + 1}/${parts.length}」の札を入れています…`;
+        const head = await quickBadgePieces(p.item.file, p.item.mp4, p.item.keys || [], p.a, end(p), `${pi + 1}/${parts.length}`);
+        if (!head) return false;
+        list.splice(0, 1, ...head);
+      }
       const blob = buildMp4(list);
       const want = list.reduce((s, x) => s + x.info.seconds, 0);
       const url = URL.createObjectURL(blob);
       const got = await probeDuration(url);
       URL.revokeObjectURL(url);
       if (Math.abs(got - want) > 1.5) return false; // 長さがちがう：うまく並んでいない
+      if (badge && list.length > 1 && !(await mergePlayable(blob, list[0].info.seconds))) return false; // 札のあとのつなぎ目が読めない
       made.push({ blob, seconds: want });
     }
     // 保存の画面に出す（撮った動画にの書き出しと同じく、新しい回として足す）

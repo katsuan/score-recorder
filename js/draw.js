@@ -158,8 +158,11 @@ let pieceTotal = 0;
 // 何本目かの札を描く（分けていない・2 秒たったら描かない）
 function drawPieceBadge(w, h, c) {
   if (!pieceTotal || performance.now() - clipStartedAt > PIECE_BADGE_MS) return;
+  drawBadgeLabel(w, h, c, pieceTotal > 0 ? `${clipNo}/${pieceTotal}` : `${clipNo}本目`);
+}
+// 札の絵（右上の丸い札と文字）。🔗 つなぐで、最初だけ作りなおすとき（quickbadge.js）も使う
+function drawBadgeLabel(w, h, c, label) {
   const s = Math.min(w, h) / 720;
-  const label = pieceTotal > 0 ? `${clipNo}/${pieceTotal}` : `${clipNo}本目`;
   c.save();
   c.font = `800 ${34 * s}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
   const pw = c.measureText(label).width + 44 * s;

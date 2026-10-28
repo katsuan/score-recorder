@@ -324,7 +324,9 @@ function mp4Ints(list) {
 }
 const MP4_MATRIX = [0x10000, 0, 0, 0, 0x10000, 0, 0, 0, 0x40000000].map((x) => [x, 4]);
 
-// 並べた動画を作る。list：[{ file, info }]（mp4Joinable がそろっているもの）。Blob を返す
+// 並べた動画を作る。list：[{ file, info }]（mp4Joinable がそろっているもの）。Blob を返す。
+// 札を入れた最初のところ（quickbadge.js）は、コーデックの設定（stsd）がちがうので、2つめの設定として入れる（コマの束ごとに、どの設定かを書く）。
+// コマの束（chunk）に file があれば、その束のデータはその File（Blob）から取る（札を入れて作りなおした映像など）
 function buildMp4(list) {
   const movieScale = 1000;
   const first = list[0].info;
@@ -334,7 +336,13 @@ function buildMp4(list) {
   list.forEach(({ info }) => (starts.push(total), (total += info.seconds)));
   // トラックごとに、コマの表を足していく
   const tracks = first.tracks.map((t0, ti) => {
-    const out = { t0, durations: [], offsets: [], sizes: [], sync: t0.sync ? [] : null, chunks: [] };
+    const out = { t0, durations: [], offsets: [], sizes: [], sync: t0.sync ? [] : null, chunks: [], entries: [] };
+    const entryOf = (stsd) => {
+      const key = stsd.join(",");
+      let i = out.entries.findIndex((e) => e.key === key);
+      if (i < 0) i = out.entries.push({ key, bytes: stsd.subarray(16) }) - 1; // stsd の箱（8）＋ 版（4）＋ 数（4）のあとが中身
+      return i + 1;
+    };
     let dts = 0; // つないだトラックの中の時刻（目盛りは最初の動画のまま）
     list.forEach(({ info }, k) => {
       const t = info.tracks[ti];
@@ -349,14 +357,16 @@ function buildMp4(list) {
       out.offsets.push(...t.offsets);
       out.sizes.push(...t.sizes);
       if (out.sync) out.sync.push(...(t.sync || t.durations.map(() => true)));
-      t.chunks.forEach((c) => out.chunks.push({ file: k, src: c.offset, size: c.size, count: c.count, first: firstSample + c.first }));
+      const sdi = entryOf(t.stsd);
+      t.chunks.forEach((c) => out.chunks.push({ file: k, blob: c.file || null, src: c.offset, size: c.size, count: c.count, first: firstSample + c.first, sdi }));
       dts += t.durations.reduce((a, b) => a + b, 0);
     });
     out.mediaDuration = dts;
     return out;
   });
   // データの並び：動画ごとに、もとの場所の順（音と映像が交互になっているのをそのまま）
-  const order = tracks.flatMap((t, ti) => t.chunks.map((c) => ({ ...c, ti }))).sort((a, b) => a.file - b.file || a.src - b.src);
+  // （同じ動画の中では、作りなおした映像を先に）
+  const order = tracks.flatMap((t, ti) => t.chunks.map((c) => ({ ...c, ti }))).sort((a, b) => a.file - b.file || (a.blob ? 0 : 1) - (b.blob ? 0 : 1) || a.src - b.src);
   const dataSize = order.reduce((a, c) => a + c.size, 0);
   const big = dataSize > 0xfffffff0; // 4GB をこえるとき
   const ftyp = mp4Box("ftyp", [...[..."isom"].map((c) => c.charCodeAt(0)), 0, 0, 2, 0, ...[..."isomiso2mp41"].map((c) => c.charCodeAt(0))]);
@@ -385,15 +395,16 @@ function buildMp4(list) {
       // かたまりごとのコマの数（同じ数が続くところはまとめる）
       const chunks = t.chunks;
       const stsc = [];
-      chunks.forEach((c, i) => (!stsc.length || stsc[stsc.length - 1][1] !== c.count) && stsc.push([i + 1, c.count]));
-      const stscBox = mp4Box("stsc", mp4Ints([[0, 4], [stsc.length, 4], ...stsc.flatMap(([f, n]) => [[f, 4], [n, 4], [1, 4]])]));
+      chunks.forEach((c, i) => (!stsc.length || stsc[stsc.length - 1][1] !== c.count || stsc[stsc.length - 1][2] !== c.sdi) && stsc.push([i + 1, c.count, c.sdi]));
+      const stscBox = mp4Box("stsc", mp4Ints([[0, 4], [stsc.length, 4], ...stsc.flatMap(([f, n, d]) => [[f, 4], [n, 4], [d, 4]])]));
       const stszBox = mp4Box("stsz", mp4Ints([[0, 4], [0, 4], [t.sizes.length, 4], ...t.sizes.map((s) => [s, 4])]));
       const stcoBox = big
         ? mp4Box("co64", mp4Ints([[0, 4], [chunks.length, 4], ...chunks.map((c) => [c.dst, 8])]))
         : mp4Box("stco", mp4Ints([[0, 4], [chunks.length, 4], ...chunks.map((c) => [c.dst, 4])]));
       const dinf = mp4Box("dinf", mp4Box("dref", mp4Ints([[0, 4], [1, 4]]), mp4Box("url ", mp4Ints([[1, 4]]))));
       const header = t0.header || (video ? mp4Box("vmhd", mp4Ints([[1, 4], [0, 2], [0, 2], [0, 2], [0, 2]])) : mp4Box("smhd", mp4Ints([[0, 4], [0, 2], [0, 2]])));
-      const stbl = mp4Box("stbl", t0.stsd, sttsBox, cttsBox, stssBox, stscBox, stszBox, stcoBox);
+      const stsdBox = t.entries.length === 1 ? t0.stsd : mp4Box("stsd", mp4Ints([[0, 4], [t.entries.length, 4]]), ...t.entries.map((e) => e.bytes));
+      const stbl = mp4Box("stbl", stsdBox, sttsBox, cttsBox, stssBox, stscBox, stszBox, stcoBox);
       return mp4Box("trak", tkhd, edts, mp4Box("mdia", mdhd, t0.hdlr, mp4Box("minf", header, dinf, stbl)));
     });
     return mp4Box("moov", mvhd, ...traks);
@@ -408,7 +419,7 @@ function buildMp4(list) {
   const pieces = [];
   let run = null;
   order.forEach((c) => {
-    const file = list[c.file].file;
+    const file = c.blob || list[c.file].file;
     if (run && run.file === file && run.end === c.src) run.end += c.size;
     else {
       if (run) pieces.push(run.file.slice(run.start, run.end));
