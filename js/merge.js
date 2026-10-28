@@ -36,8 +36,12 @@ $("mergeFiles").addEventListener("change", async (e) => {
   e.target.value = ""; // 同じ動画をもう一度選べるように
   if (!files.length) return;
   logUse("merge-pick", files.length);
-  $("mergeNote").textContent = "動画を読みこんでいます…";
-  for (const file of files) {
+  // 読みこみ中は、押したボタンに出す（何本目か）。終わったら renderMerge で元にもどる
+  const pick = $("pickMerge");
+  pick.disabled = true;
+  $("mergeExport").disabled = true;
+  for (const [i, file] of files.entries()) {
+    pick.textContent = `動画を読みこんでいます…（${i + 1}/${files.length}）`;
     const url = URL.createObjectURL(file);
     // 長さは、まず mp4 の目次から読む（iPhone の Safari は、はじめて選んだ動画だと <video> で長さを読むのに時間がかかり、読めないことがある）。
     // mp4 でなければ <video> で調べる（読めなければ、待つ時間を長くしてもう一度）
@@ -159,6 +163,7 @@ function renderMerge() {
   );
   document.querySelectorAll("[data-merge-split]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.mergeSplit === mergeSplit)));
   const total = mergeItems.reduce((sum, m) => sum + m.duration, 0);
+  $("pickMerge").disabled = false;
   $("pickMerge").textContent = mergeItems.length ? "＋ 動画を足す" : "＋ 動画を選ぶ（いくつでも）";
   $("mergeExport").disabled = mergeItems.length < 2;
   const slow = mergeSlowReason();
