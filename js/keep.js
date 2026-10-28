@@ -150,4 +150,6 @@ async function restoreKept() {
   if (reopen && $("saveSheet").hidden) openSaveSheet(false);
   LineShareUI.toast(`前の動画（${back.length}本）をもどしました`);
 }
-restoreKept();
+// Q キットの部品（ui.js。defer で読む）がそろってから（トーストを出すため）
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", restoreKept, { once: true });
+else restoreKept();
