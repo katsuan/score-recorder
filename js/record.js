@@ -197,6 +197,7 @@ function showSaved() {
   // 撮った動画にの書き出しのあとは「次はどうする？」（撮る画面向け）は出さず、閉じるだけ
   openSaveSheet(!exportMode);
   exportMode = false;
+  keepClips(); // ページが読みなおされても残るように、端末の中に置く（keep.js）
   // 画面を離れて止まったときは、そう知らせる（studio.js）
   if (stoppedByLeaving) {
     stoppedByLeaving = false;
@@ -210,6 +211,7 @@ function openSaveSheet(withNextShot) {
   $("closeSheetOnly").hidden = withNextShot;
   $("sharedNote").hidden = true;
   $("restartSave").classList.remove("is-suggest");
+  keepSheetOpen(true);
   showSaveGuide();
   renderClips();
   $("saveSheet").hidden = false;
@@ -239,7 +241,8 @@ function showSaveGuide() {
     : canShare
       ? "📱 「📤 保存・共有」で LINE などへ。端末には ⬇️。"
       : "⬇️ で端末に保存。";
-  $("saveGuide").textContent += "ページを閉じると消えます。";
+  // 端末の中に残せるとき（keep.js）は 7日まで残る。残せないブラウザでは、ページを閉じると消える
+  $("saveGuide").textContent += typeof keepReady !== "undefined" && keepReady ? "このブラウザに7日まで残ります（🗑 で消せます）。" : "ページを閉じると消えます。";
   // LINE の中では、1本保存するとページが開きなおされ、残りが消えることがある
   if (inLine && clips.length > 1)
     $("saveGuide").textContent += canShare
@@ -353,12 +356,15 @@ function deleteClip(c) {
   });
   // 元に戻せなくなったら（トーストが消えたら）、中身を手放す
   setTimeout(() => {
-    if (!clips.includes(c) && c.url) URL.revokeObjectURL(c.url);
+    if (clips.includes(c)) return;
+    if (c.url) URL.revokeObjectURL(c.url);
+    unkeepClip(c);
   }, 8000);
 }
 // 保存・共有した動画に印（✓）
 function markSaved(list) {
   list.forEach((c) => (c.saved = true));
+  keepMarkSaved(list);
   renderClips();
 }
 // 何回目の録画か（カメラで撮ったものだけで数える）
@@ -376,6 +382,7 @@ $("shareAll").addEventListener("click", () => shareFiles(pickedIndexes().map((i)
 // 保存の画面を閉じる（見返しの動画も止める）
 const closeSaveSheet = () => {
   $("saveSheet").hidden = true;
+  keepSheetOpen(false);
   $("playback").pause();
 };
 // 続きを撮る：同じチーム・スコアそのままで、撮る画面にもどる（後半など）
