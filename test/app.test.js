@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
-const FILES = ["js/page.js", "js/store.js", "js/draw.js", "js/setup.js", "js/studio.js", "js/record.js", "js/editor.js", "js/render.js", "js/merge.js"];
+const FILES = ["js/page.js", "js/store.js", "js/draw.js", "js/setup.js", "js/studio.js", "js/record.js", "js/editor.js", "js/render.js", "js/quickjoin.js", "js/merge.js"];
 
 // どんな使い方をしても止まらない、まねの部品（id ごとに1つ。書いた値は覚える）
 function fakeEl() {

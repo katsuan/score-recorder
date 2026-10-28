@@ -68,6 +68,9 @@ const state = {
   fxV: 2,
   // ⚡ ハイライトのつなぎ目の柄（draw.js の TRANSITIONS の id）。はじめは RoQga
   transition: textOf(saved.transition, 40) ?? "roqga",
+  // 🔗 つなぐのつなぎ目の柄と「1/3」の札（はじめは どちらも入れない：作り直さずに並べるので、すぐ終わる）
+  mergeTransition: textOf(saved.mergeTransition, 40) ?? "none",
+  mergeBadge: saved.mergeBadge === true,
   // 得点板を出すか（出さないときは GOAL の演出・つなぎ目だけ）。プレビュー・撮る画面・撮った動画に・書き出す動画のすべてに効く。はじめは出す
   board: saved.board !== false,
   fxIcon: textOf(saved.fxIcon, 16) ?? "⚽", // エフェクトのアイコン（"" はなし）。サッカー以外でも

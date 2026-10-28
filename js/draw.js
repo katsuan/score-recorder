@@ -267,16 +267,18 @@ const transitionOf = (id) => TRANSITIONS.find((tr) => tr.id === id && !tr.premiu
 const transitionLogo = new Image();
 transitionLogo.src = "logo.svg"; // 横長のロゴ（柄のまん中に置く）
 
+// 書き出しのあいだだけ使う柄（🔗 つなぐは、ハイライトとは別に選ぶ。null ならハイライトの柄）
+let transitionPick = null;
 // p：0（入りはじめ）→ 0.5（画面をおおう＝つなぎ目）→ 1（抜けきる）
 function drawTransition(w, h, c, p) {
-  const tr = transitionOf(state.transition);
+  const tr = transitionOf(transitionPick ?? state.transition);
   if (!tr.draw || p <= 0 || p >= 1) return;
   tr.draw(w, h, c, p);
 }
 
 // 書き出しの前に、柄の絵を作っておく（はじめて描くときに少し時間がかかり、つなぎ目がかくつくため）
 function warmTransition(w, h) {
-  if (w && h && transitionOf(state.transition).id === "roqga") roqgaPanel(w, h);
+  if (w && h && transitionOf(transitionPick ?? state.transition).id === "roqga") roqgaPanel(w, h);
 }
 
 // RoQga：濃い緑のピッチの面（左右の辺が斜め）が右から入り、つなぎ目で画面をおおって、左へ抜ける。

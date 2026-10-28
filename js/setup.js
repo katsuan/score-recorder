@@ -585,16 +585,18 @@ document.querySelectorAll("[data-mode]").forEach((tab) =>
 // ---- ⚡ ハイライトのつなぎ目の柄を選ぶボタン（draw.js の TRANSITIONS から作る。有料の柄は 🔒 で、まだ選べない） ----
 function renderTransitionChoices() {
   document.querySelectorAll("[data-transition-row] .transition-chips").forEach((box) => {
+    const key = box.closest("[data-transition-row]").dataset.for === "merge" ? "mergeTransition" : "transition"; // つなぐは別に選ぶ
     box.replaceChildren(
       ...TRANSITIONS.map((tr) => {
         const b = Object.assign(document.createElement("button"), { type: "button", className: "chip", textContent: tr.premium ? `🔒 ${tr.label}` : tr.label });
         b.setAttribute("role", "radio");
-        b.setAttribute("aria-checked", String(transitionOf(state.transition).id === tr.id));
+        b.setAttribute("aria-checked", String(transitionOf(state[key]).id === tr.id));
         b.disabled = tr.premium;
         b.addEventListener("click", () => {
-          state.transition = tr.id;
+          state[key] = tr.id;
           save();
           renderTransitionChoices();
+          if (key === "mergeTransition") renderMerge();
         });
         return b;
       })

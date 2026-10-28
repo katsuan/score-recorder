@@ -61,7 +61,8 @@ function showHighlightSetting() {
 // result：結果の札に出すスコア { us, them }（入れるかどうか・どこには「💾 保存の設定」で決まる。resultCardPlace）
 // split・label：5分ごとに分けるか・動画の一覧に出す名前（LINE で送る用の書き出し。なければ「💾 保存の設定」のとおり）
 // partStarts：別の動画にしはじめる部分の番号（🔗 つなぐの「動画の途中で切らない」。0 番は入れない）
-async function renderPieces(pieces, { overlay, kind, title, result, split, label, partStarts = null }) {
+// transition：つなぎ目の柄（なければハイライトの柄）。badge：分けた各1本の最初に「1/3」の札を入れるか
+async function renderPieces(pieces, { overlay, kind, title, result, split, label, partStarts = null, transition = null, badge = true }) {
   if (!window.MediaRecorder || !editScreen.captureStream) {
     notice("この端末のブラウザでは書き出せません");
     return;
@@ -91,7 +92,8 @@ async function renderPieces(pieces, { overlay, kind, title, result, split, label
   const splitting = split === undefined ? state.split : split;
   const length = pieces.reduce((sum, p) => sum + (p.b - p.a), 0) + (cardAt ? RESULT_CARD_MS / 1000 : 0);
   const count = Math.ceil(length / (SEGMENT_MS / 1000) - 0.01);
-  pieceTotal = partStarts ? (partStarts.size ? partStarts.size + 1 : 0) : !splitting || count < 2 ? 0 : pieces.length === 1 ? count : -1;
+  pieceTotal = !badge ? 0 : partStarts ? (partStarts.size ? partStarts.size + 1 : 0) : !splitting || count < 2 ? 0 : pieces.length === 1 ? count : -1;
+  transitionPick = transition;
   for (const [index, { src, a, b }] of pieces.entries()) {
     if (!exporting) break;
     // つなぎ目の柄：次の部分があるときは終わりに入れ、前の部分があるときははじめに抜く（editor.js の wipe）
@@ -359,6 +361,7 @@ function finishExport() {
   wipe = null;
   resultCard = null;
   pieceTotal = 0;
+  transitionPick = null;
   frameSync = false;
   clearInterval(tipTimer);
   if (!exporting) return;
