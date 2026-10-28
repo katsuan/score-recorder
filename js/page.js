@@ -61,3 +61,31 @@ const logUse = (kind, count = "") => {
     // 記録できなくても使える
   }
 };
+
+// ---- 重い処理の見張り：始める前に印を置き、終わったら消す。印が残ったまま起きたら、その処理の途中でタブが落ちた（iPhone のメモリ不足など）。
+// そのときは、その端末ではその処理を使わない（同じところでくりかえし落ちないように）。key ごとに localStorage に置く
+const riskKey = (key) => `roqga:risk:${key}`;
+function riskBegin(key) {
+  try {
+    localStorage.setItem(riskKey(key), "run");
+  } catch {
+    // 残せなくても使える
+  }
+}
+function riskEnd(key) {
+  try {
+    if (localStorage.getItem(riskKey(key)) === "run") localStorage.removeItem(riskKey(key));
+  } catch {
+    // 残せなくても使える
+  }
+}
+// この端末で、その処理の途中で落ちたことがあるか（印が残っていたら「落ちた」に変える）
+function riskCrashed(key) {
+  try {
+    const v = localStorage.getItem(riskKey(key));
+    if (v === "run") localStorage.setItem(riskKey(key), "crashed");
+    return v === "run" || v === "crashed";
+  } catch {
+    return false;
+  }
+}

@@ -515,3 +515,6 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .merge-plan:empty { display: none; }
 /* つなぐのあいだは、チーム・スコア・プレビュー・保存の設定を出さない（つなぐ動画には、もう得点板が入っている） */
 body.is-merge .teams, body.is-merge .score-edit, body.is-merge #previewFold, body.is-merge #saveFold { display: none; }
+
+/* 動画を端末に残しているあいだ（keep.js）は、保存・共有を押せない */
+.is-keeping .clip-btn, .is-keeping #shareAll { pointer-events: none; opacity: 0.4; }

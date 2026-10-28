@@ -10,6 +10,10 @@ const KEEP_SHEET = "roqga:sheetOpen"; // 保存の画面を開いているか（
 const KEEP_SAVED = "roqga:keptSaved"; // 保存・共有ずみの印（localStorage。動画の中身を書きなおさずに済むように別に置く）
 let keepSeq = 0;
 let keepReady = false; // 端末の中に残せるか（入れ物が開けたら true）
+// 1本がこれより大きい動画は残さない（iPhone で何百 MB もの動画を写すと、メモリが足りずにタブが落ちることがある）
+const KEEP_MAX_BYTES = 600 * 1024 * 1024;
+// 前に残している途中でタブが落ちた端末では、残さない（riskCrashed。page.js）
+const keepCrashed = riskCrashed("keep");
 
 // 入れ物を開く（使えないブラウザ・プライベートなどでは null。そのときは今までどおり、ページの中だけ）
 let keepDbOpen = null;
@@ -60,22 +64,31 @@ const keepSavedWrite = (set) => {
 // まだ置いていない動画を、1本ずつ置く（大きい動画もあるので順に）
 let keeping = Promise.resolve();
 function keepClips() {
-  const list = clips.filter((c) => !c.keepId && c.file);
+  if (keepCrashed) return;
+  const list = clips.filter((c) => !c.keepId && c.file && c.blob.size <= KEEP_MAX_BYTES);
   list.forEach((c) => (c.keepId = `${Date.now()}-${++keepSeq}`));
   if (!list.length) return;
   const note = $("keepNote");
   note.hidden = false;
-  note.textContent = "⏳ 読みなおしても消えないよう、この端末に残しています…（終わってから保存すると安心）";
+  note.textContent = "⏳ 読みなおしても消えないよう、この端末に残しています…（終わるまで、保存・共有は待ってね）";
+  // 残しているあいだは、保存・共有を押せないように（同時に動画を読みこむと、iPhone ではメモリが足りずにタブが落ちることがある）
+  document.body.classList.add("is-keeping");
+  // 長くかかりすぎたら（入れ物が返事をしないなど）、待たずに押せるようにもどす
+  const giveUp = setTimeout(() => document.body.classList.remove("is-keeping"), 90000);
   keeping = keeping.then(async () => {
     for (const c of list) {
       if (!clips.includes(c)) continue; // 置く前に消された
       const { blob, type, from, to, fromExact, toExact, kind, label, take, takeAt, keepId } = c;
+      riskBegin("keep");
       const ok = await keepTx("readwrite", (s) => s.put({ id: keepId, blob, type, name: c.file.name, from, to, fromExact, toExact, kind, label, take, takeAt }));
+      riskEnd("keep");
       if (!ok) c.keepId = null; // いっぱいなど：この動画はページの中だけ
     }
     const kept = list.every((c) => c.keepId || !clips.includes(c));
     note.textContent = kept ? "✓ この端末に残しました（保存・共有のあとにページが読みなおされても消えません）" : "";
     note.hidden = !kept;
+    clearTimeout(giveUp);
+    document.body.classList.remove("is-keeping");
   });
 }
 

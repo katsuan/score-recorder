@@ -185,11 +185,11 @@ test("共有できたら、本数を記録する（やめたときは記録し�
 test("共有できたら、季節の絵文字がつくことがある（QSeason がなくても動く）", () => {
   const { run, $el } = boot();
   run("window.QSeason = undefined; markShared();");
-  assert.equal($el("sharedNote").textContent, "✓ 共有できました");
+  assert.equal($el("sharedNote").textContent, "✓ 保存・共有できました");
   run("window.QSeason = { decorate: (t) => t + ' 🎃' }; markShared();");
-  assert.equal($el("sharedNote").textContent, "✓ 共有できました 🎃");
+  assert.equal($el("sharedNote").textContent, "✓ 保存・共有できました 🎃");
   run("window.QSeason = { decorate() { throw new Error('x'); } }; markShared();");
-  assert.equal($el("sharedNote").textContent, "✓ 共有できました");
+  assert.equal($el("sharedNote").textContent, "✓ 保存・共有できました");
 });
 
 test("書き出せる動画が1本もなかったときは、「書き出した」と記録しない", async () => {
@@ -297,4 +297,30 @@ test("何本目かの札：5分ごとに分けた各1本の最初の 2 秒に「
   assert.equal(run("texts.at(-1)"), "2本目");
   run("texts = []; pieceTotal = 0; drawPieceBadge(1280, 720, ctx); pieceTotal = 3; clipStartedAt = performance.now() - 3000; drawPieceBadge(1280, 720, ctx);");
   assert.equal(run("texts.length"), 0);
+});
+
+test("🔗 つなぐ：5分をこえて切るところは、作り直さずに切れるキーフレームにそろえる", () => {
+  const { run } = boot();
+  // 4分55秒（295秒）ごと。1本目 100秒、2本目 400秒（キーフレームは 1秒ごと）
+  run(`mergeItems.splice(0, mergeItems.length,
+    { url: "a", duration: 100, keys: Array.from({ length: 100 }, (_, i) => i) },
+    { url: "b", duration: 400, keys: Array.from({ length: 400 }, (_, i) => i) });`);
+  // 途中で切らない：1本目だけで1本、5分をこえる2本目は 295秒のキーフレームで切る
+  run(`mergeSplit = "video"`);
+  const video = JSON.parse(run(`JSON.stringify(mergeParts().map((p) => p.map((x) => [x.src, x.a, x.b])))`));
+  assert.deepEqual(video, [[["a", 0, 100]], [["b", 0, 295]], [["b", 295, 400]]]);
+  assert.equal(run(`mergeParts().inexact`), false);
+  // 5分ごとに切る：つないだ時間で 295秒ごと（1本目のあと 195秒入るところで2本目を切る）
+  run(`mergeSplit = "time"`);
+  const time = JSON.parse(run(`JSON.stringify(mergeParts().map((p) => p.map((x) => [x.src, x.a, x.b])))`));
+  assert.deepEqual(time, [[["a", 0, 100], ["b", 0, 195]], [["b", 195, 400]]]);
+  // キーフレームが分からない動画は、そのままでは切れない（流してつなぐ）
+  run(`mergeItems[1].keys = null; mergeSplit = "video"`);
+  assert.equal(run(`mergeParts().inexact`), true);
+});
+
+test("🔗 つなぐ：すぐつなげなかった印は、動画を並べかえ・足す・外すと消える（もう一度試す）", () => {
+  const { run } = boot();
+  run(`mergeQuickFailed = "badge"; mergeChanged();`);
+  assert.equal(run("mergeQuickFailed"), null);
 });

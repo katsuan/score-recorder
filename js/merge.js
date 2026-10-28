@@ -1,11 +1,12 @@
 // ろくが：🔗 つなぐ。ハイライトなど、いくつかの動画を選んで1本につなぐ（撮った順に並べ、↑↓ で並べかえ・✕ で外す）。
 // つなぎ目の柄・5分をこえたときの分け方（動画の途中で切らない／5分ごとに切る／分けない）・1/3 の札・ファイル名の通し番号（part1…）。
-// 書き出し：つなぎ目なし・札なしで、mp4 の形式がそろっていれば、作り直さずに並べる（quickjoin.js。すぐ終わる）。
-// 柄・札を入れるとき・5分ごとに切るとき・形式がちがうときは、撮った動画にと同じく流しながら録る（render.js の renderPieces。つないだ長さぶんかかる）。
-// 読み込む順は index.html（page → store → draw → setup → studio → record → editor → render → quickjoin → merge → app.js）。
+// 書き出し：mp4 の形式がそろっていれば、作り直さずに並べる（quickjoin.js。すぐ終わる。切るところはキーフレームにそろえる）。
+// 「1/3」の札は、札が出る最初だけ作りなおす（quickbadge.js）。
+// 柄を入れるとき・形式がちがうとき・すぐつなげなかったときは、撮った動画にと同じく流しながら録る（render.js の renderPieces。つないだ長さぶんかかる）。
+// 読み込む順は index.html（page → store → draw → setup → studio → record → editor → render → quickjoin → quickbadge → merge → keep → app.js）。
 "use strict";
 
-const mergeItems = []; // 選んだ動画 [{ id, file, url, name, duration, mp4 }]（mp4：quickjoin.js で読んだ目次。読めなければ null）
+const mergeItems = []; // 選んだ動画 [{ id, file, url, name, duration, mp4, keys }]（mp4：quickjoin.js で読んだ目次・keys：キーフレームの時刻。読めなければ null）
 let mergeSplit = "video"; // 5分をこえたら：video（動画の途中で切らない）・time（5分ごとに切る）・none（分けない）
 let mergeSeq = 0;
 
@@ -37,11 +38,11 @@ $("mergeFiles").addEventListener("change", async (e) => {
   if (!files.length) return;
   logUse("merge-pick", files.length);
   // 読みこみ中は、押したボタンに出す（何本目か）。終わったら renderMerge で元にもどる
-  const pick = $("pickMerge");
-  pick.disabled = true;
+  const pickBtn = $("pickMerge");
+  pickBtn.disabled = true;
   $("mergeExport").disabled = true;
   for (const [i, file] of files.entries()) {
-    pick.textContent = `動画を読みこんでいます…（${i + 1}/${files.length}）`;
+    pickBtn.textContent = `動画を読みこんでいます…（${i + 1}/${files.length}）`;
     const url = URL.createObjectURL(file);
     // 長さは、まず mp4 の目次から読む（iPhone の Safari は、はじめて選んだ動画だと <video> で長さを読むのに時間がかかり、読めないことがある）。
     // mp4 でなければ <video> で調べる（読めなければ、待つ時間を長くしてもう一度）
@@ -52,11 +53,16 @@ $("mergeFiles").addEventListener("change", async (e) => {
       LineShareUI.toast(`「${file.name}」は読めませんでした`);
       continue;
     }
-    mergeQuickFailed = null; // 動画が変わったら、もう一度すぐつなぐのを試す
     mergeItems.push({ id: ++mergeSeq, file, url, name: file.name, duration, mp4, keys: mp4 ? mp4KeyTimes(mp4) : null });
   }
-  renderMerge();
+  mergeChanged();
 });
+
+// 並べる動画が変わった（足す・並べかえ・外す）：すぐつなぐのがうまくいかなかった印を消して（もう一度試す）、描きなおす
+function mergeChanged() {
+  mergeQuickFailed = null;
+  renderMerge();
+}
 
 // 切る時刻：from 秒から limit 秒までのうち、いちばん遅いキーフレーム（作り直さずに切れる所）。なければ from+limit（流してつなぐときだけ使える）
 function mergeCutAt(m, from, limit) {
@@ -122,10 +128,7 @@ function mergeParts() {
 let mergeQuickFailed = null;
 
 // 作り直さずに並べられるか。できないときは、そのわけ（画面に出す）。null ならできる
-function mergeSlowReason() {
-  const max = SEGMENT_MS / 1000;
-  const total = mergeItems.reduce((sum, m) => sum + m.duration, 0);
-  const parts = mergeParts();
+function mergeSlowReason(parts = mergeParts()) {
   if (transitionOf(state.mergeTransition).draw) return "つなぎ目の柄を入れるので";
   if (parts.length > 1 && state.mergeBadge && (!quickBadgeReady() || mergeQuickFailed === "badge")) {
     return `この端末では「1/${parts.length}」の札を入れたまま すぐにはつなげないので（札を「入れない」にすると、すぐ終わります）`;
@@ -150,14 +153,14 @@ function renderMerge() {
       // ボタン（↑・↓・✕）を作る
       const btn = (text, label, disabled, onClick) => {
         const b = Object.assign(document.createElement("button"), { type: "button", textContent: text, disabled });
-        b.setAttribute("aria-label", `${m.name} を${label}`);
+        b.setAttribute("aria-label", `${i + 1}本目の動画を${label}`);
         b.addEventListener("click", onClick);
         return b;
       };
       const move = (dir) => () => {
         mergeItems.splice(i, 1);
         mergeItems.splice(i + dir, 0, m);
-        renderMerge();
+        mergeChanged();
       };
       li.append(
         name,
@@ -166,7 +169,7 @@ function renderMerge() {
         btn("✕", "外す", false, () => {
           mergeItems.splice(i, 1);
           URL.revokeObjectURL(m.url);
-          renderMerge();
+          mergeChanged();
         })
       );
       return li;
@@ -177,14 +180,14 @@ function renderMerge() {
   $("pickMerge").disabled = false;
   $("pickMerge").textContent = mergeItems.length ? "＋ 動画を足す" : "＋ 動画を選ぶ（いくつでも）";
   $("mergeExport").disabled = mergeItems.length < 2;
-  const slow = mergeSlowReason();
+  const parts = mergeParts();
+  const slow = mergeSlowReason(parts);
   $("mergeExport").textContent = !mergeItems.length
     ? "🔗 つないで書き出す"
     : slow
       ? `🔗 ${mergeItems.length}本をつないで書き出す（約 ${clock(Math.ceil(total))}）`
       : `🔗 ${mergeItems.length}本をつなぐ（すぐ終わります）`;
   // 分けたときの見本：part ごとの長さ
-  const parts = mergeParts();
   const max = SEGMENT_MS / 1000;
   // 「1/4」の札：分けるときだけ選べる（見出しの数は、いまの本数）
   $("mergeBadgeRow").hidden = parts.length < 2;
@@ -303,7 +306,7 @@ $("mergeExport").addEventListener("click", async () => {
   if (mergeItems.length < 2) return;
   const parts = mergeParts();
   const label = $("mergeName").value.trim() || "ハイライト";
-  if (!mergeSlowReason()) {
+  if (!mergeSlowReason(parts)) {
     logUse("merge-quick", mergeItems.length);
     const done = await mergeQuick(parts, label);
     if (done === true) return;

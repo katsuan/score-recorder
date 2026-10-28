@@ -5,7 +5,9 @@
 // 読み込む順は index.html（… → quickjoin → quickbadge → merge → …）
 "use strict";
 
-const quickBadgeReady = () => typeof VideoEncoder === "function" && typeof VideoDecoder === "function" && typeof VideoFrame === "function";
+// 前に作りなおしの途中でタブが落ちた端末では使わない（riskCrashed。page.js）
+const quickBadgeCrashed = riskCrashed("badge");
+const quickBadgeReady = () => !quickBadgeCrashed && typeof VideoEncoder === "function" && typeof VideoDecoder === "function" && typeof VideoFrame === "function";
 
 const concatBytes = (a, b) => {
   const out = new Uint8Array(a.length + b.length);
@@ -87,6 +89,9 @@ function displayTransform(track, w, h) {
 // 返すのは [{ file, info }]（buildMp4 にそのまま渡せる）。できなければ null
 async function quickBadgePieces(file, info, keys, from, to, label) {
   if (!quickBadgeReady()) return null;
+  let decoder = null;
+  let encoder = null;
+  riskBegin("badge");
   try {
     const video0 = info.tracks.find((t) => t.kind === "vide");
     const codec = videoCodecOf(video0);
@@ -138,7 +143,7 @@ async function quickBadgePieces(file, info, keys, from, to, label) {
     let description = null;
     let failed = null;
     let made = 0;
-    const encoder = new VideoEncoder({
+    encoder = new VideoEncoder({
       output: (chunk, meta) => {
         if (meta?.decoderConfig?.description) description = new Uint8Array(meta.decoderConfig.description.slice ? meta.decoderConfig.description.slice(0) : meta.decoderConfig.description);
         const b = new Uint8Array(chunk.byteLength);
@@ -148,7 +153,7 @@ async function quickBadgePieces(file, info, keys, from, to, label) {
       error: (e) => (failed = e)
     });
     encoder.configure(encodeConfig);
-    const decoder = new VideoDecoder({
+    decoder = new VideoDecoder({
       output: (frame) => {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.drawImage(frame, 0, 0, codec.width, codec.height);
@@ -165,13 +170,18 @@ async function quickBadgePieces(file, info, keys, from, to, label) {
     });
     decoder.configure(decodeConfig);
     const us = (x) => Math.round((x / ts) * 1e6);
+    // 一度にたくさん流しこまない（iPhone で 4K のコマが何十枚もたまると、メモリが足りずにタブが落ちる）。
+    // 読む側・作る側の待ちが 2 枚をこえたら、減るまで待つ
+    const settle = async () => {
+      while (!failed && (decoder.decodeQueueSize > 2 || encoder.encodeQueueSize > 2)) await new Promise((r) => setTimeout(r, 5));
+    };
     for (let i = 0; i < n; i++) {
+      await settle();
+      if (failed) break;
       decoder.decode(new EncodedVideoChunk({ type: i === 0 || (v.sync && v.sync[i]) ? "key" : "delta", timestamp: us(pts[i]), duration: us(v.durations[i]), data: samples[i] }));
     }
     await decoder.flush();
     await encoder.flush();
-    decoder.close();
-    encoder.close();
     if (failed || out.length !== n || !description || !out[0].key) return null;
     // 作りなおしたコマは見える順に並ぶ（B フレームなし）。デコードの時刻はもとのまま、見える時刻はもとの見える時刻を小さい順に
     const sorted = [...pts].sort((x, y) => x - y);
@@ -209,5 +219,9 @@ async function quickBadgePieces(file, info, keys, from, to, label) {
     return pieces;
   } catch {
     return null;
+  } finally {
+    // 読む側・作る側は、うまくいってもいかなくても閉じる（閉じないとメモリが残る）
+    for (const c of [decoder, encoder]) if (c && c.state !== "closed") c.close();
+    riskEnd("badge");
   }
 }

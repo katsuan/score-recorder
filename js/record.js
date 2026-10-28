@@ -242,7 +242,7 @@ function showSaveGuide() {
       ? "📱 「📤 保存・共有」で LINE などへ。端末には ⬇️。"
       : "⬇️ で端末に保存。";
   // 端末の中に残せるとき（keep.js）は 7日まで残る。残せないブラウザでは、ページを閉じると消える
-  $("saveGuide").textContent += typeof keepReady !== "undefined" && keepReady ? "このブラウザに7日まで残ります（🗑 で消せます）。" : "ページを閉じると消えます。";
+  $("saveGuide").textContent += typeof keepReady !== "undefined" && keepReady && !keepCrashed ? "このブラウザに7日まで残ります（🗑 で消せます）。" : "ページを閉じると消えます。";
   // LINE の中では、1本保存するとページが開きなおされ、残りが消えることがある
   if (inLine && clips.length > 1)
     $("saveGuide").textContent += canShare
@@ -305,12 +305,16 @@ function renderClips() {
   const files = shown.map((i) => clips[i].file);
   const now = takeClips();
   const earlier = clips.length - now.length;
-  $("shareAll").hidden = files.length < 2 || !navigator.canShare?.({ files });
+  // まとめて保存：iPhone は共有のときに動画をまとめてメモリに読みこむので、合わせて大きいとタブが落ちる。そのときは出さずに1本ずつに
+  const bytes = shown.reduce((s, i) => s + clips[i].blob.size, 0);
+  const tooBig = isIOS && bytes > SHARE_ALL_MAX_BYTES;
+  $("shareAll").hidden = files.length < 2 || tooBig || !navigator.canShare?.({ files });
   $("saveInfo").textContent = [
     now.length > 1 ? `トークで送れるよう、5分ずつ ${now.length}本に分けました。` : now.length ? "" : "録れませんでした。もう一度撮ってみてね。",
     // 1本のままで5分をこえたら：LINE のトークでは送れないことがある（同じ画面の「LINE で送る用」（cutRow）で5分までを作れる）
     now.length === 1 && now[0].to - now[0].from > 300 ? "5分をこえているので、LINE のトークでは送れないことがあります。下の「LINE で送る用」で、5分までの動画を作れます。" : "",
-    earlier ? `前の動画（${earlier}本）も下にあります。` : ""
+    earlier ? `前の動画（${earlier}本）も下にあります。` : "",
+    tooBig && files.length > 1 ? "大きいので、1本ずつ「📤 保存・共有」してね（まとめてだと、ページが落ちることがあります）。" : ""
   ].filter(Boolean).join("");
   if (shown.length) showClip(shown[shown.length - 1]);
 }
@@ -327,6 +331,8 @@ function showClip(i) {
   document.querySelectorAll(".clip").forEach((row) => row.classList.toggle("is-current", row.dataset.index === String(i)));
 }
 
+// まとめて保存・共有してよい大きさ（iPhone。合わせてこれより大きいと1本ずつ）
+const SHARE_ALL_MAX_BYTES = 400 * 1024 * 1024;
 // 共有は動画だけ（題名や文字をつけると、LINE などで別のメッセージとして届くことがあるため）
 async function shareFiles(list) {
   try {
@@ -372,9 +378,9 @@ const shotTakes = () => [...new Set(clips.filter((c) => c.kind === "shot").map((
 // その録画が、カメラで撮った何回目か（1 から）を返す
 const takeNumber = (t) => shotTakes().indexOf(t) + 1;
 
-// 共有がすんだら：「✓ 共有できました」と、「0 - 0 から撮りなおす」を目立たせる（次の試合へ）
+// 保存・共有がすんだら（写真に保存したのか送ったのかは分からないので、両方の言い方で）：「✓ 保存・共有できました」と、「0 - 0 から撮りなおす」を目立たせる（次の試合へ）
 function markShared() {
-  $("sharedNote").textContent = seasonal("✓ 共有できました");
+  $("sharedNote").textContent = seasonal("✓ 保存・共有できました");
   $("sharedNote").hidden = false;
   $("restartSave").classList.add("is-suggest");
 }
