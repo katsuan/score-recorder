@@ -32,7 +32,7 @@
      送り先は config.js の gasWebAppUrl。電波がないときは送らずに使える（読めなくても止まらない） -->
 <script src="https://katsuan.github.io/line-share/config.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/log.js" defer></script>
-<link rel="stylesheet" href="style.css?v=202610280759">
+<link rel="stylesheet" href="style.css?v=202610281300">
 </head>
 <body>
 <!-- はじめの画面：チーム名・色を決めて、カメラを開く（さくせん盤で入れたチーム名・色があれば、それを使う） -->
@@ -47,6 +47,7 @@
   <div class="ls-tabs mode-tabs" role="tablist" aria-label="使い方">
     <button class="ls-tab" type="button" role="tab" data-mode="shoot" aria-selected="true">📹 撮りながら</button>
     <button class="ls-tab" type="button" role="tab" data-mode="later" aria-selected="false">🎞 撮った動画に</button>
+    <button class="ls-tab" type="button" role="tab" data-mode="merge" aria-selected="false">🔗 つなぐ</button>
   </div>
   <!-- チーム：得点板と同じく、左のチーム・右のチーム（自分のチームの試合とはかぎらないので「自チーム・相手」とは呼ばない。
        ⇄ で入れかえると、ラベルも並びに合わせて変わる）。チーム名の枠の中の左に色の丸 [● チーム名]。
@@ -193,6 +194,26 @@
   </details>
   <!-- LINE の中で開いているとき：保存は Safari・Chrome のほうが確か（LINE の中では、保存するとページが開きなおされ、録った動画が消えることがある） -->
   <p id="lineHint" class="guide" hidden>LINE 版では、保存すると録った動画が消えることがあるので、<a id="openOutside" href="#">Safari・Chrome で開く</a>のがおすすめです。</p>
+  <!-- 🔗 つなぐ：ハイライトなど、いくつかの動画を選んで1本につなぐ（並べかえ・つなぎ目の柄・5分をこえたときの分け方・1/3 の札・ファイル名の通し番号）。中身は js/merge.js -->
+  <section id="mergePanel" class="merge-panel" data-mode-only="merge" hidden>
+    <p class="hint merge-lead">ハイライトなど、いくつかの動画を選んで1本につなぎます。撮った順に並びます（↑↓ で並べかえ）。</p>
+    <ol id="mergeList" class="merge-list"></ol>
+    <button id="pickMerge" class="ls-button is-block" type="button">＋ 動画を足す</button>
+    <input id="mergeFiles" type="file" accept="video/*" multiple hidden>
+    <div class="transition-row is-light" data-transition-row data-for="merge"><span>つなぎ目</span><div class="transition-chips" role="radiogroup" aria-label="つなぎ目の柄"></div></div>
+    <div class="split">
+      <span class="split-label">5分をこえたら（LINE のトークで送れる動画は5分まで）</span>
+      <div class="seg" role="radiogroup" aria-label="5分をこえたときの分け方">
+        <button class="chip" type="button" role="radio" data-merge-split="video">途中で切らない</button>
+        <button class="chip" type="button" role="radio" data-merge-split="time">5分ごとに切る</button>
+        <button class="chip" type="button" role="radio" data-merge-split="none">分けない</button>
+      </div>
+      <p id="mergePlan" class="hint merge-plan"></p>
+    </div>
+    <label class="ls-field"><span class="ls-label">ファイルの名前（分けたときは part1・part2…）</span><input id="mergeName" class="ls-input" maxlength="20" placeholder="ハイライト" autocomplete="off" enterkeyhint="done"></label>
+    <button id="mergeExport" class="ls-button is-primary is-block" type="button" disabled>🔗 つないで書き出す</button>
+    <p id="mergeNote" class="hint"></p>
+  </section>
   <button id="openCamera" class="ls-button is-primary is-block" type="button" data-mode-only="shoot">📹 カメラを開く</button>
   <!-- 撮った動画に（得点板をつける）：端末の動画を選ぶ（動画はこの端末の中だけで使う） -->
   <button id="pickVideo" class="ls-button is-primary is-block" type="button" data-mode-only="later" hidden>🎞 動画を選ぶ</button>
@@ -429,15 +450,16 @@
 </div>
 
 <!-- ろくがの動き：js/ の役ごとのファイルをこの順に読み、最後に入口の app.js（全部読んでから、最初の表示） -->
-<script src="js/page.js?v=202610280759"></script>
-<script src="js/store.js?v=202610280759"></script>
-<script src="js/draw.js?v=202610280759"></script>
-<script src="js/setup.js?v=202610280759"></script>
-<script src="js/studio.js?v=202610280759"></script>
-<script src="js/record.js?v=202610280759"></script>
-<script src="js/editor.js?v=202610280759"></script>
-<script src="js/render.js?v=202610280759"></script>
-<script src="app.js?v=202610280759"></script>
+<script src="js/page.js?v=202610281300"></script>
+<script src="js/store.js?v=202610281300"></script>
+<script src="js/draw.js?v=202610281300"></script>
+<script src="js/setup.js?v=202610281300"></script>
+<script src="js/studio.js?v=202610281300"></script>
+<script src="js/record.js?v=202610281300"></script>
+<script src="js/editor.js?v=202610281300"></script>
+<script src="js/render.js?v=202610281300"></script>
+<script src="js/merge.js?v=202610281300"></script>
+<script src="app.js?v=202610281300"></script>
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所）と、紹介の窓口 -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="roqga" defer></script>

@@ -60,7 +60,8 @@ function showHighlightSetting() {
 // あいだを飛ばすときは録画を一時停止してつなぐ。流した時間だけかかる
 // result：結果の札に出すスコア { us, them }（入れるかどうか・どこには「💾 保存の設定」で決まる。resultCardPlace）
 // split・label：5分ごとに分けるか・動画の一覧に出す名前（LINE で送る用の書き出し。なければ「💾 保存の設定」のとおり）
-async function renderPieces(pieces, { overlay, kind, title, result, split, label }) {
+// partStarts：別の動画にしはじめる部分の番号（🔗 つなぐの「動画の途中で切らない」。0 番は入れない）
+async function renderPieces(pieces, { overlay, kind, title, result, split, label, partStarts = null }) {
   if (!window.MediaRecorder || !editScreen.captureStream) {
     notice("この端末のブラウザでは書き出せません");
     return;
@@ -90,11 +91,18 @@ async function renderPieces(pieces, { overlay, kind, title, result, split, label
   const splitting = split === undefined ? state.split : split;
   const length = pieces.reduce((sum, p) => sum + (p.b - p.a), 0) + (cardAt ? RESULT_CARD_MS / 1000 : 0);
   const count = Math.ceil(length / (SEGMENT_MS / 1000) - 0.01);
-  pieceTotal = !splitting || count < 2 ? 0 : pieces.length === 1 ? count : -1;
+  pieceTotal = partStarts ? (partStarts.size ? partStarts.size + 1 : 0) : !splitting || count < 2 ? 0 : pieces.length === 1 ? count : -1;
   for (const [index, { src, a, b }] of pieces.entries()) {
     if (!exporting) break;
     // つなぎ目の柄：次の部分があるときは終わりに入れ、前の部分があるときははじめに抜く（editor.js の wipe）
-    const hasNext = index < pieces.length - 1;
+    // 次の部分が同じ動画のなかにあるとき（区切りで別の動画にするところは、つなぎ目の柄を入れずに切る）
+    const hasNext = index < pieces.length - 1 && !partStarts?.has(index + 1);
+    // ここから次の動画（part）：いまの1本を閉じて次を始め、動画の頭出しが終わるまで止めておく（下の resume で録りはじめる）
+    const newPart = started && partStarts?.has(index);
+    if (newPart) {
+      nextClip();
+      if (recorder?.state === "recording") recorder.pause();
+    }
     const half = Math.min(TRANSITION_SEC / 2, (b - a) / 2);
     if (editVideo.src !== src && !(await loadVideo(src))) continue; // 読めない動画は飛ばす
     await seekTo(a);
@@ -118,6 +126,7 @@ async function renderPieces(pieces, { overlay, kind, title, result, split, label
       if (cardAt === "start") await recordCard(result); // 最初に結果の札（LINE などのサムネに結果が出る）
     } else if (recorder?.state === "paused") {
       recorder.resume();
+      if (newPart) clipStartedAt = performance.now(); // 「2/3」の札は、録りはじめてから 2 秒
     }
     await editVideo.play().catch(() => {});
     // つなぎ目のあと：柄で画面をおおったまま、動画が流れはじめるのを待ってから、柄を抜けさせる（頭出し直後のかくつきを柄の下に隠す）

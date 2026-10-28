@@ -500,3 +500,18 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* 見出しのよこの、いまの記録のしかた */
 .mode-chip { flex: 0 0 auto; margin-left: auto; padding: 3px 10px; border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 999px; background: none; color: #fff; font: inherit; font-size: 12px; font-weight: 800; white-space: nowrap; cursor: pointer; }
 .mode-chip.is-quick { border-color: #e5484d; background: rgba(229, 72, 77, 0.18); cursor: default; }
+
+/* ---- 🔗 つなぐ：選んだ動画の一覧・分け方・書き出す ---- */
+.merge-panel { display: grid; gap: 12px; }
+.merge-panel[hidden] { display: none; }
+.merge-lead { margin: 0; }
+.merge-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; counter-reset: merge; }
+.merge-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto; align-items: center; gap: 6px; padding: 8px 10px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); counter-increment: merge; }
+.merge-item::before { content: counter(merge); min-width: 1.4em; font-weight: 800; color: var(--accent); text-align: center; }
+.merge-name { min-width: 0; overflow: hidden; font-size: 13px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.merge-name small { display: block; font-size: 11px; font-weight: 700; color: var(--ink-soft); }
+.merge-item button { width: 36px; height: 36px; padding: 0; border: 2px solid var(--border); border-radius: 10px; background: var(--card); color: var(--ink); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+.merge-item button:disabled { opacity: 0.35; cursor: default; }
+.merge-plan:empty { display: none; }
+/* つなぐのあいだは、チーム・スコア・プレビュー・保存の設定を出さない（つなぐ動画には、もう得点板が入っている） */
+body.is-merge .teams, body.is-merge .score-edit, body.is-merge #previewFold, body.is-merge #saveFold { display: none; }

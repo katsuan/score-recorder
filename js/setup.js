@@ -577,6 +577,7 @@ document.querySelectorAll("[data-mode]").forEach((tab) =>
     const mode = tab.dataset.mode;
     document.querySelectorAll("[data-mode]").forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
     document.querySelectorAll("[data-mode-only]").forEach((el) => (el.hidden = el.dataset.modeOnly !== mode));
+    document.body.classList.toggle("is-merge", mode === "merge"); // つなぐのあいだは、チーム・プレビューなどを出さない
     showResume();
   })
 );

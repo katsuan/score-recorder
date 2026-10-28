@@ -78,6 +78,13 @@ function startClip() {
   }, SEGMENT_MS);
 }
 
+// いまの1本を閉じて、すぐ次の1本を録りはじめる（🔗 つなぐで、決めた区切りごとに別の動画にする。一時停止中でも閉じられる）
+function nextClip() {
+  clearTimeout(segmentTimer);
+  if (recorder && recorder.state !== "inactive") recorder.stop();
+  startClip();
+}
+
 // 📹 録画ボタン：撮る画面の canvas と音で録画をはじめる（録れない端末・カメラがないときは知らせる）
 function startRecording() {
   if (!window.MediaRecorder || !screen.captureStream) {
@@ -208,11 +215,15 @@ function openSaveSheet(withNextShot) {
   $("saveSheet").hidden = false;
 }
 
+// ファイル名に使えない字（/ \\ : * ? " < > | と空白のはし）を除く
+const safeName = (t) => String(t || "").trim().replace(/[\\/:*?"<>|]/g, "").slice(0, 20);
 // 動画のファイル名：score-20261024-1530.mp4（5分ごとに分けたときは -1・-2、ハイライトは -highlight）
 function clipFileName(c, index, count) {
   const d = new Date(c.takeAt);
   const stamp = `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}-${pad2(d.getHours())}${pad2(d.getMinutes())}`;
   const ext = c.type.includes("mp4") ? "mp4" : "webm";
+  // 🔗 つないだ動画：「ハイライト_20261028_part1.mp4」（名前は つなぐ のファイルの名前。分けたときだけ part の通し番号）
+  if (c.kind === "merge") return `${safeName(c.label) || "ハイライト"}_${stamp.slice(0, 8)}${count > 1 ? `_part${index + 1}` : ""}.${ext}`;
   const tail = c.kind === "highlight" ? "-highlight" : c.kind === "cut" ? `-cut${count > 1 ? `-${index + 1}` : ""}` : count > 1 ? `-${index + 1}` : "";
   return `score-${stamp}${tail}.${ext}`;
 }
@@ -265,6 +276,8 @@ function renderClips() {
       const label =
         c.kind === "highlight"
           ? `⚡ ハイライト　${clock(c.to - c.from)}${size}`
+          : c.kind === "merge"
+            ? `🔗 ${c.label || "ハイライト"}　${sameTake.length > 1 ? `${sameTake.indexOf(c) + 1}/${sameTake.length}　` : ""}${clock(c.to - c.from)}${size}`
           : c.kind === "cut"
             ? `✂️ ${c.label}　${sameTake.length > 1 ? `${sameTake.indexOf(c) + 1}本目　` : ""}${clock(c.to - c.from)}${size}`
           : c.kind === "edit"

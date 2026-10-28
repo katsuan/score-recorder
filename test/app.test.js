@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
-const FILES = ["js/page.js", "js/store.js", "js/draw.js", "js/setup.js", "js/studio.js", "js/record.js", "js/editor.js", "js/render.js"];
+const FILES = ["js/page.js", "js/store.js", "js/draw.js", "js/setup.js", "js/studio.js", "js/record.js", "js/editor.js", "js/render.js", "js/merge.js"];
 
 // どんな使い方をしても止まらない、まねの部品（id ごとに1つ。書いた値は覚える）
 function fakeEl() {
@@ -288,11 +288,11 @@ test("結果の札：はじめはハイライトの最初だけ。全部にも�
   assert.equal(run("resultCardPlace('highlight')"), null);
 });
 
-test("何本目かの札：5分ごとに分けた各1本の最初の 2 秒に「2本目（全3本）」。本数が分からないときは「2本目」、分けないときは出さない", () => {
+test("何本目かの札：5分ごとに分けた各1本の最初の 2 秒に「2/3」。本数が分からないときは「2本目」、分けないときは出さない", () => {
   const { run } = boot();
   run("var texts = []; var ctx = new Proxy({ fillText: (t) => texts.push(t), measureText: () => ({ width: 100 }) }, { get: (o, k) => (k in o ? o[k] : () => {}), set: () => true });");
   run("pieceTotal = 3; clipNo = 2; clipStartedAt = performance.now(); drawPieceBadge(1280, 720, ctx);");
-  assert.equal(run("texts.at(-1)"), "2本目（全3本）");
+  assert.equal(run("texts.at(-1)"), "2/3");
   run("pieceTotal = -1; drawPieceBadge(1280, 720, ctx);");
   assert.equal(run("texts.at(-1)"), "2本目");
   run("texts = []; pieceTotal = 0; drawPieceBadge(1280, 720, ctx); pieceTotal = 3; clipStartedAt = performance.now() - 3000; drawPieceBadge(1280, 720, ctx);");

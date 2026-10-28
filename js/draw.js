@@ -151,7 +151,7 @@ function drawNiceFxAt(w, h, c, p) {
   c.restore();
 }
 
-// ---- 何本目かの札：5分ごとに分けた書き出しで、各1本の最初の 2 秒、右上に「1本目（全3本）」（LINE などのサムネに出る）。
+// ---- 何本目かの札：5分ごとに分けた書き出しで、各1本の最初の 2 秒、右上に「1/3」（LINE などのサムネに出る）。
 // pieceTotal：全部で何本か（0＝出さない・-1＝本数が前もって分からないので「2本目」だけ）。アプリ版（PieceBadgeRenderer）と同じ絵 ----
 const PIECE_BADGE_MS = 2000;
 let pieceTotal = 0;
@@ -159,7 +159,7 @@ let pieceTotal = 0;
 function drawPieceBadge(w, h, c) {
   if (!pieceTotal || performance.now() - clipStartedAt > PIECE_BADGE_MS) return;
   const s = Math.min(w, h) / 720;
-  const label = pieceTotal > 0 ? `${clipNo}本目（全${pieceTotal}本）` : `${clipNo}本目`;
+  const label = pieceTotal > 0 ? `${clipNo}/${pieceTotal}` : `${clipNo}本目`;
   c.save();
   c.font = `800 ${34 * s}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
   const pw = c.measureText(label).width + 44 * s;
