@@ -10,7 +10,7 @@ let mergeSplit = "video"; // 5分をこえたら：video（動画の途中で切
 let mergeSeq = 0;
 
 // 動画の長さ（秒）を調べる。ブラウザで録った webm は長さが入っていないことがあるので、いちど最後まで飛ばして調べる。読めなければ 0
-const probeDuration = (url) =>
+const probeDuration = (url, wait = 8000) =>
   new Promise((resolve) => {
     const v = document.createElement("video");
     v.preload = "metadata";
@@ -20,7 +20,7 @@ const probeDuration = (url) =>
       v.load();
       resolve(Number.isFinite(d) ? d : 0);
     };
-    const timer = setTimeout(() => done(0), 8000);
+    const timer = setTimeout(() => done(0), wait);
     v.addEventListener("error", () => (clearTimeout(timer), done(0)), { once: true });
     v.addEventListener("loadedmetadata", () => {
       if (Number.isFinite(v.duration)) return clearTimeout(timer), done(v.duration);
@@ -39,13 +39,15 @@ $("mergeFiles").addEventListener("change", async (e) => {
   $("mergeNote").textContent = "動画を読みこんでいます…";
   for (const file of files) {
     const url = URL.createObjectURL(file);
-    const duration = await probeDuration(url);
+    // 長さは、まず mp4 の目次から読む（iPhone の Safari は、はじめて選んだ動画だと <video> で長さを読むのに時間がかかり、読めないことがある）。
+    // mp4 でなければ <video> で調べる（読めなければ、待つ時間を長くしてもう一度）
+    const mp4 = await readMp4(file);
+    const duration = mp4?.seconds || (await probeDuration(url)) || (await probeDuration(url, 20000));
     if (!duration) {
       URL.revokeObjectURL(url);
       LineShareUI.toast(`「${file.name}」は読めませんでした`);
       continue;
     }
-    const mp4 = await readMp4(file);
     mergeItems.push({ id: ++mergeSeq, file, url, name: file.name, duration, mp4, keys: mp4 ? mp4KeyTimes(mp4) : null });
   }
   renderMerge();
