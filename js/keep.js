@@ -12,6 +12,9 @@ let keepSeq = 0;
 let keepReady = false; // 端末の中に残せるか（入れ物が開けたら true）
 // 1本がこれより大きい動画は残さない（iPhone で何百 MB もの動画を写すと、メモリが足りずにタブが落ちることがある）
 const KEEP_MAX_BYTES = 600 * 1024 * 1024;
+// つないだ動画（kind: merge）は残さない。中身は選んだ動画の切り出しなので、残すには全部を読みなおして写すことになり、
+// iPhone では長くかかって、そのあいだ保存・共有が押せなかったため（つなぐのはすぐ終わるので、消えたらつなぎなおせばよい）
+const keepable = (c) => !c.keepId && c.file && c.kind !== "merge" && c.blob.size <= KEEP_MAX_BYTES;
 // 前に残している途中でタブが落ちた端末では、残さない（riskCrashed。page.js）
 const keepCrashed = riskCrashed("keep");
 
@@ -65,7 +68,7 @@ const keepSavedWrite = (set) => {
 let keeping = Promise.resolve();
 function keepClips() {
   if (keepCrashed) return;
-  const list = clips.filter((c) => !c.keepId && c.file && c.blob.size <= KEEP_MAX_BYTES);
+  const list = clips.filter(keepable);
   list.forEach((c) => (c.keepId = `${Date.now()}-${++keepSeq}`));
   if (!list.length) return;
   const note = $("keepNote");
@@ -74,7 +77,7 @@ function keepClips() {
   // 残しているあいだは、保存・共有を押せないように（同時に動画を読みこむと、iPhone ではメモリが足りずにタブが落ちることがある）
   document.body.classList.add("is-keeping");
   // 長くかかりすぎたら（入れ物が返事をしないなど）、待たずに押せるようにもどす
-  const giveUp = setTimeout(() => document.body.classList.remove("is-keeping"), 90000);
+  const giveUp = setTimeout(() => document.body.classList.remove("is-keeping"), 20000);
   keeping = keeping.then(async () => {
     for (const c of list) {
       if (!clips.includes(c)) continue; // 置く前に消された

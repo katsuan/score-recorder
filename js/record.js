@@ -242,7 +242,14 @@ function showSaveGuide() {
       ? "📱 「📤 保存・共有」で LINE などへ。端末には ⬇️。"
       : "⬇️ で端末に保存。";
   // 端末の中に残せるとき（keep.js）は 7日まで残る。残せないブラウザでは、ページを閉じると消える
-  $("saveGuide").textContent += typeof keepReady !== "undefined" && keepReady && !keepCrashed ? "このブラウザに7日まで残ります（🗑 で消せます）。" : "ページを閉じると消えます。";
+  // つないだ動画は残さない（keep.js の keepable）
+  const merged = clips.some((c) => c.kind === "merge");
+  $("saveGuide").textContent +=
+    typeof keepReady !== "undefined" && keepReady && !keepCrashed
+      ? merged
+        ? "撮った動画はこのブラウザに7日まで残ります。つないだ動画は、ページを閉じると消えます（すぐつなぎなおせます）。"
+        : "このブラウザに7日まで残ります（🗑 で消せます）。"
+      : "ページを閉じると消えます。";
   // LINE の中では、1本保存するとページが開きなおされ、残りが消えることがある
   if (inLine && clips.length > 1)
     $("saveGuide").textContent += canShare
