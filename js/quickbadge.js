@@ -88,6 +88,53 @@ function displayTransform(track, w, h) {
   return { a, b, c, d, tx, ty, dw: Math.abs(a * w + c * h), dh: Math.abs(b * w + d * h) };
 }
 
+// 映像のコマのデータを、コマの番号の順に返す（この部分の束を、まとめて1回で読む）
+async function quickBadgeSamples(file, v) {
+  const start = Math.min(...v.chunks.map((c) => c.offset));
+  const end = Math.max(...v.chunks.map((c) => c.offset + c.size));
+  const bytes = new Uint8Array(await file.slice(start, end).arrayBuffer());
+  const samples = [];
+  v.chunks.forEach((c) => {
+    let at = c.offset - start;
+    for (let k = 0; k < c.count; k++) {
+      const i = c.first + k;
+      samples[i] = bytes.subarray(at, at + v.sizes[i]);
+      at += v.sizes[i];
+    }
+  });
+  return samples;
+}
+
+// 読む側（VideoDecoder）・作る側（VideoEncoder）の設定を返す。作る速さ（bitrate）は、もとの動画の1.3倍（少なくとも 2Mbps）
+function quickBadgeConfigs(codec, v) {
+  const n = v.sizes.length;
+  const seconds = v.durations.reduce((s, x) => s + x, 0) / v.timescale;
+  const decodeConfig = { codec: codec.codec, description: codec.description, codedWidth: codec.width, codedHeight: codec.height };
+  const encodeConfig = {
+    codec: codec.codec,
+    width: codec.width,
+    height: codec.height,
+    bitrate: Math.max(2_000_000, Math.round(((v.sizes.reduce((s, x) => s + x, 0) * 8) / Math.max(seconds, 0.1)) * 1.3)),
+    framerate: Math.round(n / Math.max(seconds, 0.1)),
+    ...(codec.avc ? { avc: { format: "avc" } } : { hevc: { format: "hevc" } })
+  };
+  return { decodeConfig, encodeConfig };
+}
+
+// 札のあとの、そのままの残り（until 秒〜to 秒）を返す（{ file, info }）。残りの最初のコマ（キーフレーム）の頭に、もとの設定（prefix）を入れる
+function quickBadgeRest(file, info, until, to, prefix) {
+  const rest = mp4Slice(info, until, to);
+  const rv = rest.tracks.find((x) => x.kind === "vide");
+  const c0 = rv.chunks[0];
+  const size0 = rv.sizes[0];
+  const first = new Blob([prefix, file.slice(c0.offset, c0.offset + size0)]);
+  const chunks = [{ offset: 0, first: 0, count: 1, size: prefix.length + size0, file: first }];
+  if (c0.count > 1) chunks.push({ offset: c0.offset + size0, first: 1, count: c0.count - 1, size: c0.size - size0 });
+  chunks.push(...rv.chunks.slice(1));
+  const fixed = { ...rv, sizes: [prefix.length + size0, ...rv.sizes.slice(1)], chunks };
+  return { file, info: { ...rest, tracks: rest.tracks.map((x) => (x === rv ? fixed : x)) } };
+}
+
 // 動画 info の from 秒〜to 秒（キーフレームの時刻か終わり）を、札を入れた最初の部分と、そのままの残りに分ける。
 // 返すのは [{ file, info }]（buildMp4 にそのまま渡せる）。できなければ null
 async function quickBadgePieces(file, info, keys, from, to, label) {
@@ -108,29 +155,8 @@ async function quickBadgePieces(file, info, keys, from, to, label) {
     const ts = v.timescale;
     const dts = mp4Dts(v);
     const pts = dts.map((d, i) => d + v.offsets[i]);
-    // 映像のデータ（この部分の束を、まとめて1回で読む）
-    const start = Math.min(...v.chunks.map((c) => c.offset));
-    const end = Math.max(...v.chunks.map((c) => c.offset + c.size));
-    const bytes = new Uint8Array(await file.slice(start, end).arrayBuffer());
-    const samples = [];
-    v.chunks.forEach((c) => {
-      let at = c.offset - start;
-      for (let k = 0; k < c.count; k++) {
-        const i = c.first + k;
-        samples[i] = bytes.subarray(at, at + v.sizes[i]);
-        at += v.sizes[i];
-      }
-    });
-    const seconds = v.durations.reduce((s, x) => s + x, 0) / ts;
-    const decodeConfig = { codec: codec.codec, description: codec.description, codedWidth: codec.width, codedHeight: codec.height };
-    const encodeConfig = {
-      codec: codec.codec,
-      width: codec.width,
-      height: codec.height,
-      bitrate: Math.max(2_000_000, Math.round(((v.sizes.reduce((s, x) => s + x, 0) * 8) / Math.max(seconds, 0.1)) * 1.3)),
-      framerate: Math.round(n / Math.max(seconds, 0.1)),
-      ...(codec.avc ? { avc: { format: "avc" } } : { hevc: { format: "hevc" } })
-    };
+    const samples = await quickBadgeSamples(file, v);
+    const { decodeConfig, encodeConfig } = quickBadgeConfigs(codec, v);
     if (!(await VideoDecoder.isConfigSupported(decodeConfig)).supported) return badgeNo(`読めない形式 ${codec.codec}`);
     if (!(await VideoEncoder.isConfigSupported(encodeConfig)).supported) return badgeNo(`作れない形式 ${codec.codec}`);
 
@@ -210,19 +236,7 @@ async function quickBadgePieces(file, info, keys, from, to, label) {
       chunks: [{ offset: 0, first: 0, count: n, size: sizes.reduce((s, x) => s + x, 0), file: blob }]
     };
     const pieces = [{ file, info: { ...head, tracks: head.tracks.map((x) => (x === v ? madeVideo : x)) } }];
-    if (until < to - 0.01) {
-      // 残りの最初のコマ（キーフレーム）の頭に、もとの設定を入れる
-      const rest = mp4Slice(info, until, to);
-      const rv = rest.tracks.find((x) => x.kind === "vide");
-      const c0 = rv.chunks[0];
-      const size0 = rv.sizes[0];
-      const first = new Blob([theirs.prefix, file.slice(c0.offset, c0.offset + size0)]);
-      const chunks = [{ offset: 0, first: 0, count: 1, size: theirs.prefix.length + size0, file: first }];
-      if (c0.count > 1) chunks.push({ offset: c0.offset + size0, first: 1, count: c0.count - 1, size: c0.size - size0 });
-      chunks.push(...rv.chunks.slice(1));
-      const fixed = { ...rv, sizes: [theirs.prefix.length + size0, ...rv.sizes.slice(1)], chunks };
-      pieces.push({ file, info: { ...rest, tracks: rest.tracks.map((x) => (x === rv ? fixed : x)) } });
-    }
+    if (until < to - 0.01) pieces.push(quickBadgeRest(file, info, until, to, theirs.prefix));
     return pieces;
   } catch (e) {
     return badgeNo(`止まった（${e?.message || e}）`);

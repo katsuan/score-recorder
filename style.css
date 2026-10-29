@@ -303,10 +303,6 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 .rate-field { display: grid; grid-template-columns: minmax(0, 1fr) 3.2em; align-items: center; gap: 6px; }
 .rate-field input { width: 100%; min-height: 0; padding: 0; border: 0; background: none; accent-color: #ffd54a; }
 .rate-field b { color: #fff; font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; }
-.export-range { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(255, 255, 255, 0.08); }
-.export-range button { min-height: 38px; border: 0; border-radius: 10px; background: none; color: rgba(255, 255, 255, 0.75); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
-.export-range button[aria-checked="true"] { background: #fff; color: #1a1a1a; }
-.export-range button:disabled { opacity: 0.4; cursor: default; }
 
 /* ⭐ ナイスプレー：録画前から出す（効くのは録画中）。まんなかのときは録画ボタンの上、寄せたときは縦2段の ＋1 の上 */
 .mark-btn { position: absolute; left: 50%; bottom: calc(var(--side-bottom) + 98px); translate: -50% 0; height: 40px; padding: 0 14px; border: 2px solid #ffd54a; border-radius: 999px; background: rgba(0, 0, 0, 0.55); color: #ffe082; font: inherit; font-size: 14px; font-weight: 800; white-space: nowrap; cursor: pointer; } /* 位置は translate で（transform は押したときに光らせる動き hit が使う） */
