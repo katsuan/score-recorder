@@ -66,6 +66,8 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* 見本の ●●●（右上。見本の絵の上から 9%・右から 5% がまん中）に重ねた透明なボタン。保存される動画の見本では出さない */
 .preview-hand { position: absolute; top: 2%; right: 1.2%; width: 8%; aspect-ratio: 1; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
 .preview-hand:focus-visible { outline: 3px solid #fff; outline-offset: 1px; }
+/* 見た目は小さな ●●● の丸のまま、まわりの透明なところも押せるように（44px めやす。ux.md の C3） */
+.preview-hand::after { content: ""; position: absolute; inset: -12px; border-radius: 50%; }
 .preview-frame:not(.is-shoot) .preview-hand { display: none; }
 .preview { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; background: #2e8b4a; }
 /* 「プレビュー」の札（画面の上だけ。動画には入らない） */
@@ -100,7 +102,9 @@ label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(-
 /* ボタンは Q キット（ls-button）。押しやすいよう大きめ */
 .ls-button.is-block { min-height: 52px; font-size: 17px; font-weight: 800; }
 .mid-score { cursor: pointer; border-radius: 8px; padding: 0 4px; }
-.mid-score:hover, .mid-score:focus-visible { background: rgba(0, 0, 0, 0.05); outline: none; }
+.mid-score:hover { background: rgba(0, 0, 0, 0.05); }
+/* キーボードで選んだときだけ、枠でわかるように（指で押したときは出ない） */
+.mid-score:focus-visible { background: rgba(0, 0, 0, 0.05); outline: 2px solid currentColor; outline-offset: 2px; }
 /* スコアを変えるとき：各チームの下に − 点 ＋ */
 .score-step { display: none; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; gap: 4px; }
 .teams.is-editing .score-step { display: grid; }
